@@ -458,6 +458,13 @@
                                     </span>-->
                                 </a>
                             </li>
+                            <li data-tab="filter" >
+                                <a href="#filter" data-toggle="tab" id="filterTab">Filter  
+                                    <!--<span data-bind="visible: activeLayers().length > 0">
+                                        (<span  data-bind="text: activeLayers().length">0</span>)
+                                    </span>-->
+                                </a>
+                            </li>
                             
                         </ul>
                         
@@ -621,6 +628,50 @@
                                 </div>
                             </div>
                             <!-- END LEGEND TAB -->
+                            
+                            <!-- FILTER TAB -->
+                            <div class="tab-pane fade" id="filter" style="background-color: white; height: 100%">
+                                <div class="row-fluid" style="height: 100%">
+                                    <div id="active-content" class="span12" style="height: 100%;">
+                                        <div data-bind="visible: activeLayers().length === 0">
+                                            <div style="margin: 20px;">
+                                                <p>
+                                                    You currently have no activated filter layers. 
+                                                </p>
+                                                <p>
+                                                    Filter layers that are activated in the Data tab will appear in this Filter tab.
+                                                </p>
+                                                <p>
+                                                    Layers in this tab can be filtered by date range and by debris type.
+                                                </p>
+                                                <p>
+                                                    If you haven't used the filter tab before you might want to explore the tutorial.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <ul class="unstyled list" style="margin: 20px 5px;" data-bind="sortable: { data: activeLayers, options: {  } }">
+                                            <li>
+                                                <div class="btn-group">
+                                                    <button class="btn btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive()}"><i class="icon-info-sign icon-large"></i></button>
+                                                    <a class="btn btn-layer" data-bind="css: { 'active': visible() }, click: toggleVisible">
+                                                        <div data-bind="text: name"></div>
+                                                        <span rel="tooltip" data-bind="attr: {title: sharedBy}">
+                                                            <i class="icon-group" data-bind="visible: shared" style="padding-left: 10px"></i>
+                                                        </span>
+                                                        <span ><i class="icon-large check" data-bind="css: { 'icon-check': visible(), 'icon-check-empty': ! visible() }"></i></span>
+                                                    </a>
+                                                    <a class="btn opacity-button" data-bind="click: $parent.showOpacity"><i class="icon-adjust icon-large"></i></a>
+                                                    <button class="btn" data-bind="click: toggleActive">
+                                                        <i class="icon-remove">
+                                                        </i>
+                                                    </button>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- END ACTIVE TAB -->
                             
                         </div>
                     </div>
