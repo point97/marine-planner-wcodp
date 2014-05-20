@@ -606,3 +606,7 @@ a.disabled-link:hover {
 .group-members-popover:hover {
   text-decoration: none; 
 }
+
+input.datepicker {
+  border-radius: 4px;
+}

@@ -710,6 +710,41 @@ function themeModel(options) {
     return self;
 } // end of themeModel
 
+function filterModel(options) {
+    var self = this;
+    self.name = options.display_name;
+    self.depth = options.depth;
+
+    //add to open filters
+    self.setOpenFilter = function() {
+        var filter = this;
+
+        // ensure filter tab is activated
+        $('#filterTab').tab('show');
+
+        if (self.isOpenFilter(filter)) {
+            //app.viewModel.activeTheme(null);
+            app.viewModel.openFilters.remove(filter);
+            app.viewModel.updateScrollBars();
+        } else {
+            app.viewModel.openFilters.push(filter);
+            //setTimeout( app.viewModel.updateScrollBar(), 1000);
+            app.viewModel.updateScrollBars();
+        }
+    };
+
+    //is in openFilter
+    self.isOpenFilter = function() {
+        var filter = this;
+        if (app.viewModel.openFilters.indexOf(filter) !== -1) {
+            return true;
+        }
+        return false;
+    };
+
+    return self;
+} // end of filterModel
+
 function mapLinksModel() {
     var self = this;
 
@@ -838,6 +873,9 @@ function viewModel() {
     // list of active layermodels
     self.activeLayers = ko.observableArray();
 
+    // list of filter layermodels
+    self.filterLayers = ko.observableArray();
+
     // list of visible layermodels in same order as activeLayers
     self.visibleLayers = ko.computed(function() {
         return $.map(self.activeLayers(), function(layer) {
@@ -916,6 +954,16 @@ function viewModel() {
             return theme.id;
         });
     };
+
+    // reference to open themes in accordion
+    self.openFilters = ko.observableArray();
+
+    self.openFilters.subscribe( function() {
+        app.updateUrl();
+    });
+
+    self.filters = ko.observableArray();
+
 
     // reference to active theme model/name for display text
     self.activeTheme = ko.observable();

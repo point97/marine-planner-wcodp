@@ -137,6 +137,9 @@ $(document).ready(function() {
      $(event.target).closest('form').find('input').val(null).focus();
   });
 
+
+  $('.datepicker').datepicker();
+
   //fixes a problem in which the data accordion scrollbar was reinitialized before the app switched back to the data tab
   //causing the data tab to appear empty
   //the following appears to fix that problem
