@@ -721,33 +721,33 @@ function themeModel(options) {
     return self;
 } // end of themeModel
 
-function filterModel(options) {
+function primaryFilterModel(options) {
     var self = this;
     self.name = options.display_name;
     self.depth = options.depth;
 
     //add to open filters
-    self.setOpenFilter = function() {
+    self.setOpenPrimaryFilter = function() {
         var filter = this;
 
         // ensure filter tab is activated
         $('#filterTab').tab('show');
 
-        if (self.isOpenFilter(filter)) {
+        if (self.isOpenPrimaryFilter(filter)) {
             //app.viewModel.activeTheme(null);
-            app.viewModel.openFilters.remove(filter);
+            app.viewModel.openPrimaryFilters.remove(filter);
             app.viewModel.updateScrollBars();
         } else {
-            app.viewModel.openFilters.push(filter);
+            app.viewModel.openPrimaryFilters.push(filter);
             //setTimeout( app.viewModel.updateScrollBar(), 1000);
             app.viewModel.updateScrollBars();
         }
     };
 
     //is in openFilter
-    self.isOpenFilter = function() {
+    self.isOpenPrimaryFilter = function() {
         var filter = this;
-        if (app.viewModel.openFilters.indexOf(filter) !== -1) {
+        if (app.viewModel.openPrimaryFilters.indexOf(filter) !== -1) {
             return true;
         }
         return false;
@@ -967,13 +967,13 @@ function viewModel() {
     };
 
     // reference to open themes in accordion
-    self.openFilters = ko.observableArray();
+    self.openPrimaryFilters = ko.observableArray();
 
-    self.openFilters.subscribe( function() {
+    self.openPrimaryFilters.subscribe( function() {
         app.updateUrl();
     });
 
-    self.filters = ko.observableArray();
+    self.primaryFilters = ko.observableArray();
 
 
     // reference to active theme model/name for display text

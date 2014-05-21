@@ -54,10 +54,10 @@ app.viewModel.loadLayers = function(data) {
 	});
 
 	// load filters
-	var filters = [{'display_name': 'Materials', 'depth': 3}, {'display_name': 'Properties', 'depth': 2}, {'display_name': 'Uses & Industry', 'depth': 4}];
-	$.each(filters, function(i, filter) {
-		var filter = new filterModel(filter);
-		self.filters.push(filter);
+	var primaryFilters = [{'display_name': 'Materials', 'depth': 3}, {'display_name': 'Properties', 'depth': 2}, {'display_name': 'Uses & Industry', 'depth': 4}];
+	$.each(primaryFilters, function(i, filter) {
+		var filter = new primaryFilterModel(filter);
+		self.primaryFilters.push(filter);
 	});
 
 
