@@ -613,13 +613,53 @@ img + h3 {
 #active .btn-group .btn-layer {
 	text-align: left;
 	width: 70%;
-
 }
 #active .btn-info-sign {
     padding: 4px 8px;
 }
-
 #active .btn-layer > div {
+	display: inline-block;
+	line-height: 1;
+	padding-left: 8px;
+	margin-top: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	width: auto;
+    max-width: 72%;
+	/*height: inherit;*/
+    height: 16px;
+    vertical-align: middle;
+}
+
+#filter {
+    outline: 0;
+}
+#filter div:focus {
+    outline: 0;
+}
+#filter ul li {
+	margin-bottom: 10px;
+}
+#filter .btn {
+	padding-left: 0px;
+}
+#filter .opacity-button {
+    padding: 4px 9px;
+}
+#filter .btn:last-child {
+	padding: 4px 9px;
+}
+#filter .btn-group {
+	width: 90%;
+}
+#filter .btn-group .btn-layer {
+	text-align: left;
+	width: 74%;
+}
+#filter .btn-info-sign {
+    padding: 4px 8px;
+}
+#filter .btn-layer > div {
 	display: inline-block;
 	line-height: 1;
 	padding-left: 8px;

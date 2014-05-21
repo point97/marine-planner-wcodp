@@ -245,8 +245,14 @@ function layerModel(options, parent) {
     // called from deactivateLayer
     self.deactivateBaseLayer = function() {
         var layer = this;
+        
         // remove from active layers
         app.viewModel.activeLayers.remove(layer);
+
+        // remove from filter layers
+        if (layer.summarize_to_grid) {
+            app.viewModel.filterLayers.remove(layer);
+        }        
 
         //remove the key/value pair from aggregatedAttributes
         app.viewModel.removeFromAggregatedAttributes(layer.name);
@@ -346,6 +352,10 @@ function layerModel(options, parent) {
 
         //now that we now longer use the selectfeature control we can simply do the following
         app.viewModel.activeLayers.unshift(layer);
+
+        if (layer.summarize_to_grid) {
+            app.viewModel.filterLayers.unshift(layer);
+        }
 
         // set the active flag
         layer.active(true);
