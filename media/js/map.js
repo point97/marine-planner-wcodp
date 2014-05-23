@@ -581,6 +581,9 @@ app.addGridSummaryLayerToMap = function(layer) {
     var breaks, scale = ["#fff5f0","#fee0d2","#fcbba1","#fc9272","#fb6a4a","#ef3b2c","#cb181d","#a50f15","#67000d"];
     if (layer.proxy_url) {
         url = '/proxy/layer/' + layer.id;
+        if (layer.filter) {
+            url += layer.filter;
+        }
     }
     if (!app.grid) {
         app.grid = {
@@ -619,6 +622,14 @@ app.addGridSummaryLayerToMap = function(layer) {
             styleMap: new OpenLayers.StyleMap(style)
         }
     );
+
+    // remove existing grid layers from the map
+    var gridLayers = _.where(app.map.layers, {name: "grid"});
+    _.each(gridLayers, function(layer, index) {
+         app.map.removeLayer(layer);
+    });
+    
+    // add the new grid layer to the map
     app.map.addLayer(app.grid.grid_b_layer);
     var timer = new Date().getTime();
     $.when(

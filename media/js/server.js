@@ -57,18 +57,18 @@ app.viewModel.loadLayers = function(data) {
 	var primaryFilters = [{'display_name': 'Materials', 'depth': 3}, {'display_name': 'Properties', 'depth': 2}, {'display_name': 'Uses & Industry', 'depth': 4}];
 	$.each(primaryFilters, function(i, filter) {
 		var filter = new primaryFilterModel(filter);
-		self.primaryFilters.push(filter);
+		self.filterTab.primaryFilters.push(filter);
 	});
 
 
 	app.typeAheadSource = (function () {
-            var keys = [];
-            for (var searchTerm in app.viewModel.layerSearchIndex) {
-                if (app.viewModel.layerSearchIndex.hasOwnProperty(searchTerm)) {
-                    keys.push(searchTerm);
-                }
+        var keys = [];
+        for (var searchTerm in app.viewModel.layerSearchIndex) {
+            if (app.viewModel.layerSearchIndex.hasOwnProperty(searchTerm)) {
+                keys.push(searchTerm);
             }
-            return keys;
+        }
+        return keys;
     })();
     
     //re-initialise the legend scrollbar 

@@ -251,7 +251,7 @@ function layerModel(options, parent) {
 
         // remove from filter layers
         if (layer.summarize_to_grid) {
-            app.viewModel.filterLayers.remove(layer);
+            app.viewModel.filterTab.filterLayers.remove(layer);
         }        
 
         //remove the key/value pair from aggregatedAttributes
@@ -354,7 +354,7 @@ function layerModel(options, parent) {
         app.viewModel.activeLayers.unshift(layer);
 
         if (layer.summarize_to_grid) {
-            app.viewModel.filterLayers.unshift(layer);
+            app.viewModel.filterTab.filterLayers.unshift(layer);
         }
 
         // set the active flag
@@ -721,40 +721,6 @@ function themeModel(options) {
     return self;
 } // end of themeModel
 
-function primaryFilterModel(options) {
-    var self = this;
-    self.name = options.display_name;
-    self.depth = options.depth;
-
-    //add to open filters
-    self.setOpenPrimaryFilter = function() {
-        var filter = this;
-
-        // ensure filter tab is activated
-        $('#filterTab').tab('show');
-
-        if (self.isOpenPrimaryFilter(filter)) {
-            //app.viewModel.activeTheme(null);
-            app.viewModel.openPrimaryFilters.remove(filter);
-            app.viewModel.updateScrollBars();
-        } else {
-            app.viewModel.openPrimaryFilters.push(filter);
-            //setTimeout( app.viewModel.updateScrollBar(), 1000);
-            app.viewModel.updateScrollBars();
-        }
-    };
-
-    //is in openFilter
-    self.isOpenPrimaryFilter = function() {
-        var filter = this;
-        if (app.viewModel.openPrimaryFilters.indexOf(filter) !== -1) {
-            return true;
-        }
-        return false;
-    };
-
-    return self;
-} // end of filterModel
 
 function mapLinksModel() {
     var self = this;
@@ -884,9 +850,6 @@ function viewModel() {
     // list of active layermodels
     self.activeLayers = ko.observableArray();
 
-    // list of filter layermodels
-    self.filterLayers = ko.observableArray();
-
     // list of visible layermodels in same order as activeLayers
     self.visibleLayers = ko.computed(function() {
         return $.map(self.activeLayers(), function(layer) {
@@ -965,16 +928,6 @@ function viewModel() {
             return theme.id;
         });
     };
-
-    // reference to open themes in accordion
-    self.openPrimaryFilters = ko.observableArray();
-
-    self.openPrimaryFilters.subscribe( function() {
-        app.updateUrl();
-    });
-
-    self.primaryFilters = ko.observableArray();
-
 
     // reference to active theme model/name for display text
     self.activeTheme = ko.observable();

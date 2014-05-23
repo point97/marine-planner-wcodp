@@ -138,7 +138,12 @@ $(document).ready(function() {
   });
 
 
-  $('.datepicker').datepicker();
+  // $('.datepicker').datepicker();
+  $('#filter-start-date').datepicker().on('changeDate', function(ev) {
+      app.viewModel.filterTab.startDate(ev.date);
+  });$('#filter-to-date').datepicker().on('changeDate', function(ev) {
+      app.viewModel.filterTab.toDate(ev.date);
+  });
 
   //fixes a problem in which the data accordion scrollbar was reinitialized before the app switched back to the data tab
   //causing the data tab to appear empty
