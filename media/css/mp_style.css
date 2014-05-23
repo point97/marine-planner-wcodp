@@ -779,7 +779,7 @@ img + h3 {
 
 /*** Rules for the layer switcher ***/
 
-#basemaps {
+#login-buttons, #basemaps {
   position: absolute;
   z-index: 1020;
   border-radius: 4px;
@@ -787,6 +787,27 @@ img + h3 {
   font-size: 14px;
 }
 
+#login-buttons {
+    top: 8px;
+    right: 65px;
+}
+    #login-buttons .dropdown-menu {
+        right: 0;
+        left: auto;
+    }
+    #login-buttons .btn-large {
+        padding: 6px 9px;
+    }
+    #login-buttons img {
+        height: 30px;
+    }
+    #login-buttons .caret {
+        margin-top: 11px;
+    }
+#signinButton h4 {
+    margin: 0 5px 10px;
+    color: #000;
+}
 #basemaps {
 	top: 8px;
 	right: 8px;
