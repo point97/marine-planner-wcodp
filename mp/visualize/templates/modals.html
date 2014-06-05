@@ -4,8 +4,10 @@
 <!--<div id="feedback-tab" class="rounded" data-toggle="modal" data-target="#feedback-modal">
     <a href="#">feedback</a>
 </div>-->
-<div id="feedback-modal" class="modal hide fade">
+<div id="feedback-modal" class="modal fade">
     <form class="form-horizontal" id="feedback-form">
+     <div class="modal-dialog">
+      <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
             <h3>Feedback</h3>
@@ -32,31 +34,35 @@
 
         </div>
         <div class="modal-footer">
-            <button href="#" class="btn" data-dismiss="modal">Close</button>
+            <button href="#" class="btn btn-default" data-dismiss="modal">Close</button>
             <button type="submit" class="btn btn-primary">Send Feedback</button>
         </div>
+       </div>
+      </div>
   </form>
 </div>
 
 <!-- Layer Add MODAL -->
 {% if user.is_staff %}
-<div id="add-layer-modal" class="modal hide fade">
+<div id="add-layer-modal" class="modal fade">
+  <div class="modal-dialog">
+   <div class="modal-content">
     <div class="modal-header" style="min-height: 20px;">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h3>Add a Layer to the Marine Planner</h3>
     </div>
     <div class="modal-body" data-bind="if: newLayer">  
-      <div class="row-fluid" data-bind="with: newLayer">
+      <div class="row" data-bind="with: newLayer">
           <form class="form-horizontal" data-bind="submit: $root.createLayer">
-            <div class="control-group">
-              <label class="control-label" for="inputEmail">Name</label>
-              <div class="controls">
+            <div class="form-group">
+              <label class="col-md-3" for="inputEmail">Name</label>
+              <div class="col-md-9">
                 <input type="text" placeholder="Name" required data-bind="value: name">
               </div>
             </div>
-            <div class="control-group">
-                <label class="control-label">Type</label>
-                <div class="controls">
+            <div class="form-group">
+                <label class="col-md-3">Type</label>
+                <div class="col-md-9">
                     <select data-bind="value: layer_type">
                       <option value="ArcRest">ArcRest</option>
                       <option value="XYZ">XYZ</option>
@@ -64,28 +70,28 @@
                     </select>
                 </div>
             </div>
-            <div class="control-group">
-              <label class="control-label" for="inputPassword">URL</label>
-              <div class="controls">
+            <div class="form-group">
+              <label class="col-md-3" for="inputPassword">URL</label>
+              <div class="col-md-9">
                 <input type="text" placeholder="URL" data-bind="value: url">
               </div>
             </div>
-            <div class="control-group" data-bind="visible: layer_type() == 'ArcRest'">
-              <label class="control-label" for="inputPassword">ArcGIS Layers</label>
-              <div class="controls">
+            <div class="form-group" data-bind="visible: layer_type() == 'ArcRest'">
+              <label class="col-md-3" for="inputPassword">ArcGIS Layers</label>
+              <div class="col-md-9">
                 <input type="text" placeholder="ArcGIS Layers" data-bind="value: arcgis_layers">
               </div>
             </div>
-            <div class="control-group" data-bind="visible: layer_type() == 'WMS'">
-              <label class="control-label" for="inputPassword">WMS Layer Name</label>
-              <div class="controls">
+            <div class="form-group" data-bind="visible: layer_type() == 'WMS'">
+              <label class="col-md-3" for="inputPassword">WMS Layer Name</label>
+              <div class="col-md-9">
                 <input type="text" placeholder="WMA Layer Name" data-bind="value: wms_slug">
               </div>
             </div>
             
-            <div class="control-group">
-                <label class="control-label">Theme</label>
-                <div class="controls">
+            <div class="form-group">
+                <label class="col-md-3">Theme</label>
+                <div class="col-md-9">
                     <select data-bind="options: $root.themes, value: theme, optionsText: 'name'">
                     </select>
                 </div>
@@ -94,24 +100,29 @@
       </div>
     </div>
     <div class="modal-footer">
-        <button href="#" class="btn" data-dismiss="modal">Cancel</button>
+        <button href="#" class="btn btn-default" data-dismiss="modal">Cancel</button>
         <button href="#" class="btn btn-primary" data-dismiss="modal" data-bind="click: $root.createLayer">Save</button>
     </div>
+   </div>
+  </div>
 </div>
 
 {% endif %}
 <!-- HELP MODAL -->
 
-<div id="help-modal" class="modal hide fade">
-    <div class="modal-header" style="min-height: 20px;">
+<div id="help-modal" class="modal fade">
+  <div class="modal-dialog">
+   <div class="modal-content">
+    <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3>Take a Tour</h3>
     </div>
     <div class="modal-body" style="text-align: center">  
-      <div class="row-fluid">
-        <div class="span12" data-bind="style: {display: hideTours() ? 'none': 'block'}, css: {span12: !hideTours()}">
+      <div class="row">
+        <div class="col-md-12" data-bind="style: {display: hideTours() ? 'none': 'block'}, css: {'col-md-12': !hideTours()}">
             <h4>Tour the Marine Planner</h4>
             <div style="text-align: center">
-            <ul class="unstyled" style="margin-left: 1px">
+            <ul class="unstyled" style="margin-left: 1px; padding-left: 0px">
                 <li><a href="#" data-dismiss="modal" data-bind="click: startDefaultTour">Tour the Basics</a></li>
                 <li><a href="#" data-dismiss="modal" data-bind="click: startDataTour">Tour the Data Tab</a></li>
                 <li><a href="#" data-dismiss="modal" data-bind="click: startActiveTour">Tour the Active Tab</a></li>
@@ -121,19 +132,23 @@
       </div>
     </div>
     <div class="modal-footer">
-        <button href="#" class="btn" data-dismiss="modal">Close</button>
+        <button href="#" class="btn btn-default" data-dismiss="modal">Close</button>
     </div>
+   </div>
+  </div>
 </div>
 
 <!-- DESIGN SHARE MODAL -->
 
-<div id="share-modal" class="modal hide fade" data-bind="with: app.viewModel.scenarios">
+<div id="share-modal" class="modal fade" data-bind="with: app.viewModel.scenarios">
+  <div class="modal-dialog">
+   <div class="modal-content">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h3>Sharing</h3>
     </div>
     <div class="modal-body" style="height: 200px; text-align: center; overflow: hidden;">  
-        <div class="row-fluid">
+        <div class="row">
             <h4 class="sharing-header">Share my design with the following:</h4>
             <ul class="unstyled" id="sharing-groups" style="margin-left: 1px; height: 165px; outline: none;">
                 <span data-bind="foreach: sharingGroups">
@@ -155,22 +170,26 @@
         </div>
     </div>
     <div class="modal-footer">
-        <button href="#" class="btn" data-bind="click: cancelShare" data-dismiss="modal">Cancel</button>
+        <button href="#" class="btn btn-default" data-bind="click: cancelShare" data-dismiss="modal">Cancel</button>
         <button type="submit" class="btn-submit btn" data-bind="click: submitShare" data-dismiss="modal">Share</button>
     </div>
+   </div>
+  </div>
 </div>
 
 <!-- DESIGN MAP LINKS MODAL -->
 
-<div style="display:none; width: 450px;" id="map-links-modal" class="modal hide fade" data-bind="with: app.viewModel.mapLinks">
+<div id="map-links-modal" style="display:none;" class="modal fade" data-bind="with: app.viewModel.mapLinks">
+  <div class="modal-dialog">
+   <div class="modal-content">
     <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h3>Map Links</h3>
     </div>
     
-    <div class="modal-body" style="height: 165px; overflow: hidden"> 
-        <div class="row-fluid" style="padding-top: 5px">
-            <div>
+    <div class="modal-body" style="overflow: hidden"> 
+        <div style="padding-top: 5px">
+            <div style="margin: 5px">
                 Share this map with others  
                 <span class="pull-right">
                     <label data-bind="visible: showShrinkOption"> 
@@ -179,16 +198,16 @@
                     </label>
                 </span>
             </div>
-            <div>
+            <div style="margin: 5px">
                 <input id="short-url" type="text" style="width: 96%" data-bind="attr: {value: getURL()}"> 
             </div>
-            <div style="padding-top: 12px; padding-bottom: 5px"> 
+            <div style="padding-top: 12px; margin: 5px"> 
                 Embed this map in your own webpage 
             </div> 
-            <div> 
+            <div style="margin: 5px"> 
                 <input id="iframe-html" type="text" style="width: 96%" data-bind="attr: {value: getIFrameHTML}"> 
             </div> 
-            <div style="margin-top: -4px"> 
+            <div style="margin: 5px; margin-top: -4px"> 
                 <a href="#" data-bind="click: openIFrameExample"> 
                     Preview embedded map 
                 </a> 
@@ -196,8 +215,10 @@
         </div>
     </div>
     <div class="modal-footer">
-        <button href="#" class="btn" data-dismiss="modal">Close</button>
+        <button href="#" class="btn btn-default" data-dismiss="modal">Close</button>
     </div>
+   </div>
+  </div>
 </div>
 
 

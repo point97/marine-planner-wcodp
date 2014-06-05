@@ -39,6 +39,9 @@ li a {
 #fullscreen {
 	display: none;
 	background-color: white;
+	/* Bootstrap 3 fix */
+	/*margin-left: -5px;
+	margin-right: -10px;*/
 }
 
 #loading {
@@ -612,7 +615,8 @@ img + h3 {
 }
 #active .btn-group .btn-layer {
 	text-align: left;
-	width: 70%;
+	/* Bootstrap 3 fix */
+	/*width: 70%;*/
 }
 #active .btn-info-sign {
     padding: 4px 8px;
@@ -620,12 +624,13 @@ img + h3 {
 #active .btn-layer > div {
 	display: inline-block;
 	line-height: 1;
-	padding-left: 8px;
+	/* Bootstrap 3 fix */
+	/*padding-left: 8px;*/
 	margin-top: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	width: auto;
-    max-width: 72%;
+    max-width: 90%;
 	/*height: inherit;*/
     height: 16px;
     vertical-align: middle;
@@ -654,7 +659,8 @@ img + h3 {
 }
 #filter .btn-group .btn-layer {
 	text-align: left;
-	width: 74%;
+	/* Bootstrap 3 fix */
+	/*width: 74%;*/
 }
 #filter .btn-info-sign {
     padding: 4px 8px;
@@ -839,7 +845,9 @@ img + h3 {
     text-decoration: none;
     outline: none;
     overflow: hidden;
-    width: 26px;
+    /* Bootstrap 3 fix */
+    /* width: 26px; */
+    width: 36px;
     line-height: 26px;
     background: #130085; /* fallback for IE - IE6 requires background shorthand*/
     background: rgba(0, 60, 136, 0.5);
@@ -851,10 +859,11 @@ img + h3 {
     transition: width .3s ease-in-out;
 }
 
-#basemaps a {
+/* Bootstrap 3 fix */
+/*#basemaps a {
 	text-align: left;
     padding-left: 10px;
-}
+}*/
 
 #basemaps span {
 	opacity: 0;
@@ -908,8 +917,8 @@ img + h3 {
 
 .SimpleLayerSwitcher {
   position:absolute;
-  top:12px;
-  right:166px;
+  top:70px;
+  right:152px;
   background-color:whiteSmoke;
   border:1px solid #ccc;
   border-radius:4px;

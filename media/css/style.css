@@ -216,7 +216,9 @@
 i.check {
   position: absolute;
   right: 5px;
-  top: 10px;
+  /* Bootstrap 3 fix */
+  /*top: 10px;*/
+  top: 7px;
 }
 
 /* the following overrides a 20px margin that was behaving intermittently in conjunction with the hovering of icon-check-empty */
@@ -537,9 +539,10 @@ a.disabled-link:hover {
 	margin-bottom: 10px;
 }
 
-.layer .btn-info-sign {
+/* Bootstrap 3 fix */
+/*.layer .btn-info-sign {
     padding: 4px 8px;
-}
+}*/
 
 #designs-accordion  ul.unstyled {
   margin-bottom: 0px; 

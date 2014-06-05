@@ -620,7 +620,7 @@
   top: 0;
   left: 0;
   padding: 0;
-  margin: 0;
+  margin: 10px;
   pointer-events: none;
   -webkit-box-shadow: 0 0 1px 1px rgba(241, 2, 130, 0.35);
   -moz-box-shadow: 0 0 1px 1px rgba(241, 2, 130, 0.35);

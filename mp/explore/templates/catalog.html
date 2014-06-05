@@ -39,8 +39,8 @@
         <link rel="stylesheet" href="{{MEDIA_URL}}mp/css/mp/mp_style.ie.css">
         <![endif]-->        
         
-        <link rel="stylesheet" href="{{MEDIA_URL}}assets/bootstrap/bootstrap.css">
-        <link rel="stylesheet" href="{{MEDIA_URL}}assets/bootstrap/bootstrap-responsive.css">
+        <link rel="stylesheet" href="{{MEDIA_URL}}assets/bootstrap-3/css/bootstrap.css">
+        <!-- <link rel="stylesheet" href="{{MEDIA_URL}}assets/bootstrap/bootstrap-responsive.css"> -->
         <link rel="stylesheet" href="{{MEDIA_URL}}/assets/font/font-awesome.css">
 
         <!-- marine planner stylesheet -->
@@ -72,8 +72,8 @@
             <div class="navbar navbar-fixed-top">
                 <div class="navbar-inner">
                 <div class="container">
-                    <div class="row-fluid">
-                        <div class="span4">
+                    <div class="row">
+                        <div class="col-md-4">
                             {% if project_home_page %}
                             <a href="{{project_home_page}}" style="text-decoration: none">
                             {% else %}
@@ -91,7 +91,7 @@
                             </a>
                             <!--<h3 class="pull-right" data-bind="visible: mapTitle, text: mapTitle"></h3>-->
                         </div>
-                        <div class="span8">
+                        <div class="col-md-8">
                         </div>
                         <!--/.nav-collapse -->
                     </div>
@@ -101,26 +101,26 @@
         </header>
         
         <div class="container">
-            <div id="content" class="row-fluid">
-                <div id="main" class="span10" role="main">
+            <div id="content" class="row">
+                <div id="main" class="col-md-10" role="main">
                     {% load flatblock_tags %}
 
                     <h2>{% flatblock "data_catalog_title" %}</h2>
                     {% flatblock "data_catalog_intro" %}
 
-                    <div class="row-fluid search-row">
-                        <div class="span12" style="margin: 15px 0;">
+                    <div class="row search-row">
+                        <div class="col-md-12" style="margin: 15px 0;">
                             <h3>Data Layer Search</h3>
                             <form class="form-search layer-search">
                                 <input type="text" class="search-box" data-provide="typeahead" data-bind="value: searchTerm, event: { keyup: keySearch }" placeholder="Search the Catalog">
-                                <a class="btn">
+                                <a class="btn btn-default">
                                     <i class="icon-remove icon-large"></i> 
                                 </a>
                             </form>
                         </div>
                     </div>
 
-                    <div class="span8 theme catalog-page accordion" id="theme-list">
+                    <div class="col-md-8 theme catalog-page accordion" id="theme-list">
                         {% for theme_dict in themes %}
                         <div class="accordion-group theme-group">
                             <div class="accordion-heading theme-heading">

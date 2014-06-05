@@ -70,13 +70,48 @@ app.viewModel.loadLayersFromServer().done(function() {
   if (app.hash) {
     app.loadStateFromHash(app.hash);
   }
-  // autocomplete for filter
+
+  var substringMatcher = function(strs) {
+    return function findMatches(q, cb) {
+      var matches, substringRegex;
+   
+      // an array that will be populated with substring matches
+      matches = [];
+   
+      // regex used to determine if a string contains the substring `q`
+      substrRegex = new RegExp(q, 'i');
+   
+      // iterate through the pool of strings and for any string that
+      // contains the substring `q`, add it to the `matches` array
+      $.each(strs, function(i, str) {
+        if (substrRegex.test(str)) {
+          // the typeahead jQuery plugin expects suggestions to a
+          // JavaScript object, refer to typeahead docs for more info
+          matches.push({ value: str });
+        }
+      });
+   
+      cb(matches);
+    };
+  };
+  // autocomplete for search
   $('.search-box').typeahead({
-    source: app.typeAheadSource
+    minLength: 2,
+    highlight: true
+  }, {
+    source: substringMatcher(app.typeAheadSource)
   });
+  // {
+  //   source: app.typeAheadSource
+  // });
 
   if ( ! ($.browser.msie && $.browser.version < 9) && ! app.embeddedMap ) {
-    $("#data-accordion").jScrollPane();
+    // $("#data-accordion").jScrollPane();
+    // $("#data-accordion").perfectScrollbar({
+    //   suppressScrollX: true,
+    //   includePadding: true,
+    //   wheelSpeed: 100
+    // });
   }
     //$("#legend-wrapper").jScrollPane();
   // }
@@ -139,11 +174,40 @@ $(document).ready(function() {
 
 
   // $('.datepicker').datepicker();
+
+  // date filters 
   $('#filter-start-date').datepicker().on('changeDate', function(ev) {
       app.viewModel.filterTab.startDate(ev.date);
   });$('#filter-to-date').datepicker().on('changeDate', function(ev) {
       app.viewModel.filterTab.toDate(ev.date);
   });
+
+  // filter typeahead and pills
+  // $('#filter-input').tagsinput();
+  // $('#filter-input').tagsinput('#filter-input').typeahead({
+  //     source: ["Derelict", "Cleanup"]
+  // });
+  // $('#filter-input').tagsinput({
+  //     typeahead: {
+  //         source: function (query, process) {
+  //             return ([{"value": 1, "text": "Derelict"}, {"value": 2, "text": "Cleanup"}]);
+  //         }
+  //     }
+  // });
+  
+  // making sure we can get typeahead working
+  // $('#filter-input').typeahead({
+  //     source: ["Derelict", "Cleanup"]
+  // });
+  (function () {
+        var keys = [];
+        for (var searchTerm in app.viewModel.layerSearchIndex) {
+            if (app.viewModel.layerSearchIndex.hasOwnProperty(searchTerm)) {
+                keys.push(searchTerm);
+            }
+        }
+        return keys;
+    })()
 
   //fixes a problem in which the data accordion scrollbar was reinitialized before the app switched back to the data tab
   //causing the data tab to appear empty

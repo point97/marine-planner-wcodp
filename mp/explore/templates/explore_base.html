@@ -50,8 +50,8 @@
                                 <link rel="stylesheet" href="{{MEDIA_URL}}mp/css/mp/mp_style.ie.css">
                         <![endif]-->        
                         
-                        <link rel="stylesheet" href="{{MEDIA_URL}}assets/bootstrap/bootstrap.css">
-                        <link rel="stylesheet" href="{{MEDIA_URL}}assets/bootstrap/bootstrap-responsive.css">
+                        <link rel="stylesheet" href="{{MEDIA_URL}}assets/bootstrap-3/css/bootstrap.css">
+                        <!-- <link rel="stylesheet" href="{{MEDIA_URL}}assets/bootstrap/bootstrap-responsive.css"> -->
 
                         <!-- marine planner stylesheet -->
                         <link rel="stylesheet" href="{{MEDIA_URL}}css/mp_style.css">
@@ -80,8 +80,8 @@
                             <div class="navbar navbar-fixed-top">
                                 <div class="navbar-inner">
                                 <div class="container">
-                                    <div class="row-fluid">
-                                        <div class="span4">
+                                    <div class="row">
+                                        <div class="col-md-4">
                                             <a href="/portal">
                                                 {% if project_logo %}
                                                 <img style="height: 77px;" src="{{project_logo}}"/>
@@ -94,7 +94,7 @@
                                                 {% endif %}
                                             </a>
                                         </div>
-                                        <div class="span8">
+                                        <div class="col-md-8">
                                         </div>
                                         <!--/.nav-collapse -->
                                     </div>
@@ -142,11 +142,11 @@
                         -->
                         <!-- end header -->
                         <div class="container">
-                            <div id="content" class="row-fluid">
-                                <div id="main" class="span10" role="main">
+                            <div id="content" class="row">
+                                <div id="main" class="col-md-10" role="main">
                                     {% block  main %}{% endblock %}
                                 </div>
-                                    <div class="sidebar span2" role="complementary">
+                                    <div class="sidebar col-md-2" role="complementary">
                                         <div id="sidebar-nav">
                                             {% block sidebar %}
                                             {% endblock sidebar %}

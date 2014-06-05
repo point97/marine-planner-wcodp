@@ -10,8 +10,8 @@
         <meta name="description" content="">
         <meta name="author" content="">
         <!-- Le styles -->
-        <link href="assets/css/bootstrap.css" rel="stylesheet">
-        <link href="assets/css/bootstrap-responsive.css" rel="stylesheet">
+        <link href="assets/bootstrap-3/css/bootstrap.css" rel="stylesheet">
+        <!-- <link href="assets/css/bootstrap-responsive.css" rel="stylesheet"> -->
         <link href="assets/css/style.css" rel="stylesheet">
         <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/base/jquery-ui.css"
         type="text/css" media="all" />
@@ -32,7 +32,7 @@
     <body>
         <div class="navbar navbar-fixed-top">
             <div class="navbar-inner">
-                <div class="container-fluid">
+                <div class="container">
                     <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
@@ -75,9 +75,9 @@
                 </div>
             </div>
         </div>
-        <div class="container-fluid" id="primary-content">
-            <div class="row-fluid">
-                <div class="span4">
+        <div class="container" id="primary-content">
+            <div class="row">
+                <div class="col-md-4">
                     <div class="well sidebar-nav">
                         <!-- tab controls -->
                         <ul id="myTab" class="nav nav-tabs">
@@ -97,8 +97,8 @@
                         <div id="myTabContent" class="tab-content">
                             <!-- data tab -->
                             <div class="tab-pane fade active in" id="data">
-                                <div class="row-fluid">
-                                    <div class="span12">
+                                <div class="row">
+                                    <div class="col-md-12">
                                         <!-- data accordion -->
                                         <div class="accordion" id="data-accordion" data-bind="foreach: themes">
                                             <div class="accordion-group">
@@ -156,9 +156,9 @@
                                     <!-- /span -->
                                 </div>
                                 <!-- /row -->
-                                <div class="row-fluid">
+                                <div class="row">
                                     <div class="well">
-                                        <div class="span12">
+                                        <div class="col-md-12">
                                             <form class="form-search" data-bind="submit: layerSearch">
                                                 <input type="text" class="search-query" data-provide="typeahead" data-bind="value: searchTerm">
                                                 <button type="submit" class="btn">
@@ -219,9 +219,9 @@
                     <!--/.well -->
                 </div>
                 <!--/span-->
-                <div class="span8">
-                    <div class="row-fluid">
-                        <div class="span12">
+                <div class="col-md-8">
+                    <div class="row">
+                        <div class="col-md-12">
                             <!-- theme buttons -->
                             <div>
                                 <div class="btn-group theme-buttons" data-bind="foreach: themes">
@@ -235,10 +235,10 @@
                         </div>
                     </div>
                         
-                    <div class="row-fluid" data-bind="visible: showMapPanel">
-                        <div class="span12">
-                            <div class="row-fluid" >
-                                <div id="map-wrapper" class="span9" data-bind="css: { span9: showLegend(), span12: ! showLegend() }">
+                    <div class="row" data-bind="visible: showMapPanel">
+                        <div class="col-md-12">
+                            <div class="row" >
+                                <div id="map-wrapper" class="col-md-9" data-bind="css: { col-md-9: showLegend(), col-md-12: ! showLegend() }">
                                   <div id="map"></div>
                                   <div id="map-buttons">
                                       <p><button class="btn pull-right" data-bind="click: toggleLegend, attr: {disabled: ! hasActiveLegends()}">
@@ -274,7 +274,7 @@
                                         </div>
                                   </div>
                                 </div>
-                                <div data-bind="visible: showLegend()" class="span3">
+                                <div data-bind="visible: showLegend()" class="col-md-3">
                                     <div id="legend-wrapper">
                                         <div class="accordion" id="legend-accordion" data-bind="foreach: activeLayers">
                                             <div data-bind="if: legend">
@@ -296,13 +296,13 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row-fluid">
-                            <div class="span6">
+                        <div class="row">
+                            <div class="col-md-6">
                                 <h3>
                                     About This Map
                                 </h3>
                             </div>
-                            <div class="span6">
+                            <div class="col-md-6">
                             </div>
                         </div>
                     </div>
