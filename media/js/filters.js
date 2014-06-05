@@ -5,7 +5,7 @@ function filteringModel() {
 
 	self.startDate = ko.observable(false);
 	self.toDate = ko.observable(false);
-	self.fields = ko.observableArray();
+	self.eventTypes = ko.observableArray();
 
     // list of filter layermodels
     self.filterLayers = ko.observableArray();
@@ -19,10 +19,16 @@ function filteringModel() {
 
     self.primaryFilters = ko.observableArray();
 
+    self.updateFilter = function() {
+        filterItems = $('#filter-input').text();
+        console.log(filterItems);
+    }
+
     self.createFilterString = function(options) {
     	var filterString = "?filter=[",    	    
     		startDate = options.startDate || self.startDate(),
-    		toDate = options.toDate || self.toDate();
+    		toDate = options.toDate || self.toDate(),
+            eventTypes = options.eventTypes || self.eventTypes;
     	if (startDate) {
     		// filterString = '?filter=[{"type":"fromDate","value":' + '"' + startDate.getDate() + '/' + (startDate.getMonth()+1) + '/' + startDate.getFullYear() + '"}]';	
     		filterString += JSON.stringify({'type': 'fromDate', 'value': (startDate.getMonth()+1) + '/' + startDate.getDate() + '/' + startDate.getFullYear()});
@@ -33,8 +39,14 @@ function filteringModel() {
     		}
     		filterString += JSON.stringify({'type': 'toDate', 'value': (toDate.getMonth()+1) + '/' + toDate.getDate() + '/' + toDate.getFullYear()});
     	} 
-
-
+        if (eventTypes) {           
+            for (var index=0; index<eventTypes.length; index+=1) {
+                if (startDate || toDate || index>0) {
+                    filterString += ','
+                }
+                filterString += JSON.stringify({'type': 'event_type', 'value': eventTypes[index]});
+            }
+        } 
     	filterString += "]";
     	return filterString;
     };
@@ -52,6 +64,13 @@ function filteringModel() {
     		layer.layer = app.addGridSummaryLayerToMap(layer);
 		});
 	});
+
+    self.eventTypes.subscribe(function(newEventTypes) {
+        $.each(self.filterLayers(), function(i, layer) {
+            layer.filter = self.createFilterString({'eventTypes': newEventTypes});
+            layer.layer = app.addGridSummaryLayerToMap(layer);
+        });
+    });
 }
 
 app.viewModel.filterTab = new filteringModel();

@@ -1082,29 +1082,31 @@ function viewModel() {
     };
 
     // minimize data panel
-    self.minimized = false;
+    self.leftPanelIsMinimized = ko.observable(false);
     self.minimizeLeftPanel = function() {
-        if ( !self.minimized ) {
-            $('.sidebar-nav').animate( {height: '50px'}, 400 );
-            $('#help-button').hide();
-            $('#add-layer-button').hide();
-            $('.search-form').hide();
-            $('#myTab').hide();
-            $('#myTabContent').hide();
-        } else {
-            $('.sidebar-nav').animate( {height: '550px'}, 400 );
-            setTimeout( function() {
-                $('#help-button').show();
-                $('#add-layer-button').show();
-                $('.search-form').show();
-                $('#myTab').show();
-                $('#myTabContent').show();
-            }, 200);
-            setTimeout( function() {
-                self.updateAllScrollBars();
-            }, 400);
-        }
-        self.minimized = !self.minimized;
+        $('.sidebar-nav').animate( {height: '50px'}, 400 );
+        $('#help-button').hide();
+        $('#add-layer-button').hide();
+        $('.search-form').hide();
+        $('#myTab').hide();
+        $('#myTabContent').hide();
+        setTimeout( function() {
+            self.leftPanelIsMinimized(true);
+        }, 200);
+    };
+    self.maximizeLeftPanel = function() {
+        $('.sidebar-nav').animate( {height: '550px'}, 400 );
+        setTimeout( function() {
+            $('#help-button').show();
+            $('#add-layer-button').show();
+            $('.search-form').show();
+            $('#myTab').show();
+            $('#myTabContent').show();
+            self.leftPanelIsMinimized(false);
+        }, 200);
+        setTimeout( function() {
+            self.updateAllScrollBars();
+        }, 400);
     };
 
     // zoom with box
@@ -1236,19 +1238,20 @@ function viewModel() {
     //update jScrollPane scrollbar
     self.updateScrollBars = function() {
         if ( ! app.embeddedMap ) {
-            var dataScrollpane = $('#data-accordion').data('jsp');
-            if (dataScrollpane === undefined) {
-                $('#data-accordion').jScrollPane();
-            } else {
-                dataScrollpane.reinitialise();
-            }
+            // var dataScrollpane = $('#data-accordion').data('jsp');
+            // if (dataScrollpane === undefined) {
+            //     $('#data-accordion').jScrollPane();
+            // } else {
+            //     dataScrollpane.reinitialise();
+            // }
+            // $("#data-accordion").perfectScrollbar('update');
 
-            var activeScrollpane = $('#active-content').data('jsp');
-            if (activeScrollpane === undefined) {
-                $('#active-content').jScrollPane();
-            } else {
-                activeScrollpane.reinitialise();
-            }
+            // var activeScrollpane = $('#active-content').data('jsp');
+            // if (activeScrollpane === undefined) {
+            //     $('#active-content').jScrollPane();
+            // } else {
+            //     activeScrollpane.reinitialise();
+            // }
 
             var legendScrollpane = $('#legend-content').data('jsp');
             if (legendScrollpane === undefined) {
@@ -1507,13 +1510,22 @@ function viewModel() {
         found.layer.activateLayer();
     };
     self.keySearch = function(_, event) {
-
+        // if (event.which === 13) {
+        //     self.searchTerm($('.typeahead .active').text());
+        //     self.layerSearch();
+        // }
+        // $('ul.typeahead').on('click', 'li', function () {
+        //     self.searchTerm($('.typeahead .active').text());
+        //     self.layerSearch();
+        //     //search($(this).text());
+        // });
+        console.log($('.tt-dataset-0'));
         if (event.which === 13) {
-            self.searchTerm($('.typeahead .active').text());
-            self.layerSearch();
+            self.searchTerm($('.typeahead.tt-input')[0].value);
+            self.layerSearch();       
         }
-        $('ul.typeahead').on('click', 'li', function () {
-            self.searchTerm($('.typeahead .active').text());
+        $('.tt-dropdown-menu').on('click', function () {
+            self.searchTerm($('.typeahead.tt-input')[0].value);
             self.layerSearch();
             //search($(this).text());
         });

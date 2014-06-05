@@ -27,13 +27,13 @@
                                         <span rel="tooltip" title="Share"><i class="icon-group icon-medium"></i></span>
                                     </a>-->
                                     {% endif %}
-                                    <a class="btn btn-mini tweet-trash"  href="#bookmark-map-links-modal" data-toggle="modal" data-bind="click: $parent.resetBookmarkMapLinks, visible: !shared()">
+                                    <a class="btn btn-xs tweet-trash"  href="#bookmark-map-links-modal" data-toggle="modal" data-bind="click: $parent.resetBookmarkMapLinks, visible: !shared()">
                                         <span rel="tooltip" title="Map Links"><i class="icon-link icon-medium"></i></span>
                                     </a>
                                 </div>
                             </td>
                             <td style="padding-left: 0px; width: 35px">
-                                <a class="btn btn-mini tweet-trash" data-bind="click: $parent.removeBookmark, visible: !shared()">
+                                <a class="btn btn-xs tweet-trash" data-bind="click: $parent.removeBookmark, visible: !shared()">
                                     <span rel="tooltip" title="Delete"><i class="icon-trash icon-medium"></i></span>
                                 </a>
                             </td>
@@ -51,9 +51,9 @@
             </h5>
             <form data-bind="submit: saveBookmark" style="margin-bottom: 0px">
                 <input type="text" data-bind="value: newBookmarkName" class="input">
-                <div class="pull-right">
-                    <button class="btn" type="submit">save</button>
-                    <button data-bind="click: cancel" class="btn">close</button>
+                <div class="pull-right" style="margin-top: -7px;">
+                    <button class="btn btn-default" type="submit">save</button>
+                    <button data-bind="click: cancel" class="btn btn-default">close</button>
                 </div>
             </form>
         </div>

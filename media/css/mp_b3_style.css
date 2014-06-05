@@ -1,0 +1,153 @@
+
+#data-accordion .accordion-group {
+	margin-bottom: 0px;
+	border: 1px solid #e5e5e5;
+}
+
+.panel-heading.active {
+	margin-left: -1px;
+	font-weight: bold;
+	background-color: #eee;
+	color: #333;
+}
+
+#basemaps .btn-group > .btn:first-child:not(:last-child):not(.dropdown-toggle) {
+	border-top-right-radius: 4px;
+}
+
+#basemaps a {
+    padding: 1px;
+    color: white;
+    text-decoration: none;
+	text-align: left;
+    padding-left: 10px;
+    outline: none;
+    overflow: hidden;
+    width: 36px;
+    line-height: 26px;
+    background: #130085; /* fallback for IE - IE6 requires background shorthand*/
+    background: rgba(0, 60, 136, 0.5);
+    opacity: .8;
+    filter: alpha(opacity=80);
+    -webkit-transition: width .3s ease-in-out;
+    -moz-transition: width .3s ease-in-out;
+    -o-transition: width .3s ease-in-out;
+    transition: width .3s ease-in-out;
+}
+
+#basemaps .btn i {
+    width: 20px;
+    vertical-align: middle;
+    top: 0px;
+}
+
+#data-accordion .btn-info-sign, #active-content .btn-info-sign {
+	padding: 4px 8px;
+}
+
+#data-accordion .btn-layer {
+	padding: 4px 8px;
+	width: 265px;
+}
+
+#active-content .btn-layer {
+	padding: 4px 8px;
+	width: 220px;
+}
+
+#filter-content .btn-layer {
+	padding: 4px 8px;
+	width: 220px;
+}
+
+#active-content .btn-group {
+	width: 100%;
+}
+
+#filter-content .btn-group {
+	width: 100%;
+}
+
+#data-accordion .btn-layer.not-active:hover i.glyphicon-unchecked {
+  display: block !important;
+  opacity: .4;
+  /* for IE */
+  filter: alpha(opacity=40);
+}
+
+#data-accordion .glyphicon-lg, #active-content .glyphicon-lg, #filter-content .glyphicon-lg {
+	font-size: 16px;
+}
+
+#data-accordion .glyphicon-info-sign, #active-content .glyphicon-info-sign, #filter-content .glyphicon-info-sign {
+	top: 3px;
+}
+
+.panel-collapse ul {
+	padding-left: 0px;
+}
+
+ul.unstyled {
+	list-style: none;
+}
+
+#account-modals label, #add-layer-modal label {
+	font-weight: normal;
+	margin-bottom: 0px;
+	padding-top: 3px;
+}
+
+#account-modals .modal-header h3, #map-links-modal .modal-header h3, #help-modal .modal-header h3, #add-layer-modal .modal-header h3 {
+	margin: 0px;
+}
+
+#account-modals .modal-body input {
+	min-width: 200px;
+}
+
+#add-layer-modal .modal-body input {
+	min-width: 250px;
+}
+
+#account-modals .modal-footer, #map-links-modal .modal-footer, #help-modal .modal-footer, #add-layer-modal .modal-footer {
+	margin-top: 0px;
+	padding: 15px 20px;
+}
+
+#sign-in-modal input {
+	border-radius: 4px;
+}
+
+#sign-in-modal .input-xlarge {
+	min-width: 200px;
+}
+
+#sign-in-modal p {
+	padding-left: 15px;
+}
+
+.twitter-typeahead {
+	width: 100%;
+	height: 29px;
+}
+
+#search-section .twitter-typeahead .search-box {
+	border: 0;
+	border-top-left-radius: 16px;
+	border-bottom-left-radius: 16px;
+}
+
+#scrollable-dropdown-menu .tt-dropdown-menu {
+  	background: white;
+  	margin-top: 5px;
+  	margin-left: 9px;
+  	max-height: 200px;
+  	width: 255px;
+  	overflow-y: auto;
+  	border: 1px solid #eee;
+}
+
+
+
+
+

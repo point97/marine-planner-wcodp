@@ -2,7 +2,7 @@
 <div class="tab-pane fade" id="designs" data-tab="designs" data-bind="with: scenarios">
   <div id="designs-slide">
     <!-- Create New Design dropdown menu -->
-    <div class="row-fluid">
+    <div class="row">
         <div class="alert alert-success" data-bind="visible: loadingMessage">
           <strong>Creating!</strong> <span data-bind="text: loadingMessage"></span>
           <div class="progress progress-striped active">
@@ -12,7 +12,7 @@
         <div class="alert alert-error" data-bind="visible: errorMessage">
           <strong>Error!</strong> <span data-bind="text: errorMessage"></span>
           <div>
-            <button class="btn pull-right" data-bind="click: reset">Try Again</button>
+            <button class="btn btn-default pull-right" data-bind="click: reset">Try Again</button>
             <div class="clearfix"></div>
           </div>
         </div>
@@ -20,9 +20,9 @@
     
     <div class="form-container" data-bind="visible: ! (loadingMessage() || errorMessage())">
         <div id="designs-data" data-bind="visible: !scenarioForm() && !selectionForm() && !reportsVisible() && !drawingForm()">
-            <div class="row-fluid">
-                <div class="span12">
-                    <div id="view-reports-button" class="btn pull-right" data-bind="click: showComparisonReports">
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="view-reports-button" class="btn btn-default pull-right" data-bind="click: showComparisonReports">
                         View Reports
                     </div>
                     <div id="create-new-design" class="btn-group pull-left" style="padding-bottom: 10px;">
@@ -50,7 +50,7 @@
                 </div>
             </div>
             
-            <div id="design-list" class="row-fluid">
+            <div id="design-list" class="row">
                 <div id="designs-accordion" class="designs">
                     <div class="accordion" style="padding-bottom: 110px">
                     
@@ -83,10 +83,10 @@
                                         <ul class="unstyled list" data-bind="foreach: scenarioList ">
                                             <li class="layer">
                                                 <div class="btn-group btn-group-layer">
-                                                    <a class="btn btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive() }">
+                                                    <a class="btn btn-default btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive() }">
                                                         <i class="icon-info-sign icon-large"></i>
                                                     </a>
-                                                    <a class="btn btn-layer" data-bind="css: { 'active': active(), 'not-active': ! active() }, click: toggleActive">
+                                                    <a class="btn btn-default btn-layer" data-bind="css: { 'active': active(), 'not-active': ! active() }, click: toggleActive">
                                                         <div style="font-weight: normal">
                                                             <span data-bind="text: name"></span>
                                                             <span rel="tooltip" data-bind="attr: {title: sharedBy}">
@@ -154,10 +154,10 @@
                                         <ul class="unstyled list" data-bind="foreach: selectionList ">
                                             <li class="layer">
                                                 <div class="btn-group btn-group-layer">
-                                                    <a class="btn btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive() }">
+                                                    <a class="btn btn-default btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive() }">
                                                         <i class="icon-info-sign icon-large"></i>
                                                     </a>
-                                                    <a style="font-weight: normal" class="btn btn-layer" data-bind="css: { 'active': active(), 'not-active': ! active() }, click: toggleActive">
+                                                    <a style="font-weight: normal" class="btn btn-default btn-layer" data-bind="css: { 'active': active(), 'not-active': ! active() }, click: toggleActive">
                                                         <div data-bind="text: name"></div>
                                                         <span rel="tooltip" data-bind="attr: {title: sharedBy}">
                                                             <i class="icon-group" data-bind="visible: shared" style="padding-left: 10px"></i>
@@ -203,10 +203,10 @@
                                         <ul class="unstyled list" data-bind="foreach: drawingList ">
                                             <li class="layer">
                                                 <div class="btn-group btn-group-layer">
-                                                    <a class="btn btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive() }">
+                                                    <a class="btn btn-default btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive() }">
                                                         <i class="icon-info-sign icon-large"></i>
                                                     </a>
-                                                    <a style="font-weight: normal" class="btn btn-layer" data-bind="css: { 'active': active(), 'not-active': ! active() }, click: toggleActive">
+                                                    <a style="font-weight: normal" class="btn btn-default btn-layer" data-bind="css: { 'active': active(), 'not-active': ! active() }, click: toggleActive">
                                                         <div data-bind="text: name"></div>
                                                         <span rel="tooltip" data-bind="attr: {title: sharedBy}">
                                                             <i class="icon-group" data-bind="visible: shared" style="padding-left: 10px"></i>
@@ -254,9 +254,9 @@
             <div id="reports" class="panel-container" data-bind="with: reports">
                 <div class="form-container">
                     <div>
-                        <div class="row-fluid">
-                            <div class="span12">
-                                <div class="btn pull-right" data-bind="click: app.viewModel.scenarios.returnToDesigns">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="btn btn-default pull-right" data-bind="click: app.viewModel.scenarios.returnToDesigns">
                                     Return to Designs
                                 </div>
                                 <div id="create-new-design" class="btn-group pull-left" style="padding-bottom: 10px;">
