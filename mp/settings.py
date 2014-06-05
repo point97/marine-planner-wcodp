@@ -72,7 +72,9 @@ MIDDLEWARE_CLASSES += (
 
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
-)LOGGING = {
+)
+
+LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
