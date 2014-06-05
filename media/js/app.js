@@ -96,6 +96,7 @@ app.viewModel.loadLayersFromServer().done(function() {
   };
   // autocomplete for search
   $('.search-box').typeahead({
+    hint: true,
     minLength: 2,
     highlight: true
   }, {
