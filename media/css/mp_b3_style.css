@@ -91,6 +91,24 @@ ul.unstyled {
 	list-style: none;
 }
 
+#close-attribute-overlay a {
+	padding: 0px 4px 2px 4px;
+	font-size: 16px;
+	font-weight: normal;
+}
+
+#overview-overlay {
+	right: 8px;
+	margin-right: 5px;
+}
+
+#overview-overlay a.close {
+	padding: 0px 4px 2px 4px;
+	font-size: 16px;
+	font-weight: normal;
+}
+
+
 #account-modals label, #add-layer-modal label {
 	font-weight: normal;
 	margin-bottom: 0px;
