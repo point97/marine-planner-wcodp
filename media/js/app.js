@@ -183,18 +183,19 @@ $(document).ready(function() {
       app.viewModel.filterTab.toDate(ev.date);
   });
 
-  // filter typeahead and pills
-  // $('#filter-input').tagsinput();
-  // $('#filter-input').tagsinput('#filter-input').typeahead({
-  //     source: ["Derelict", "Cleanup"]
-  // });
-  // $('#filter-input').tagsinput({
-  //     typeahead: {
-  //         source: function (query, process) {
-  //             return ([{"value": 1, "text": "Derelict"}, {"value": 2, "text": "Cleanup"}]);
-  //         }
-  //     }
-  // });
+
+  // Filter Tab Select2 Multi Select Initialization 
+  $('#filter-by .select2-multiple').select2();
+  $('#filter-by .select2-multiple').on( select2OpenEventName, function() {
+    if ( $(this).parents('[class*="has-"]').length ) {
+      var classNames = $(this).parents('[class*="has-"]')[0].className.split(/\s+/);
+      for (var i=0; i<classNames.length; ++i) {
+          if ( classNames[i].match("has-") ) {
+            $('#select2-drop').addClass( classNames[i] );
+          }
+      }
+    }
+  });
   
   // making sure we can get typeahead working
   // $('#filter-input').typeahead({

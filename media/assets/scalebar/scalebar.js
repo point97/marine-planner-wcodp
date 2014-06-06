@@ -568,15 +568,18 @@ OpenLayers.Control.ScaleBar = OpenLayers.Class(OpenLayers.Control, {
                     } catch(err) {
                         continue;
                     }
-                    for(var ruleIndex = 0; ruleIndex < allRules.length; ++ruleIndex) {
-                        var rule = allRules[ruleIndex];
-                        if(rule.selectorText &&
-                           (rule.selectorText.toLowerCase() == selector.toLowerCase())) {
-                            if(rule.style[key] != '') {
-                                value = parseInt(rule.style[key]);
-                                break rules;
+                    if(allRules) {
+                        for(var ruleIndex = 0; ruleIndex < allRules.length; ++ruleIndex) {
+                            var rule = allRules[ruleIndex];
+                            if(rule.selectorText &&
+                               (rule.selectorText.toLowerCase() == selector.toLowerCase())) {
+                                if(rule.style[key] != '') {
+                                    value = parseInt(rule.style[key]);
+                                    break rules;
+                                }
                             }
                         }
+                        
                     }
                 }
             }

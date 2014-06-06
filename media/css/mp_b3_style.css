@@ -83,6 +83,10 @@
 	top: 3px;
 }
 
+#filter-by .select2-container {
+	display: block;
+}
+
 .panel-collapse ul {
 	padding-left: 0px;
 }

@@ -19,6 +19,17 @@ function filteringModel() {
 
     self.primaryFilters = ko.observableArray();
 
+    self.fields = [{
+        name: 'Tin Can',
+        slug: 'tin-can'
+    }, {
+        name: 'Bottle Cap',
+        slug: 'bottle-cap'
+    }, {
+        name: 'Balloon',
+        slug: 'balloon'
+    }];
+
     self.updateFilter = function() {
         filterItems = $('#filter-input').text();
         console.log(filterItems);
