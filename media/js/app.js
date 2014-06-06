@@ -249,6 +249,14 @@ $(document).ready(function() {
   })
   */
 
+  $('#add-layer-modal').on('shown', function () {
+    // do something…
+    $('#add-layer-modal .icon-info-sign').popover({
+      trigger: 'hover',
+      container: 'body'
+    });
+  });
+
   app.fullscreen = {};
   // fullscreen stuff
   // for security reasons, this event listener must be bound directly
@@ -443,6 +451,7 @@ $('#feedback-form').on('submit', function (event) {
    });
    feedback.url = window.location.href;
    $.post('/feedback/send', feedback, function () {
+      $form.find('textarea').val('');
       $form.closest('.modal').modal('hide');
       //$('#thankyou-modal').modal('show');
    });

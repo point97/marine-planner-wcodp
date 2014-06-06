@@ -16,19 +16,27 @@
             <div class="control-group">
               <label class="control-label" for="name">Full Name</label>
               <div class="controls">
-                <input class="input-xlarge" type="text" name="name" placeholder="Full Name" required>
+                <input class="input-xlarge" type="text" name="name" placeholder="Full Name"
+                    {% if user.is_authenticated %}
+                    value="{{user.first_name}} {{user.last_name}}"
+                    {% endif %}
+                required>
               </div>
             </div>
             <div class="control-group">
               <label class="control-label" for="email">Email Address</label>
               <div class="controls">
-                <input class="input-xlarge" type="email" name="email" placeholder="Email Address" required>
+                <input class="input-xlarge" type="email" name="email" placeholder="Email Address"
+                {% if user.is_authenticated %}
+                value="{{user.email}}"
+                {% endif %}
+                required>
               </div>
             </div>
             <div class="control-group">
               <label class="control-label" for="comment">Comment</label>
               <div class="controls">
-                  <textarea class="input-xlarge" rows="3" name="comment" required></textarea>
+                  <textarea id="feedback-area" class="input-xlarge" rows="3" name="comment" required></textarea>
               </div>
             </div>
 
@@ -49,7 +57,7 @@
    <div class="modal-content">
     <div class="modal-header" style="min-height: 20px;">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h3>Add a Layer to the Marine Planner</h3>
+        <h3>Add a Layer to Marine Planner</h3>
     </div>
     <div class="modal-body" data-bind="if: newLayer">  
       <div class="row" data-bind="with: newLayer">
@@ -58,6 +66,7 @@
               <label class="col-md-3" for="inputEmail">Name</label>
               <div class="col-md-9">
                 <input type="text" placeholder="Name" required data-bind="value: name">
+                 <i class="icon-info-sign" data-content="The name of the data layer that you want to display on the map viewer."></i>
               </div>
             </div>
             <div class="form-group">
@@ -68,24 +77,28 @@
                       <option value="XYZ">XYZ</option>
                       <option value="WMS">WMS</option>
                     </select>
+                    <i class="icon-info-sign" data-content="The service type of the data layer to be added. ArcREST is the appropriate type for ESRI ArcGIS service layers. XYZ is appropriate for ?. WMS is appropriate for web mapping service data layers."></i>
                 </div>
             </div>
             <div class="form-group">
               <label class="col-md-3" for="inputPassword">URL</label>
               <div class="col-md-9">
                 <input type="text" placeholder="URL" data-bind="value: url">
+                <i class="icon-info-sign" data-content="The full URL of the data layer. If the layer is an ArcREST layer, do not include the layer ID."></i>
               </div>
             </div>
             <div class="form-group" data-bind="visible: layer_type() == 'ArcRest'">
               <label class="col-md-3" for="inputPassword">ArcGIS Layers</label>
               <div class="col-md-9">
                 <input type="text" placeholder="ArcGIS Layers" data-bind="value: arcgis_layers">
+                <i class="icon-info-sign" data-content="The layer ID."></i>
               </div>
             </div>
             <div class="form-group" data-bind="visible: layer_type() == 'WMS'">
               <label class="col-md-3" for="inputPassword">WMS Layer Name</label>
               <div class="col-md-9">
                 <input type="text" placeholder="WMA Layer Name" data-bind="value: wms_slug">
+                <i class="icon-info-sign" data-content="The WMS layer slug."></i>
               </div>
             </div>
             
@@ -94,6 +107,7 @@
                 <div class="col-md-9">
                     <select data-bind="options: $root.themes, value: theme, optionsText: 'name'">
                     </select>
+                    <i class="icon-info-sign" data-content="Select the theme that the data layer will fall under."></i>
                 </div>
             </div>
           </form>

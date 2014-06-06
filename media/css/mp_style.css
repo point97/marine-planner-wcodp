@@ -204,8 +204,8 @@ li a {
 #feedback-tab {
 	position: fixed;
     z-index: 950;
-	left: -26px;
-	top: 80%;
+	right: -26px;
+	bottom: 115px;
 	padding: 2px 8px;
 	border: 2px solid #ccc;
 	background: #2d8998; /* fallback for IE - IE6 requires background shorthand*/
@@ -218,11 +218,11 @@ li a {
 	-moz-border-top-right-radius: 10px;
 	-webkit-border-top-left-radius: 10px;
 	-webkit-border-top-right-radius: 10px;
-	-webkit-transform: rotate(90deg);	
-	-moz-transform: rotate(90deg);
-	-ms-transform: rotate(90deg);
-	-o-transform: rotate(90deg);
-	transform: rotate(90deg);
+	-webkit-transform: rotate(-90deg);	
+	-moz-transform: rotate(-90deg);
+	-ms-transform: rotate(-90deg);
+	-o-transform: rotate(-90deg);
+	transform: rotate(-90deg);
 }
 #feedback-tab a {
 	color: white;
@@ -812,6 +812,7 @@ img + h3 {
 #login-buttons {
     top: 8px;
     right: 65px;
+    z-index: 1019!important;
 }
     #login-buttons .dropdown-menu {
         right: 0;
@@ -830,6 +831,10 @@ img + h3 {
     margin: 0 5px 10px;
     color: #000;
 }
+
+
+
+
 #basemaps {
 	top: 8px;
 	right: 8px;
@@ -1069,6 +1074,21 @@ body.borderless #map-wrapper {
 }
 /*** END PRINTING ***/
 
+/** add layer modal **/
+#add-layer-modal .controls {
+    position: relative;
+}
+
+#add-layer-modal .controls .icon-info-sign {
+    font-size: 20px;
+    top: 7px;
+    padding-left: 7px;
+    color: rgb(100,100,100);
+    position: absolute;
+}
+.popover {
+      z-index: 2020;
+}
 
 /*** RESPONSIVE DESIGN ***/
 
