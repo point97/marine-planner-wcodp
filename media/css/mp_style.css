@@ -668,7 +668,6 @@ img + h3 {
 #filter .btn-layer > div {
 	display: inline-block;
 	line-height: 1;
-	padding-left: 8px;
 	margin-top: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;

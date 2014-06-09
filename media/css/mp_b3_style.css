@@ -57,7 +57,7 @@
 
 #filter-content .btn-layer {
 	padding: 4px 8px;
-	width: 220px;
+	width: 280px;
 }
 
 #active-content .btn-group {
@@ -66,6 +66,13 @@
 
 #filter-content .btn-group {
 	width: 100%;
+}
+
+#filter-content .btn-layer.not-active:hover i.glyphicon-unchecked {
+  display: block !important;
+  opacity: .4;
+  /* for IE */
+  filter: alpha(opacity=40);
 }
 
 #data-accordion .btn-layer.not-active:hover i.glyphicon-unchecked {
