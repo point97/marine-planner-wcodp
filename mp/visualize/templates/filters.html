@@ -58,20 +58,20 @@
 
                 <!-- Filters -->
                 <div style="margin: 10px 20px 20px 15px; height: 30px">
-                    <form class="row">
+                    <form>
                         <!-- <div class="col-md-9" style="line-height: 25px;"> -->
                             <!-- <input id="filter-input" data-role="tagsinput" value="Amsterdam,Washington" style="width: 225px; border-radius: 4px;" type="text" placeholder="Filter By" /> -->
                             <!-- <input id="filter-input" type="text" class="filter-box" data-provide="typeahead" data-bind="eventTypes" style="overflow: hidden; text-overflow: ellipsis;" placeholder="Filter By"> -->
                         <!-- </div> -->
-                        <div id="filter-by" class="form-group">
+                        <div id="filter-by" class="form-group" style="margin: 5px 15px 10px">
                             <label for="multiple" class="control-label">Filter by Debris Type</label>
-                            <select class="field select2-multiple" placeholder="Filter by debris type(s)..." data-bind="foreach: fields" multiple>
+                            <select class="field select2-multiple" placeholder="Filter by debris type(s)..." data-bind="foreach: filters().fields" multiple>
                               <option data-bind="text: $data.name, value: $data.slug"></option>
                             </select>
                         </div>
 
 
-                        <span class="col-md-3" style="margin-top: -1px">
+                        <span style="margin-right: 18px; float: right">
                             <a id="filter-button" class="btn btn-default" data-bind="click: updateFilter()" style="outline: none; float: right; margin-right: -3px">Filter <i class="icon-large icon-filter"></i></a>
                         </span>
                     </form>

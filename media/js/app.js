@@ -186,7 +186,7 @@ $(document).ready(function() {
 
   // Filter Tab Select2 Multi Select Initialization 
   $('#filter-by .select2-multiple').select2();
-  $('#filter-by .select2-multiple').on( select2OpenEventName, function() {
+  $('#filter-by .select2-multiple').on( "select2-open", function() {
     if ( $(this).parents('[class*="has-"]').length ) {
       var classNames = $(this).parents('[class*="has-"]')[0].className.split(/\s+/);
       for (var i=0; i<classNames.length; ++i) {
@@ -248,14 +248,6 @@ $(document).ready(function() {
     }
   })
   */
-
-  $('#add-layer-modal').on('shown', function () {
-    // do something…
-    $('#add-layer-modal .icon-info-sign').popover({
-      trigger: 'hover',
-      container: 'body'
-    });
-  });
 
   app.fullscreen = {};
   // fullscreen stuff
@@ -451,7 +443,6 @@ $('#feedback-form').on('submit', function (event) {
    });
    feedback.url = window.location.href;
    $.post('/feedback/send', feedback, function () {
-      $form.find('textarea').val('');
       $form.closest('.modal').modal('hide');
       //$('#thankyou-modal').modal('show');
    });

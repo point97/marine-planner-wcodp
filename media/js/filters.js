@@ -19,16 +19,7 @@ function filteringModel() {
 
     self.primaryFilters = ko.observableArray();
 
-    self.fields = [{
-        name: 'Tin Can',
-        slug: 'tin-can'
-    }, {
-        name: 'Bottle Cap',
-        slug: 'bottle-cap'
-    }, {
-        name: 'Balloon',
-        slug: 'balloon'
-    }];
+    self.filters = ko.observableArray();
 
     self.updateFilter = function() {
         filterItems = $('#filter-input').text();
@@ -121,3 +112,13 @@ function primaryFilterModel(options) {
 
     return self;
 } // end of filterModel
+
+$.ajax ({
+    url: "/proxy/events/get_filters",
+    type: 'GET',
+    dataType: 'json'
+  }).done(function (filters) {
+
+    app.viewModel.filterTab.filters(filters);
+
+  });

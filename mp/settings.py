@@ -52,6 +52,8 @@ ADMINS = (
     ('Scott Fletcher', 'scott@pointnineseven.com'),
 )
 
+MARINE_DEBRIS_URL = 'http://debris-db.westcoastoceans.org/'
+
 # FEEDBACK_RECIPIENT = "Marine Planning Team <mp-team@marineplanner.org>"
 # HELP_EMAIL = "mp-team@marineplanner.org"
 # DEFAULT_FROM_EMAIL = "Marine Planning Team <mp-team@marineplanner.org>"
