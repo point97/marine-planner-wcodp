@@ -9,13 +9,13 @@ function filteringModel() {
     self.filterLayers = ko.observableArray();
 
     // reference to open themes in accordion
-    self.openPrimaryFilters = ko.observableArray();
+    // self.openPrimaryFilters = ko.observableArray();
 
-    self.openPrimaryFilters.subscribe( function() {
-        app.updateUrl();
-    });
+    // self.openPrimaryFilters.subscribe( function() {
+    //     app.updateUrl();
+    // });
 
-    self.primaryFilters = ko.observableArray();
+    // self.primaryFilters = ko.observableArray();
 
     self.filters = ko.observableArray();
 
@@ -71,45 +71,45 @@ function filteringModel() {
             layer.layer = app.addGridSummaryLayerToMap(layer);
         });
     });
-}
+} // end filteringModel
 
 app.viewModel.filterTab = new filteringModel();
 
-function primaryFilterModel(options) {
-    var self = this;
-    self.name = options.display_name;
-    self.depth = options.depth;
-    console.log(self.name);
+// function primaryFilterModel(options) {
+//     var self = this;
+//     self.name = options.display_name;
+//     self.depth = options.depth;
+//     console.log(self.name);
 
-    //add to open filters
-    self.setOpenPrimaryFilter = function() {
-        var filter = this;
+//     //add to open filters
+//     self.setOpenPrimaryFilter = function() {
+//         var filter = this;
 
-        // ensure filter tab is activated
-        $('#filterTab').tab('show');
+//         // ensure filter tab is activated
+//         $('#filterTab').tab('show');
 
-        if (self.isOpenPrimaryFilter(filter)) {
-            //app.viewModel.activeTheme(null);
-            app.viewModel.filterTab.openPrimaryFilters.remove(filter);
-            app.viewModel.updateScrollBars();
-        } else {
-            app.viewModel.filterTab.openPrimaryFilters.push(filter);
-            //setTimeout( app.viewModel.updateScrollBar(), 1000);
-            app.viewModel.updateScrollBars();
-        }
-    };
+//         if (self.isOpenPrimaryFilter(filter)) {
+//             //app.viewModel.activeTheme(null);
+//             app.viewModel.filterTab.openPrimaryFilters.remove(filter);
+//             app.viewModel.updateScrollBars();
+//         } else {
+//             app.viewModel.filterTab.openPrimaryFilters.push(filter);
+//             //setTimeout( app.viewModel.updateScrollBar(), 1000);
+//             app.viewModel.updateScrollBars();
+//         }
+//     };
 
-    //is in openFilter
-    self.isOpenPrimaryFilter = function() {
-        var filter = this;
-        if (app.viewModel.filterTab.openPrimaryFilters.indexOf(filter) !== -1) {
-            return true;
-        }
-        return false;
-    };
+//     //is in openFilter
+//     self.isOpenPrimaryFilter = function() {
+//         var filter = this;
+//         if (app.viewModel.filterTab.openPrimaryFilters.indexOf(filter) !== -1) {
+//             return true;
+//         }
+//         return false;
+//     };
 
-    return self;
-} // end of filterModel
+//     return self;
+// } // end of primaryFilterModel
 
 $.ajax ({
     url: "/proxy/events/get_filters",
