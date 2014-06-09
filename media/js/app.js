@@ -165,7 +165,6 @@ $(document).ready(function() {
   // $('#filter-input').typeahead({
   //     source: ["Derelict", "Cleanup"]
   // });
-  /*
   (function () {
         var keys = [];
         for (var searchTerm in app.viewModel.layerSearchIndex) {
@@ -174,8 +173,7 @@ $(document).ready(function() {
             }
         }
         return keys;
-   })()
-   */
+    })()
 
   //fixes a problem in which the data accordion scrollbar was reinitialized before the app switched back to the data tab
   //causing the data tab to appear empty

@@ -27,20 +27,7 @@
                 <ul class="unstyled list" style="margin: 10px 5px 0px 5px;" data-bind="sortable: { data: filterLayers, options: {  } }">
                     <li>
                         <div class="btn-group">
-                            
-                            <a class="btn btn-default btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive() }">
-                                <i class="glyphicon glyphicon-info-sign glyphicon-lg"></i>
-                            </a>
-
-                            <a class="btn btn-default btn-layer" data-bind="click: toggleActive, css: { 'active': active(), 'not-active': ! active() }"> <!--, click: toggleActive-->
-                                <div style="font-weight: normal">
-                                    <span data-bind="text: name"></span>
-                                    <i class="check glyphicon glyphicon-lg glyphicon-check" data-bind="visible: active() && visible()"></i>
-                                    <i class="check glyphicon glyphicon-lg glyphicon-unchecked" data-bind="visible: active() && ! visible()"></i>
-                                </div>
-                            </a>
-
-                            <!-- <button class="btn btn-default btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive()}"><span class="glyphicon glyphicon-info-sign glyphicon-lg"></span></button>
+                            <button class="btn btn-default btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive()}"><span class="glyphicon glyphicon-info-sign glyphicon-lg"></span></button>
                             <a class="btn btn-default btn-layer" data-bind="css: { 'active': visible() }, click: toggleVisible">
                                 <div data-bind="text: name"></div>
                                 <span rel="tooltip" data-bind="attr: {title: sharedBy}">
@@ -51,22 +38,20 @@
                             <a class="btn btn-default opacity-button" data-bind="click: $parent.showOpacity"><i class="glyphicon glyphicon-adjust"></i></a>
                             <button class="btn btn-default" data-bind="click: toggleActive">
                                 <i class="glyphicon glyphicon-remove"></i>
-                            </button> -->
-
+                            </button>
                         </div>
                     </li>
                 </ul>
 
                 <!-- Date Range -->
-                <div style="height: 35px;">
-                    <div class="input-append date col-md-4" style="padding-right: 0px;" id="date-filter-start" data-date-format="dd-mm-yyyy">
+                <div class="row" style="margin: 10px 20px 10px 15px">
+                    <div class="input-append date col-md-6" id="date-filter-start" data-date-format="dd-mm-yyyy">
                         <input id="filter-start-date" type="text" data-bind="datepicker: startDate" class="datepicker" placeholder="Start Date" style="max-width: 100px">
                         <!-- <span data-bind="text:startDate"></span> -->
                         <!-- <span class="add-on"><i class="icon-th"></i></span> -->
                     </div>
-                    <label class="col-md-4" style="padding: 0; margin-top: 7px; text-align: center;">To</label>
-                    <div class="input-append date col-md-4" style="padding-left: 0px; margin-left: -5px;" id="date-filter-end" data-date-format="dd-mm-yyyy">
-                        <input id="filter-to-date" type="text" data-bind="datepicker: toDate" class="datepicker" placeholder="End Date" style="max-width: 100px;">
+                    <div class="input-append date col-md-6" id="date-filter-end" data-date-format="dd-mm-yyyy">
+                        <input id="filter-to-date" type="text" data-bind="datepicker: toDate" class="datepicker" placeholder="End Date" style="max-width: 100px; margin-left: 25px">
                         <!-- <span class="add-on"><i class="icon-th"></i></span> -->
                     </div>
                 </div>
@@ -78,17 +63,16 @@
                             <!-- <input id="filter-input" data-role="tagsinput" value="Amsterdam,Washington" style="width: 225px; border-radius: 4px;" type="text" placeholder="Filter By" /> -->
                             <!-- <input id="filter-input" type="text" class="filter-box" data-provide="typeahead" data-bind="eventTypes" style="overflow: hidden; text-overflow: ellipsis;" placeholder="Filter By"> -->
                         <!-- </div> -->
-                        <div id="filter-by" class="form-group" style="margin: 5px 0px 10px">
+                        <div id="filter-by" class="form-group" style="margin: 5px 15px 10px">
                             <label for="multiple" class="control-label">Filter by Debris Type</label>
-                            <select class="field select2-multiple" placeholder="Filter by debris type(s)..." data-bind="foreach: filters()" multiple>
-                              <option data-bind="text: $data.name"></option>
+                            <select class="field select2-multiple" placeholder="Filter by debris type(s)..." data-bind="foreach: filters().fields" multiple>
+                              <option data-bind="text: $data.name, value: $data.slug"></option>
                             </select>
                         </div>
 
 
-                        <span class="pull-right" style="margin-right: 3px">
-                            <a id="filter-button" class="btn btn-default" data-bind="click: updateFilter, css: { 'enabled': filterButtonIsActive(), 'disabled': !filterButtonIsActive() }" style="outline: none; float: right; margin-right: -3px; margin-left: 6px;">Update Filter <i class="icon-large icon-filter"></i></a>
-                            <a class="btn btn-default" data-toggle="modal" data-target="#filter-info-modal"data-bind="click: showFilterInfo, css: { 'enabled': showFilterInfoButtonIsActive(), 'disabled': !showFilterInfoButtonIsActive() }" style="outline: none; float: right;">Filter Info <i class="icon-large icon-info-sign"></i></a>
+                        <span style="margin-right: 18px; float: right">
+                            <a id="filter-button" class="btn btn-default" data-bind="click: updateFilter()" style="outline: none; float: right; margin-right: -3px">Filter <i class="icon-large icon-filter"></i></a>
                         </span>
                     </form>
                 </div>
@@ -98,11 +82,11 @@
                         <div class="accordion-group">
                             <div class="accordion-heading" data-bind="click: setOpenPrimaryFilter, css: { 'active': isOpenPrimaryFilter() }">
                                 <div>
-                                    <a class="accordion-toggle" style="text-decoration: none">
+                                    <a class="accordion-toggle" style="text-decoration: none"> 
                                         <span data-bind="text: name"></span>
                                         <!-- ko foreach: new Array(depth)  -->
                                             <!-- <span><i class="icon-check-empty"></i></span> -->
-                                        <!-- /ko -->
+                                        <!-- /ko -->​
                       <!--               </a>
                                 </div>
                             </div>
@@ -137,13 +121,9 @@
                 </li>
             </ul> -->
 
-            
-            <!-- <div style="margin-top: 40px; margin-left: 15px; font-size: 14px; font-weight: bold;" data-bind="visible: emptyLayer()"> -->
-                <!-- <span>Layer is Empty</span> -->
-                <!-- <span>Loading Layers</span> -->
-                <!-- <span class="spin" style="margin-left: 10px;"><i class='glyphicon glyphicon-lg glyphicon-refresh'></i></span> -->
-            <!-- </div> -->
+
 
         </div>
     </div>
 </div>
+<!-- END ACTIVE TAB -->
