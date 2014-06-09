@@ -58,14 +58,15 @@
                 </ul>
 
                 <!-- Date Range -->
-                <div class="row" style="margin: 0px -25px 10px 0px">
-                    <div class="input-append date col-md-6" id="date-filter-start" data-date-format="dd-mm-yyyy">
+                <div style="height: 35px;">
+                    <div class="input-append date col-md-4" style="padding-right: 0px;" id="date-filter-start" data-date-format="dd-mm-yyyy">
                         <input id="filter-start-date" type="text" data-bind="datepicker: startDate" class="datepicker" placeholder="Start Date" style="max-width: 100px">
                         <!-- <span data-bind="text:startDate"></span> -->
                         <!-- <span class="add-on"><i class="icon-th"></i></span> -->
                     </div>
-                    <div class="input-append date col-md-6" id="date-filter-end" data-date-format="dd-mm-yyyy">
-                        <input id="filter-to-date" type="text" data-bind="datepicker: toDate" class="datepicker" placeholder="End Date" style="max-width: 100px; margin-left: 25px">
+                    <label class="col-md-4" style="padding: 0; margin-top: 7px; text-align: center;">To</label>
+                    <div class="input-append date col-md-4" style="padding-left: 0px; margin-left: -5px;" id="date-filter-end" data-date-format="dd-mm-yyyy">
+                        <input id="filter-to-date" type="text" data-bind="datepicker: toDate" class="datepicker" placeholder="End Date" style="max-width: 100px;">
                         <!-- <span class="add-on"><i class="icon-th"></i></span> -->
                     </div>
                 </div>
@@ -86,7 +87,7 @@
 
 
                         <span class="pull-right" style="margin-right: 3px">
-                            <a id="filter-button" class="btn btn-default" data-bind="click: updateFilter()" style="outline: none; float: right; margin-right: -3px">Filter <i class="icon-large icon-filter"></i></a>
+                            <a id="filter-button" class="btn btn-default" data-bind="click: updateFilter()" style="outline: none; float: right; margin-right: -3px">Update Filter <i class="icon-large icon-filter"></i></a>
                         </span>
                     </form>
                 </div>
