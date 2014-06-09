@@ -137,6 +137,44 @@ $(document).ready(function() {
      $(event.target).closest('form').find('input').val(null).focus();
   });
 
+
+  // $('.datepicker').datepicker();
+
+  // date filters 
+  $('#filter-start-date').datepicker().on('changeDate', function(ev) {
+      app.viewModel.filterTab.startDate(ev.date);
+  });$('#filter-to-date').datepicker().on('changeDate', function(ev) {
+      app.viewModel.filterTab.toDate(ev.date);
+  });
+
+
+  // Filter Tab Select2 Multi Select Initialization 
+  $('#filter-by .select2-multiple').select2();
+  $('#filter-by .select2-multiple').on( "select2-open", function() {
+    if ( $(this).parents('[class*="has-"]').length ) {
+      var classNames = $(this).parents('[class*="has-"]')[0].className.split(/\s+/);
+      for (var i=0; i<classNames.length; ++i) {
+          if ( classNames[i].match("has-") ) {
+            $('#select2-drop').addClass( classNames[i] );
+          }
+      }
+    }
+  });
+  
+  // making sure we can get typeahead working
+  // $('#filter-input').typeahead({
+  //     source: ["Derelict", "Cleanup"]
+  // });
+  (function () {
+        var keys = [];
+        for (var searchTerm in app.viewModel.layerSearchIndex) {
+            if (app.viewModel.layerSearchIndex.hasOwnProperty(searchTerm)) {
+                keys.push(searchTerm);
+            }
+        }
+        return keys;
+    })()
+
   //fixes a problem in which the data accordion scrollbar was reinitialized before the app switched back to the data tab
   //causing the data tab to appear empty
   //the following appears to fix that problem
@@ -174,14 +212,6 @@ $(document).ready(function() {
     }
   })
   */
-
-  $('#add-layer-modal').on('shown', function () {
-    // do something…
-    $('#add-layer-modal .icon-info-sign').popover({
-      trigger: 'hover',
-      container: 'body'
-    });
-  });
 
   app.fullscreen = {};
   // fullscreen stuff
@@ -377,7 +407,6 @@ $('#feedback-form').on('submit', function (event) {
    });
    feedback.url = window.location.href;
    $.post('/feedback/send', feedback, function () {
-      $form.find('textarea').val('');
       $form.closest('.modal').modal('hide');
       //$('#thankyou-modal').modal('show');
    });

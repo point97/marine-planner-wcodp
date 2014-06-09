@@ -42,6 +42,19 @@ def getLegendJSON(request, url):
         resp, content = conn.request(url, request.method, data)
         return HttpResponse(content)
 
+def get_filters(request):
+    getUrl = settings.MARINE_DEBRIS_URL + 'events/get_filters'
+    if request.method == "GET": 
+        try:
+          results = requests.get(getUrl)
+        except Exception,e:
+          if(logger):
+            logger.exception(e)
+        else:
+          if(results.status_code == 200):          
+            return HttpResponse(results.text)
+          return(HttpResponse(''))
+
 
 def layer_proxy_view(request, layer_id):
     layer = get_object_or_404(Layer, id=layer_id, proxy_url=True)
