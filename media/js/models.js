@@ -357,6 +357,10 @@ function layerModel(options, parent) {
             app.viewModel.activeLayers.unshift(layer);
         }
 
+        // if (layer.summarize_to_grid) {
+        //     app.viewModel.filterTab.filterLayers.unshift(layer);
+        // }
+
         // set the active flag
         layer.active(true);
         layer.visible(true);
