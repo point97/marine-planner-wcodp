@@ -347,14 +347,15 @@ function layerModel(options, parent) {
     self.activateBaseLayer = function() {
         var layer = this;
 
-        app.addLayerToMap(layer);
+        if (layer.summarize_to_grid) {
+            // app.viewModel.filterTab.filterLayers.unshift(layer);
+            app.viewModel.filterTab.filterButtonIsActive(true);
+        } else {
+            app.addLayerToMap(layer);
 
-        //now that we now longer use the selectfeature control we can simply do the following
-        app.viewModel.activeLayers.unshift(layer);
-
-        // if (layer.summarize_to_grid) {
-        //     app.viewModel.filterTab.filterLayers.unshift(layer);
-        // }
+            //now that we now longer use the selectfeature control we can simply do the following
+            app.viewModel.activeLayers.unshift(layer);
+        }
 
         // set the active flag
         layer.active(true);

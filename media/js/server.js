@@ -59,6 +59,8 @@ app.viewModel.loadLayers = function(data) {
 	$.each(marineDebrisLayers, function(i, layer) {
 		if (layer.name.indexOf('All') !== 0) {
 			self.filterTab.filterLayers.push(layer);
+		} else {
+			self.filterTab.inclusiveFilterLayer = layer;
 		}
 	});
 	self.themes.remove(marineDebrisTheme);
