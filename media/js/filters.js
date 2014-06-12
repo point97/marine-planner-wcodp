@@ -8,6 +8,8 @@ function filteringModel() {
     // list of filter layermodels
     self.filterLayers = ko.observableArray();
 
+    self.inclusiveFilterLayer = false;
+
     // reference to open themes in accordion
     // self.openPrimaryFilters = ko.observableArray();
 
@@ -19,10 +21,13 @@ function filteringModel() {
 
     self.filters = ko.observableArray();
 
+    self.filterButtonIsActive = ko.observable(false);
+
     self.updateFilter = function() {
-        filterItems = $('#filter-input').text();
+        self.filterButtonIsActive(false);
+        filterItems = $('#filter-by .select2-multiple').select2('val')
         console.log(filterItems);
-    }
+    };
 
     self.createFilterString = function(options) {
     	var filterString = "?filter=[",    	    

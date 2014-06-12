@@ -32,7 +32,7 @@
                                 <i class="glyphicon glyphicon-info-sign glyphicon-lg"></i>
                             </a>
 
-                            <a class="btn btn-default btn-layer" data-bind="css: { 'active': active(), 'not-active': ! active() }, click: toggleActive">
+                            <a class="btn btn-default btn-layer" data-bind="click: toggleActive, css: { 'active': active(), 'not-active': ! active() }"> <!--, click: toggleActive-->
                                 <div style="font-weight: normal">
                                     <span data-bind="text: name"></span>
                                     <i class="check glyphicon glyphicon-lg glyphicon-check" data-bind="visible: active() && visible()"></i>
@@ -87,7 +87,7 @@
 
 
                         <span class="pull-right" style="margin-right: 3px">
-                            <a id="filter-button" class="btn btn-default" data-bind="click: updateFilter()" style="outline: none; float: right; margin-right: -3px">Update Filter <i class="icon-large icon-filter"></i></a>
+                            <a id="filter-button" class="btn btn-default" data-bind="click: updateFilter, css: { 'enabled': filterButtonIsActive(), 'disabled': !filterButtonIsActive() }" style="outline: none; float: right; margin-right: -3px">Update Filter <i class="icon-large icon-filter"></i></a>
                         </span>
                     </form>
                 </div>
