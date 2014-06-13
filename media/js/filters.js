@@ -25,7 +25,7 @@ function filteringModel() {
 
     self.updateFilter = function() {
         self.filterButtonIsActive(false);
-        filterItems = $('#filter-by .select2-multiple').select2('val')
+        filterItems = $('#filter-by .select2-multiple').select2('val');
         console.log(filterItems);
     };
 
@@ -121,7 +121,5 @@ $.ajax ({
     type: 'GET',
     dataType: 'json'
   }).done(function (filters) {
-
     app.viewModel.filterTab.filters(filters);
-
   });
