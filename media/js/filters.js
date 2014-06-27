@@ -23,19 +23,52 @@ function filteringModel() {
 
     self.filters = ko.observableArray();
 
-    self.filterButtonIsActive = ko.observable(false);
+    self.filterButtonIsActive = ko.observable(true);
+
+    // self.loadingFilterLayer = ko.observable(false);
+    // self.emptyLayer = ko.observable(false);
+
+    // self.updateFilter = function() {
+    //     // self.filterButtonIsActive(false);
+    //     // filterItems = $('#filter-by .select2-multiple').select2('val');
+    //     var filterItems = $('#filter-by .select2-choices .select2-search-choice div').contents();
+    //     var layer = self.filterLayers()[0];
+    //     layer.toggleActive();
+    //     // add spinner 
+    //     // self.loadingFilterLayer(true);
+    //     self.emptyLayer(false);
+
+    //     var filterList = [];
+    //     $.each(filterItems, function(index, value) { 
+    //         var filterField = _.findWhere(self.filters().fields, {name: value.data});
+    //         if (filterField.slug) {
+    //             filterList.push({'type': 'field', 'value': filterField.slug});
+    //         }
+    //     });
+    //     // console.log(JSON.stringify(filterList));
+    //     layer.filter = JSON.stringify(filterList);
+    //     layer.toggleActive();
+    //     // remove spinner and report back if layer has no features
+    //     // self.loadingFilterLayer(false);
+    //     // if (self.filterLayers() && self.filterLayers()[0] && self.filterLayers()[0].active()) {
+    //     //     var numFeatures = self.filterLayers()[0].layer.features.length;
+    //     //     if (numFeatures === 0) {
+    //     //         self.emptyLayer(true);
+    //     //     } 
+    //     // }
+    // };
 
     self.updateFilter = function() {
-        self.filterButtonIsActive(false);
-        filterItems = $('#filter-by .select2-multiple').select2('val');
-        console.log(filterItems);
-    };
+        var layer = self.filterLayers()[0];
+        layer.toggleActive();
 
-    self.createFilterString = function(options) {
-    	var filterString = "?filter=[",    	    
-    		startDate = options.startDate || self.startDate(),
-    		toDate = options.toDate || self.toDate(),
-            eventTypes = options.eventTypes || self.eventTypes;
+    	var filterString = "[",    	    
+    		// startDate = options.startDate || self.startDate(),
+    		// toDate = options.toDate || self.toDate(),
+            // eventTypes = options.eventTypes || self.eventTypes;
+            startDate = self.startDate(),
+            toDate = self.toDate(),
+            eventTypes = self.eventTypes;
     	if (startDate) {
     		// filterString = '?filter=[{"type":"fromDate","value":' + '"' + startDate.getDate() + '/' + (startDate.getMonth()+1) + '/' + startDate.getFullYear() + '"}]';	
     		filterString += JSON.stringify({'type': 'fromDate', 'value': (startDate.getMonth()+1) + '/' + startDate.getDate() + '/' + startDate.getFullYear()});
@@ -46,38 +79,59 @@ function filteringModel() {
     		}
     		filterString += JSON.stringify({'type': 'toDate', 'value': (toDate.getMonth()+1) + '/' + toDate.getDate() + '/' + toDate.getFullYear()});
     	} 
-        if (eventTypes) {           
-            for (var index=0; index<eventTypes.length; index+=1) {
-                if (startDate || toDate || index>0) {
+        // if (eventTypes) {           
+        //     for (var index=0; index<eventTypes.length; index+=1) {
+        //         if (startDate || toDate || index>0) {
+        //             filterString += ','
+        //         }
+        //         filterString += JSON.stringify({'type': 'event_type', 'value': eventTypes[index]});
+        //     }
+        // } 
+
+        var filterItems = $('#filter-by .select2-choices .select2-search-choice div').contents();
+        // add spinner 
+        // self.loadingFilterLayer(true);
+        // self.emptyLayer(false);
+
+        // var filterList = [];
+        $.each(filterItems, function(index, value) { 
+            var filterField = _.findWhere(self.filters().fields, {name: value.data});
+            if (filterField.slug) {
+                if (filterString.charAt(filterString.length-1) !== '[') {
                     filterString += ','
                 }
-                filterString += JSON.stringify({'type': 'event_type', 'value': eventTypes[index]});
+                filterString += JSON.stringify({'type': 'field', 'value': filterField.slug});
             }
-        } 
+        });
+        // console.log(JSON.stringify(filterList));
+        // layer.filter = JSON.stringify(filterList);
+
     	filterString += "]";
-    	return filterString;
+    	// return filterString;
+        layer.filter = filterString;
+        layer.toggleActive();
     };
 
-    self.startDate.subscribe(function(newStartDate) {
-    	$.each(self.filterLayers(), function(i, layer) {
-    		layer.filter = self.createFilterString({'startDate': newStartDate});
-    		layer.layer = app.addGridSummaryLayerToMap(layer);
-		});
-	});
+ //    self.startDate.subscribe(function(newStartDate) {
+ //    	$.each(self.filterLayers(), function(i, layer) {
+ //    		layer.filter = self.createFilterString({'startDate': newStartDate});
+ //    		layer.layer = app.addGridSummaryLayerToMap(layer);
+	// 	});
+	// });
 
-    self.toDate.subscribe(function(newToDate) {
-    	$.each(self.filterLayers(), function(i, layer) {
-    		layer.filter = self.createFilterString({'toDate': newToDate});
-    		layer.layer = app.addGridSummaryLayerToMap(layer);
-		});
-	});
+ //    self.toDate.subscribe(function(newToDate) {
+ //    	$.each(self.filterLayers(), function(i, layer) {
+ //    		layer.filter = self.createFilterString({'toDate': newToDate});
+ //    		layer.layer = app.addGridSummaryLayerToMap(layer);
+	// 	});
+	// });
 
-    self.eventTypes.subscribe(function(newEventTypes) {
-        $.each(self.filterLayers(), function(i, layer) {
-            layer.filter = self.createFilterString({'eventTypes': newEventTypes});
-            layer.layer = app.addGridSummaryLayerToMap(layer);
-        });
-    });
+ //    self.eventTypes.subscribe(function(newEventTypes) {
+ //        $.each(self.filterLayers(), function(i, layer) {
+ //            layer.filter = self.createFilterString({'eventTypes': newEventTypes});
+ //            layer.layer = app.addGridSummaryLayerToMap(layer);
+ //        });
+ //    });
 } // end filteringModel
 
 app.viewModel.filterTab = new filteringModel();

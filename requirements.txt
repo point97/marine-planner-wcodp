@@ -1,3 +1,4 @@
+django-cache-machine==0.8
 django-tastypie==0.9.16
 django-extensions==1.3.3
 django==1.5.8
