@@ -575,6 +575,101 @@ app.addArcRestLayerToMap = function(layer) {
     );
 };
 
+OpenLayers.Strategy.AttributeCluster = OpenLayers.Class(OpenLayers.Strategy.Cluster, {
+    /**
+     * the attribute to use for comparison
+     */
+    attribute: null,
+    /**
+     * Method: shouldCluster
+     * Determine whether to include a feature in a given cluster.
+     *
+     * Parameters:
+     * cluster - {<OpenLayers.Feature.Vector>} A cluster.
+     * feature - {<OpenLayers.Feature.Vector>} A feature.
+     *
+     * Returns:
+     * {Boolean} The feature should be included in the cluster.
+     */
+    shouldCluster: function(cluster, feature) {
+        var cc_attrval = cluster.cluster[0].attributes[this.attribute];
+        var fc_attrval = feature.attributes[this.attribute];
+        var superProto = OpenLayers.Strategy.Cluster.prototype;
+        return cc_attrval === fc_attrval && 
+               superProto.shouldCluster.apply(this, arguments);
+    },
+    CLASS_NAME: "OpenLayers.Strategy.AttributeCluster"
+});
+
+app.createPointFilterLayer = function(layer) {
+    var url = layer.url;
+    if (layer.proxy_url) {
+        url = '/proxy/layer/' + layer.id;
+        if (layer.filter) {
+            url += '?filter=' + layer.filter;
+        }
+    }
+    // url = "/proxy/layer/259?filter=[{%22type%22:%22field%22,%22value%22:%22Cigarette_butts%22}]"
+    return new OpenLayers.Layer.Vector("Events", {
+        renderers: OpenLayers.Layer.Vector.prototype.renderers,
+        projection: "EPSG:4326",
+        strategies:[
+            new OpenLayers.Strategy.Fixed(),
+            new OpenLayers.Strategy.AttributeCluster({
+                attribute:'event_type'
+            })
+        ],
+        protocol: new OpenLayers.Protocol.HTTP({
+            // url: "/events/get_geojson",
+            url: url,
+            format: new OpenLayers.Format.GeoJSON(),
+            params: {
+                // 'filter': JSON.stringify(app.viewModel.queryFilter())
+            }
+        }),
+        styleMap: new OpenLayers.StyleMap({
+            "default": new OpenLayers.Style({
+                pointRadius: "${radius}",
+                fillColor: "${getColor}",
+                fillOpacity: 0.8,
+                strokeColor: "${getStrokeColor}",
+                strokeWidth: 2,
+                strokeOpacity: 0.8,
+                label: "${clusterCount}",
+                fontColor: "#333"
+            },{ 
+                // Rules go here.
+                context: {
+                    radius: function(feature) {
+                        return Math.min(feature.attributes.count, 12) + 5;
+                    },
+                    clusterCount: function (feature) {
+                        return feature.attributes.count > 1 ? feature.attributes.count: "";
+                    },
+                    getColor: function(feature) {
+                        var type = feature.cluster[0].attributes.event_type;
+                        return type === "Site Cleanup" ? "#ffcc66" : "#ccc";
+                    },
+                    getStrokeColor: function(feature) {
+                        var type = feature.cluster[0].attributes.event_type;
+                        return type === "Site Cleanup" ? "#cc6633" : "#333";
+                    }
+                }
+            }),
+            "select": {
+                fillColor: "#8aeeef",
+                strokeColor: "#32a8a9"
+          }
+        })
+    });
+};
+
+app.addFilterableLayerToMap = function(layer) {
+    var points = app.createPointFilterLayer(layer);
+    return points;
+    // app.map.addLayer(points);
+}
+
 app.addGridSummaryLayerToMap = function(layer) {
     var url = layer.url;
     var dfd = new jQuery.Deferred();
@@ -669,8 +764,10 @@ app.addGridSummaryLayerToMap = function(layer) {
 
 app.addVectorLayerToMap = function(layer) {
 
-    if (layer.type === 'Vector' && layer.summarize_to_grid) {
-        layer.layer = app.addGridSummaryLayerToMap(layer);
+    // TODO change layer flag from summarize_to_grid to is_filterable or something similar...
+    if (layer.type === 'Vector' && layer.name === 'Beach Cleanups') { //&& layer.summarize_to_grid) {
+        // layer.layer = app.addGridSummaryLayerToMap(layer);
+        layer.layer = app.addFilterableLayerToMap(layer);
         return;
     }
 
