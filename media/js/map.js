@@ -575,6 +575,13 @@ app.addArcRestLayerToMap = function(layer) {
     );
 };
 
+/**
+ * Class: OpenLayers.Strategy.AttributeCluster
+ * Strategy for vector feature clustering based on feature attributes.
+ *
+ * Inherits from:
+ *  - <OpenLayers.Strategy.Cluster>
+ */
 OpenLayers.Strategy.AttributeCluster = OpenLayers.Class(OpenLayers.Strategy.Cluster, {
     /**
      * the attribute to use for comparison
