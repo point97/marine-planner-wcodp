@@ -38,3 +38,7 @@ scripts/cookbooks/node_*.json
 mp/data_manager/fixtures/datadump_2013_11_20.json
 
 mp/data_manager/fixtures/initial_data_orig.json
+
+mp/logs/main.log
+
+mp/logs/main_debug.log
