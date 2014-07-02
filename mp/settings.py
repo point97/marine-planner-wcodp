@@ -1,5 +1,6 @@
 # Django settings for lot project.
 from madrona.common.default_settings import *
+import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TIME_ZONE = 'America/Vancouver'
@@ -14,6 +15,9 @@ DATABASES = {
     }
 }
 
+# added in a merge conflict ... leaving in as a precaution sfletche 7-2-2014
+LOG_FILE =  os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'mp.log'))
+LOG_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), 'logs'))
 
 LOG_FILE = os.path.realpath(os.path.join(os.path.dirname(__file__),
                             '..', 'mp.log'))
@@ -89,6 +93,7 @@ MIDDLEWARE_CLASSES += (
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
