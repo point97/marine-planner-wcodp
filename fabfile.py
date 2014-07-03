@@ -298,3 +298,8 @@ def provision():
 def prepare():
     install_chef(latest=False)
     provision()
+
+@task
+def restore_db(dump_name):
+    put(dump_name, "/tmp/%s" % dump_name.split('/')[-1])
+    run("pg_restore --verbose --clean --no-acl --no-owner -U postgres -d marine-planner /tmp/%s" % dump_name.split('/')[-1])
