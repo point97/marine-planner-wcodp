@@ -42,3 +42,8 @@ mp/data_manager/fixtures/initial_data_orig.json
 mp/logs/main.log
 
 mp/logs/main_debug.log
+
+/media/assets/openlayers/build/*
+/media/assets/openlayers/tools/*
+/media/assets/openlayers/lib/*
+/media/assets/openlayers/archive/*

@@ -41,7 +41,7 @@ function layerModel(options, parent) {
     } 
     
     // if legend is not provided, try using legend from web services 
-    if ( !self.legend && self.url && (self.arcgislayers !== -1) ) {
+    if ( !self.legend && self.url && self.type=='ArcRest' && (self.arcgislayers !== -1) ) {
         $.ajax({
             dataType: "jsonp",
             //http://ocean.floridamarine.org/arcgis/rest/services/SAFMC/SAFMC_Regulations/MapServer/legend/?f=pjson
@@ -76,6 +76,40 @@ function layerModel(options, parent) {
                 //debugger;
             }
         });
+    }
+    if (!self.legend && self.url && self.type=='WMS' && self.wms_slug) {
+        // self.legend = window.location.origin + '/proxy/legend/' + self.id;
+        
+        var request = OpenLayers.Request.GET({ 
+            // url: self.url + "request=GetCapabilities", 
+            url: '/proxy/capabilities/' + self.id,
+            success: function(response) { 
+                console.log(self.name);
+                console.log(self.wms_slug);
+                if (self.wms_slug === 'ports1m') {
+                    var wms_slug = 'ports';
+                } else {
+                    var wms_slug = self.wms_slug;
+                }
+                var CAPformat = new OpenLayers.Format.WMSCapabilities(); 
+                var cap = CAPformat.read(response.responseXML || response.responseText); 
+                if (cap.capability && cap.capability.layers) {
+                    var capLayer = _.findWhere(cap.capability.layers, {'name': wms_slug});
+                    if (capLayer && capLayer.styles) {
+                        self.legend = capLayer.styles[0].legend.href;    
+                        console.log('self.legend = ' + self.legend);                
+                    }
+                }
+                //reset visibility (to reset activeLegendLayers)
+                var visible = self.visible();
+                self.visible(false);
+                self.visible(visible);
+            },
+            error: function(msg) {
+                debugger;
+            }
+        }); 
+
     }
     
     // set target blank for all links
