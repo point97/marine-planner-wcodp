@@ -57,14 +57,15 @@ app.viewModel.loadLayers = function(data) {
 	var marineDebrisTheme = _.findWhere(self.themes(), {name: 'Marine Debris'});
 	var marineDebrisLayers = marineDebrisTheme.layers();
 	$.each(marineDebrisLayers, function(i, layer) {
+		self.filterTab.filterLayers.push(layer);	
 		// if (layer.name.indexOf('All') !== 0) {
-		if ( layer.name === 'Beach Cleanups' ) {
-			self.filterTab.filterLayers.push(layer);	
-		} else {
-			self.filterTab.inclusiveFilterLayer = layer;
-		}
+		// if ( layer.name === 'Beach Cleanups' ) {
+		// 	self.filterTab.filterLayers.push(layer);	
+		// } else {
+		// 	self.filterTab.inclusiveFilterLayer = layer;
+		// }
 	});
-	self.themes.remove(marineDebrisTheme);
+	// self.themes.remove(marineDebrisTheme);
 
 	// load filters
 	// var primaryFilters = [{'display_name': 'Materials', 'depth': 3}, {'display_name': 'Properties', 'depth': 2}, {'display_name': 'Uses & Industry', 'depth': 4}];

@@ -44,3 +44,6 @@ mp/data_manager/fixtures/initial_data_orig.json
 mp/data_manager/fixtures/datadump_2014_05_16.json
 
 mp/data_manager/fixtures/wcodp-md_datadump_20140516.json
+
+/media/assets/openlayers/archive/*
+/media/assets/openlayers/build/*
