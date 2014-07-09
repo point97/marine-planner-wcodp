@@ -57,6 +57,7 @@ function filteringModel() {
     // };
 
     self.updateFilter = function() {
+        // TODO: currently only grabbling Marine Debris layer, will need to update 1 or both (or all?) active filter layers (check for .active())
         var layer = self.filterLayers()[0];
         layer.toggleActive();
 
@@ -86,8 +87,9 @@ function filteringModel() {
         //     }
         // } 
 
+        // NOTE:  filterItems might only be relevant for Beach Cleanup layer and not for Derelict Gear layer...
         var filterItems = $('#filter-by .select2-choices .select2-search-choice div').contents();
-        // add spinner 
+        // TODO:  add spinner (somewhere) indicating to the user that the new layer is loading
         // self.loadingFilterLayer(true);
         // self.emptyLayer(false);
 
