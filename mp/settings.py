@@ -54,6 +54,7 @@ ADMINS = (
 )
 
 MARINE_DEBRIS_URL = 'http://debris-db.westcoastoceans.org/'
+MP_ONTOLOGY_URL = 'http://143.239.249.181:8080/sws/SWS?request=GetConceptHierarchy&responseLanguage=en&elementSet=extended'
 
 # FEEDBACK_RECIPIENT = "Marine Planning Team <mp-team@marineplanner.org>"
 # HELP_EMAIL = "mp-team@marineplanner.org"
