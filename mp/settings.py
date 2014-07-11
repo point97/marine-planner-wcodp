@@ -34,6 +34,7 @@ INSTALLED_APPS += ('django_extensions',
                    'django.contrib.humanize',
                    'flatblocks',
                    'mp_proxy',
+                   'ontology',
                    'map_proxy'
                    )
 
