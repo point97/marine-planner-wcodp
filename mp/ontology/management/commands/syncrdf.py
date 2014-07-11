@@ -6,6 +6,9 @@ import requests
 
 CONCEPT_TAG = '{http://www.w3.org/2004/02/skos/core#}Concept'
 CONCEPT_KEY = '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}about'
+PREFLABEL_TAG = '{http://www.w3.org/2004/02/skos/core#}prefLabel'
+DEFINITION_TAG = '{http://www.w3.org/2004/02/skos/core#}definition'
+NARROWER_TAG = '{http://www.w3.org/2004/02/skos/core#}narrower'
 
 class Command(BaseCommand):
     args = ''
@@ -24,21 +27,35 @@ class Command(BaseCommand):
         # Parse the concept hierarchy with lxml
         parsed = etree.fromstring(resp.content)
 
+        RDFConcept.objects.all().delete()
         for child in parsed.getchildren():
-            if child.tag != CONCEPT_TAG:
-                raise ValueError("Found a child of root that wasn't a concept: {0}".format(child.tag))
-            import ipdb; ipdb.set_trace()
-            "asdf"
-
-            concept, _ = RDFConcept.objects.get_or_create(uri=child.attrib[CONCEPT_KEY])
-            concept.parent = None
-            concept.preflabel = ""
-            concept.definition = None
-            concept.save()
-
-            self.create_children(concept)
+            self.create_concept(child)
 
         #raise CommandError('Poll "%s" does not exist' % poll_id)
-        #self.stdout.write('Successfully closed poll "%s"' % poll_id)
-    def create_children(self, parent):
-        return True
+        self.stdout.write('Successfully updated concepts.')
+
+    def create_concept(self, dom_element, parent=None):
+        if dom_element.tag != CONCEPT_TAG:
+            raise ValueError("Found a child of root that wasn't a concept: {0}".format(dom_element.tag))
+
+        concept = RDFConcept.objects.create(uri=dom_element.attrib[CONCEPT_KEY])
+        concept.parent = parent
+        concept.preflabel = ""
+        concept.definition = None
+        concept.save()
+
+        self.create_children(concept, dom_element)
+
+    def create_children(self, parent_concept, parent_dom_node):
+        for child in parent_dom_node.getchildren():
+            if child.tag == PREFLABEL_TAG:
+                parent_concept.preflabel = child.text
+                #self.stdout.write("Setting preflabel to {0}".format(child.text))
+                parent_concept.save()
+            elif child.tag == DEFINITION_TAG:
+                parent_concept.definition = child.text
+                self.stdout.write("Setting definition to {0}".format(child.text))
+                parent_concept.save()
+            elif child.tag == NARROWER_TAG:
+                [self.create_concept(child_of_narrower, parent_concept) for
+                        child_of_narrower in child.getchildren()]
