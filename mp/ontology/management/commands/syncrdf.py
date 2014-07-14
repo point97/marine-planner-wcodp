@@ -23,7 +23,7 @@ class Command(BaseCommand):
 
         print "Fetching debris slugs..."
         debris_general = get_filters()
-        debris_json = debris_general.json
+        self.debris_json = debris_general.json()['fields']
 
         print "Fetching ontology..."
         resp = requests.get(target_url)
@@ -55,12 +55,19 @@ class Command(BaseCommand):
     def create_children(self, parent_concept, parent_dom_node):
         for child in parent_dom_node.getchildren():
             if child.tag == PREFLABEL_TAG:
+                # Attempt to reconcile debris-specific slugs with names from the ontology:
+                debris_json_matches = [x for x in self.debris_json if x['name'] == child.text]
+                if len(debris_json_matches) == 1:
+                    parent_concept.slug = debris_json_matches[0]['slug']
+
+                # Set the name:
                 parent_concept.preflabel = child.text
-                #self.stdout.write("Setting preflabel to {0}".format(child.text))
                 parent_concept.save()
             elif child.tag == DEFINITION_TAG:
+                # This is the 'description'. Not all tags have it.
                 parent_concept.definition = child.text
                 parent_concept.save()
             elif child.tag == NARROWER_TAG:
+                # Recursively create new concepts
                 [self.create_concept(child_of_narrower, parent_concept) for
                         child_of_narrower in child.getchildren()]
