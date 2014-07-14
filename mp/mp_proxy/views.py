@@ -60,12 +60,13 @@ def get_filters(request):
             subchildren = _all_concepts.filter(lft__gt=concept.lft, rght__lt=concept.rght)
             [fields.append(x.slug) for x in subchildren if x.slug != '']
 
-            to_append = {
-                'slug': concept.slug,
-                'name': concept.preflabel,
-                'fields': fields
-            }
-            concepts['fields'].append(to_append)
+            if concept.slug != '' and len(fields) > 0:
+                to_append = {
+                    #'slug': concept.slug,
+                    'name': concept.preflabel,
+                    'fields': list(set(fields)) # Remove duplicates
+                }
+                concepts['fields'].append(to_append)
 
         return HttpResponse(json.dumps(concepts), content_type="application/json")
     return HttpResponse(json.dumps({'fields': []}), content_type="application/json")

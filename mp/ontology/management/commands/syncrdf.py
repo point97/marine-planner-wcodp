@@ -44,7 +44,8 @@ class Command(BaseCommand):
         if dom_element.tag != CONCEPT_TAG:
             raise ValueError("Found a child of root that wasn't a concept: {0}".format(dom_element.tag))
 
-        concept = RDFConcept.objects.create(uri=dom_element.attrib[CONCEPT_KEY])
+        uri = dom_element.attrib[CONCEPT_KEY]
+        concept = RDFConcept.objects.create(uri=uri)
         concept.parent = parent
         concept.preflabel = ""
         concept.definition = None
