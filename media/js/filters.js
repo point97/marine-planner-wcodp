@@ -96,11 +96,13 @@ function filteringModel() {
         // var filterList = [];
         $.each(filterItems, function(index, value) { 
             var filterField = _.findWhere(self.filters().fields, {name: value.data});
-            if (filterField.slug) {
-                if (filterString.charAt(filterString.length-1) !== '[') {
-                    filterString += ','
-                }
-                filterString += JSON.stringify({'type': 'field', 'value': filterField.slug});
+            if (filterField.fields) {
+                $.each(filterField.fields, function(iter, val) {
+                    if (filterString.charAt(filterString.length-1) !== '[') {
+                        filterString += ','
+                    }
+                    filterString += JSON.stringify({'type': 'field', 'value': val});
+                });
             }
         });
         // console.log(JSON.stringify(filterList));
