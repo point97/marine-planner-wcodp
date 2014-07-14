@@ -1,6 +1,5 @@
 from django.conf.urls.defaults import *
 from django.conf import settings
-from django.db.models import F
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 
@@ -49,16 +48,22 @@ def get_filters(request):
         # 1. Get all RDFConcepts from the database.
         # 2. Return a list of {'slug': x, 'name': y, 'fields': [all,fields,with,this,concept]}
         # Then all I should have to do is rewrite the type ahead to use the 'fields' field.
-        _all_concepts = RDFConcept.objects.all()
-        _leaf_nodes = RDFConcept.objects.filter(lft=F('rght')-1)
-        #_non_leaf = _all_concepts.exclude(_leaf_nodes)
+        _all_concepts = RDFConcept.objects.all().select_related('lft', 'rght')
         concepts = { 'fields': [] }
 
-        for concept in _leaf_nodes:
+        for concept in _all_concepts:
+            fields = []
+
+            if concept.slug != '':
+                fields.append(concept.slug)
+
+            subchildren = _all_concepts.filter(lft__gt=concept.lft, rght__lt=concept.rght)
+            [fields.append(x.slug) for x in subchildren if x.slug != '']
+
             to_append = {
                 'slug': concept.slug,
                 'name': concept.preflabel,
-                'fields': [concept.slug]
+                'fields': fields
             }
             concepts['fields'].append(to_append)
 
