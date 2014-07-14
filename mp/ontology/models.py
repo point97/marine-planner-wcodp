@@ -1,7 +1,6 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.gis.db import models
-from django.template.defaultfilters import slugify
 
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -21,6 +20,7 @@ class RDFConcept(caching.base.CachingMixin, MPTTModel):
     uri = models.CharField(max_length=255)
     preflabel = models.CharField(max_length=125)
     definition = models.TextField(null=True, blank=True)
+    slug = models.SlugField(max_length=125, default="", null=False, blank=False)
 
     objects = caching.base.CachingManager()
 

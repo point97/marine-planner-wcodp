@@ -21,6 +21,11 @@ class Command(BaseCommand):
         if target_url is None or len(target_url) == 0:
             raise CommandError('You need to specify an MP_ONTOLOGY_URL in settings.')
 
+        print "Fetching debris slugs..."
+        debris_general = get_filters()
+        debris_json = debris_general.json
+
+        print "Fetching ontology..."
         resp = requests.get(target_url)
         if resp.status_code != 200:
             raise CommandError("Could not contact ontology url.")
@@ -55,7 +60,6 @@ class Command(BaseCommand):
                 parent_concept.save()
             elif child.tag == DEFINITION_TAG:
                 parent_concept.definition = child.text
-                self.stdout.write("Setting definition to {0}".format(child.text))
                 parent_concept.save()
             elif child.tag == NARROWER_TAG:
                 [self.create_concept(child_of_narrower, parent_concept) for
