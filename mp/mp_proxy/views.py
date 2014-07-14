@@ -1,16 +1,17 @@
-import httplib2
-from urllib import urlencode
-from urlparse import urlparse 
 from django.conf.urls.defaults import *
 from django.conf import settings
+from django.db.models import F
 from django.http import HttpResponse
-from proxy.views import proxy_view
-import requests
-import logging
-import logging.config
 from django.shortcuts import get_object_or_404
+
 from data_manager.models import Layer
+from ontology.models import RDFConcept
 from ontology.utils import get_filters as ontology_get_filters
+from proxy.views import proxy_view
+
+from urllib import urlencode
+from urlparse import urlparse
+import requests, logging, httplib2, logging.config, json
 #PROXY_FORMAT = u"http://%s/%s" % (settings.PROXY_DOMAIN, u"%s")
 
 def getLegendJSON(request, url):
@@ -45,10 +46,24 @@ def getLegendJSON(request, url):
 
 def get_filters(request):
     if request.method == "GET":
-        results = ontology_get_filters()
-        if results:
-            return HttpResponse(results.text)
-        return HttpResponse('')
+        # 1. Get all RDFConcepts from the database.
+        # 2. Return a list of {'slug': x, 'name': y, 'fields': [all,fields,with,this,concept]}
+        # Then all I should have to do is rewrite the type ahead to use the 'fields' field.
+        _all_concepts = RDFConcept.objects.all()
+        _leaf_nodes = RDFConcept.objects.filter(lft=F('rght')-1)
+        #_non_leaf = _all_concepts.exclude(_leaf_nodes)
+        concepts = { 'fields': [] }
+
+        for concept in _leaf_nodes:
+            to_append = {
+                'slug': concept.slug,
+                'name': concept.preflabel,
+                'fields': [concept.slug]
+            }
+            concepts['fields'].append(to_append)
+
+        return HttpResponse(json.dumps(concepts), content_type="application/json")
+    return HttpResponse(json.dumps({'fields': []}), content_type="application/json")
 
 
 def layer_proxy_view(request, layer_id):
