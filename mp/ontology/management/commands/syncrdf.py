@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from ontology.models import RDFConcept
+from ontology.utils import get_filters
 from lxml import etree
 import requests
 

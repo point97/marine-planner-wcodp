@@ -10,6 +10,7 @@ import logging
 import logging.config
 from django.shortcuts import get_object_or_404
 from data_manager.models import Layer
+from ontology.utils import get_filters as ontology_get_filters
 #PROXY_FORMAT = u"http://%s/%s" % (settings.PROXY_DOMAIN, u"%s")
 
 def getLegendJSON(request, url):
@@ -20,7 +21,7 @@ def getLegendJSON(request, url):
     # optionally provide authentication for server
     #conn.add_credentials('admin','admin-password')
     if request.method == "GET":
-        
+
         getUrl = request.GET.get('url')
         logger.debug(getUrl)
         parsedURL = urlparse(getUrl)
@@ -34,7 +35,7 @@ def getLegendJSON(request, url):
           if(logger):
             logger.exception(e)
         else:
-          if(results.status_code == 200):          
+          if(results.status_code == 200):
             return HttpResponse(results.text)
           return(HttpResponse(''))
     elif request.method == "POST":
@@ -43,17 +44,11 @@ def getLegendJSON(request, url):
         return HttpResponse(content)
 
 def get_filters(request):
-    getUrl = settings.MARINE_DEBRIS_URL + 'events/get_filters'
-    if request.method == "GET": 
-        try:
-          results = requests.get(getUrl)
-        except Exception,e:
-          if(logger):
-            logger.exception(e)
-        else:
-          if(results.status_code == 200):          
+    if request.method == "GET":
+        results = ontology_get_filters()
+        if results:
             return HttpResponse(results.text)
-          return(HttpResponse(''))
+        return HttpResponse('')
 
 
 def layer_proxy_view(request, layer_id):

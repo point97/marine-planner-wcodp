@@ -1,3 +1,5 @@
+*.swp
+*.swo
 mp/logs/
 */.DS_Store
 proxy/cache_data
