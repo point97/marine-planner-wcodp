@@ -95,7 +95,7 @@ function filteringModel() {
 
         // var filterList = [];
         $.each(filterItems, function(index, value) { 
-            var filterField = _.findWhere(self.filters().fields, {name: value.data});
+            var filterField = _.findWhere(self.filters(), {name: value.data});
             if (filterField.fields) {
                 $.each(filterField.fields, function(iter, val) {
                     if (filterString.charAt(filterString.length-1) !== '[') {

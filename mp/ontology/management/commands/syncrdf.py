@@ -61,8 +61,12 @@ class Command(BaseCommand):
                 if len(debris_json_matches) == 1:
                     parent_concept.slug = debris_json_matches[0]['slug']
 
-                # Set the name:
-                parent_concept.preflabel = child.text
+                # We need to differentiate between the e.g. Paper category and the Paper item
+                if 'concept/Cat_' in parent_concept.uri:
+                    parent_concept.preflabel = "{} Category".format(child.text)
+                else:
+                    parent_concept.preflabel = child.text
+
                 parent_concept.save()
             elif child.tag == DEFINITION_TAG:
                 # This is the 'description'. Not all tags have it.

@@ -45,31 +45,34 @@ def getLegendJSON(request, url):
 
 def get_filters(request):
     if request.method == "GET":
-        # 1. Get all RDFConcepts from the database.
-        # 2. Return a list of {'slug': x, 'name': y, 'fields': [all,fields,with,this,concept]}
-        # Then all I should have to do is rewrite the type ahead to use the 'fields' field.
         _all_concepts = RDFConcept.objects.all().select_related('lft', 'rght')
-        concepts = { 'fields': [] }
+        concepts = {}
 
         for concept in _all_concepts:
             fields = []
 
+            # If the concept itself has a slug, append it:
             if concept.slug != '':
                 fields.append(concept.slug)
 
+            # Aggregate and append all the descendants of this concept, and append
+            # their slugs to the list:
             subchildren = _all_concepts.filter(lft__gt=concept.lft, rght__lt=concept.rght)
             [fields.append(x.slug) for x in subchildren if x.slug != '']
 
+            # Check to see if this concept has a relevant filter in the database:
             if concept.slug != '' and len(fields) > 0:
-                to_append = {
-                    #'slug': concept.slug,
-                    'name': concept.preflabel,
-                    'fields': list(set(fields)) # Remove duplicates
-                }
-                concepts['fields'].append(to_append)
+                # Append if it exists, create it otherwise. This removes duplicate
+                # entries.
+                if concepts.get(concept.preflabel):
+                    map(concepts[concept.preflabel].append, fields)
+                    concepts[concept.preflabel] = list(set(concepts[concept.preflabel]))
+                else:
+                    concepts[concept.preflabel] = list(set(fields))
+        to_return = [{'name': k, 'fields': v} for k,v in concepts.items()]
 
-        return HttpResponse(json.dumps(concepts), content_type="application/json")
-    return HttpResponse(json.dumps({'fields': []}), content_type="application/json")
+        return HttpResponse(json.dumps(to_return), content_type="application/json")
+    return HttpResponse(json.dumps([]), content_type="application/json")
 
 
 def layer_proxy_view(request, layer_id):
