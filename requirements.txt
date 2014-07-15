@@ -18,3 +18,4 @@ eventlet==0.14.0
 ipython==1.2.1
 python-social-auth==0.1.23
 django-mptt
+django_mptt_admin
