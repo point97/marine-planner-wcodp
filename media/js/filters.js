@@ -94,7 +94,7 @@ function filteringModel() {
         // self.emptyLayer(false);
 
         // var filterList = [];
-        $.each(filterItems, function(index, value) { 
+        $.each(filterItems, function(index, value) {
             var filterField = _.findWhere(self.filters(), {name: value.data});
             if (filterField.fields) {
                 $.each(filterField.fields, function(iter, val) {

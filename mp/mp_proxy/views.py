@@ -61,7 +61,7 @@ def get_filters(request):
             [fields.append(x.slug) for x in subchildren if x.slug != '']
 
             # Check to see if this concept has a relevant filter in the database:
-            if concept.slug != '' and len(fields) > 0:
+            if len(fields) > 0:
                 # Append if it exists, create it otherwise. This removes duplicate
                 # entries.
                 if concepts.get(concept.preflabel):
