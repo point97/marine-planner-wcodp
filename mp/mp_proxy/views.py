@@ -57,7 +57,7 @@ def get_filters(request):
 
             # Aggregate and append all the descendants of this concept, and append
             # their slugs to the list:
-            subchildren = _all_concepts.filter(lft__gt=concept.lft, rght__lt=concept.rght)
+            subchildren = concept.get_descendants()
             [fields.append(x.slug) for x in subchildren if x.slug != '']
 
             # Check to see if this concept has a relevant filter in the database:
