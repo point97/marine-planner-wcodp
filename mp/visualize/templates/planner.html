@@ -105,6 +105,24 @@
         <!-- modals -->
         {% include "modals.html" %}
         {% include "bookmark-modals.html" %}
+
+        <!-- Active filter info MODAL -->
+        <div id="filter-info-modal" class="modal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Active Filters</h3>
+                    </div>
+
+                    <div class="modal-body">
+                    </div>
+
+                    <div class="modal-footer">
+                        <button href="#" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- end modals -->
 
         <!-- TOUR -->
@@ -113,7 +131,8 @@
         
         <!-- REGISTRATION MODALS -->
         {% include "account-modals.html" %}
-        <!-- SIGN IN MODAL -->                
+        </div>
+        <!-- SIGN IN MODAL -->
         
         <div class="container-fluid" id="primary-content" style="padding: 0px;">
             <div id="loading" style="margin: 50px">
