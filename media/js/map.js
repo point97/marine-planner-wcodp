@@ -617,7 +617,7 @@ app.createPointFilterLayer = function(layer) {
         }
     }
     // url = "/proxy/layer/259?filter=[{%22type%22:%22field%22,%22value%22:%22Cigarette_butts%22}]"
-    return new OpenLayers.Layer.Vector("Events", {
+    var new_layer = new OpenLayers.Layer.Vector("Events", {
         renderers: OpenLayers.Layer.Vector.prototype.renderers,
         projection: "EPSG:4326",
         strategies:[
@@ -669,6 +669,33 @@ app.createPointFilterLayer = function(layer) {
           }
         })
     });
+    new_layer.protocol.old_read = new_layer.protocol.read;
+    // Let the monkey patching begin.
+    new_layer.protocol.read = function(options) {
+        // This was mostly ripped out of Openlayers.Protocol.HTTP.read.
+        /*
+        OpenLayers.Protocol.prototype.read.apply(this, arguments);
+        options = options || {};
+        options.params = OpenLayers.Util.applyDefaults(options.params, this.options.params);
+        options = OpenLayers.Util.applyDefaults(options, this.options);
+        if (options.filter && this.filterToParams) {
+            options.params = this.filterToParams(options.filter, options.params);
+        }
+        var readWithPOST = (options.readWithPOST !== undefined) ? options.readWithPOST : this.readWithPOST;
+        var resp = new OpenLayers.Protocol.Response({
+            requestType: "read"
+        });
+        resp.priv = OpenLayers.Request.GET({
+            url: options.url,
+            callback: this.createCallback(this.handleRead, resp, options),
+            params: options.params,
+            headers: options.headers
+        });
+        return resp;
+        */
+        return this.protocol.old_read(options);
+    };
+    return new_layer;
 };
 
 app.addFilterableLayerToMap = function(layer) {
