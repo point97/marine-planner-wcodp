@@ -58,7 +58,7 @@ function filteringModel() {
 
     self.showFilterInfo = function() {
     }
-    self.showFilterInfoButtonIsActive = ko.observable(true);
+    self.showFilterInfoButtonIsActive = ko.observable(false);
 
     self.updateFilter = function() {
         var layer = self.filterLayers()[0];
@@ -114,6 +114,11 @@ function filteringModel() {
     	// return filterString;
         layer.filter = filterString;
         layer.toggleActive();
+
+        if (filterItems.length > 0)
+            self.showFilterInfoButtonIsActive(true);
+        else
+            self.showFilterInfoButtonIsActive(false);
     };
 
  //    self.startDate.subscribe(function(newStartDate) {

@@ -693,7 +693,7 @@ app.createPointFilterLayer = function(layer) {
         });
         return resp;
         */
-        return this.protocol.old_read(options);
+        return this.old_read(options);
     };
     return new_layer;
 };
