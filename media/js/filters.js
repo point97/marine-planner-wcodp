@@ -59,7 +59,7 @@ function filteringModel() {
     self.showFilterInfo = function() {
     }
     self.showFilterInfoButtonIsActive = ko.observable(false);
-    self.filterInfoItems = [{'name': 'test'}];
+    self.filterInfoItems = ko.observableArray();
 
     self.updateFilter = function() {
         var layer = self.filterLayers()[0];
@@ -92,6 +92,7 @@ function filteringModel() {
         // } 
 
         var filterItems = $('#filter-by .select2-choices .select2-search-choice div').contents();
+        self.filterInfoItems.removeAll(); // Clear it so we don't get duplicates
         // add spinner 
         // self.loadingFilterLayer(true);
         // self.emptyLayer(false);
@@ -100,12 +101,20 @@ function filteringModel() {
         $.each(filterItems, function(index, value) {
             var filterField = _.findWhere(self.filters(), {name: value.data});
             if (filterField.fields) {
+                var toPush = {
+                    'name': value.data,
+                    'fields': []
+                };
                 $.each(filterField.fields, function(iter, val) {
                     if (filterString.charAt(filterString.length-1) !== '[') {
                         filterString += ','
                     }
                     filterString += JSON.stringify({'type': 'field', 'value': val});
+                    toPush.fields.push(val);
                 });
+
+                toPush.fields.sort();
+                self.filterInfoItems.push(toPush);
             }
         });
         // console.log(JSON.stringify(filterList));
@@ -116,10 +125,11 @@ function filteringModel() {
         layer.filter = filterString;
         layer.toggleActive();
 
-        if (filterItems.length > 0)
+        if (filterItems.length > 0) {
             self.showFilterInfoButtonIsActive(true);
-        else
+        } else {
             self.showFilterInfoButtonIsActive(false);
+        }
     };
 
  //    self.startDate.subscribe(function(newStartDate) {

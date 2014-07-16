@@ -114,10 +114,13 @@
                         <h3>Active Filters</h3>
                     </div>
 
-                    <div class="modal-body">
+                    <div class="modal-body" style="overflow: auto;">
                         <ul data-bind="foreach: app.viewModel.filterTab.filterInfoItems">
                             <li>
                                 <p data-bind="text: name"></p>
+                                <ul data-bind="foreach: fields">
+                                    <li data-bind="text: $data"></li>
+                                </ul>
                             </li>
                         </ul>
                     </div>
