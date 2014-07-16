@@ -52,13 +52,13 @@ def get_filters(request):
             fields = []
 
             # If the concept itself has a slug, append it:
-            if concept.slug != '':
+            if concept.slug != '' and ' ' not in concept.slug:
                 fields.append(concept.slug)
 
             # Aggregate and append all the descendants of this concept, and append
             # their slugs to the list:
             subchildren = concept.get_descendants()
-            [fields.append(x.slug) for x in subchildren if x.slug != '']
+            [fields.append(x.slug) for x in subchildren if x.slug != '' and ' ' not in x.slug]
 
             # Check to see if this concept has a relevant filter in the database:
             if len(fields) > 0:
