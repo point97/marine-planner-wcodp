@@ -1,5 +1,3 @@
-
-
 function filteringModel() {
 	var self = this;
 
@@ -57,6 +55,10 @@ function filteringModel() {
     //     //     } 
     //     // }
     // };
+
+    self.showFilterInfo = function() {
+    }
+    self.showFilterInfoButtonIsActive = ko.observable(true);
 
     self.updateFilter = function() {
         var layer = self.filterLayers()[0];

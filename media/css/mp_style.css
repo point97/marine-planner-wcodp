@@ -619,7 +619,33 @@ img + h3 {
     padding: 4px 8px;
 }
 
-#active .btn-layer > div {
+#filter {
+    outline: 0;
+}
+#filter div:focus {
+    outline: 0;
+}
+#filter ul li {
+	margin-bottom: 10px;
+}
+#filter .btn {
+	padding: 4px 9px;
+}
+#filter .opacity-button {
+    padding: 4px 9px;
+}
+#filter .btn-group {
+	width: 90%;
+}
+#filter .btn-group .btn-layer {
+	text-align: left;
+	/* Bootstrap 3 fix */
+	/*width: 74%;*/
+}
+#filter .btn-info-sign {
+    padding: 4px 8px;
+}
+#filter .btn-layer > div {
 	display: inline-block;
 	line-height: 1;
 	margin-top: 0;
