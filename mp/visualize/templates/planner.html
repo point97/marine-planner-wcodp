@@ -115,6 +115,11 @@
                     </div>
 
                     <div class="modal-body">
+                        <ul data-bind="foreach: app.viewModel.filterTab.filterInfoItems">
+                            <li>
+                                <p data-bind="text: name"></p>
+                            </li>
+                        </ul>
                     </div>
 
                     <div class="modal-footer">

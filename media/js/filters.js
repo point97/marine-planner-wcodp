@@ -59,6 +59,7 @@ function filteringModel() {
     self.showFilterInfo = function() {
     }
     self.showFilterInfoButtonIsActive = ko.observable(false);
+    self.filterInfoItems = [{'name': 'test'}];
 
     self.updateFilter = function() {
         var layer = self.filterLayers()[0];
