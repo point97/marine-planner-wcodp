@@ -100,12 +100,12 @@ function filteringModel() {
         // var filterList = [];
         $.each(filterItems, function(index, value) {
             var filterField = _.findWhere(self.filters(), {name: value.data});
-            if (filterField.field_tuples) {
+            if (filterField.field_name_tuples) {
                 var toPush = {
                     'name': value.data,
                     'fields': []
                 };
-                $.each(filterField.field_tuples, function(iter, val) {
+                $.each(filterField.field_name_tuples, function(iter, val) {
                     if (filterString.charAt(filterString.length-1) !== '[') {
                         filterString += ','
                     }
