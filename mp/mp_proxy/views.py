@@ -53,23 +53,24 @@ def get_filters(request):
 
             # If the concept itself has a slug, append it:
             if concept.slug != '' and ' ' not in concept.slug:
-                fields.append(concept.slug)
+                fields.append(concept)
 
             # Aggregate and append all the descendants of this concept, and append
             # their slugs to the list:
             subchildren = concept.get_descendants()
-            [fields.append(x.slug) for x in subchildren if x.slug != '' and ' ' not in x.slug]
+            [fields.append(x) for x in subchildren if x.slug != '' and ' ' not in x.slug]
 
             # Check to see if this concept has a relevant filter in the database:
             if len(fields) > 0:
                 # Append if it exists, create it otherwise. This removes duplicate
                 # entries.
+                fun_tuples = [(x.preflabel, x.slug) for x in fields]
                 if concepts.get(concept.preflabel):
-                    map(concepts[concept.preflabel].append, fields)
+                    map(concepts[concept.preflabel].append, fun_tuples)
                     concepts[concept.preflabel] = list(set(concepts[concept.preflabel]))
                 else:
-                    concepts[concept.preflabel] = list(set(fields))
-        to_return = [{'name': k, 'fields': v} for k,v in concepts.items()]
+                    concepts[concept.preflabel] = list(set(fun_tuples))
+        to_return = [{'name': k, 'field_name_tuples': v} for k,v in concepts.items()]
 
         return HttpResponse(json.dumps(to_return), content_type="application/json")
     return HttpResponse(json.dumps([]), content_type="application/json")

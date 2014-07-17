@@ -100,17 +100,17 @@ function filteringModel() {
         // var filterList = [];
         $.each(filterItems, function(index, value) {
             var filterField = _.findWhere(self.filters(), {name: value.data});
-            if (filterField.fields) {
+            if (filterField.field_tuples) {
                 var toPush = {
                     'name': value.data,
                     'fields': []
                 };
-                $.each(filterField.fields, function(iter, val) {
+                $.each(filterField.field_tuples, function(iter, val) {
                     if (filterString.charAt(filterString.length-1) !== '[') {
                         filterString += ','
                     }
-                    filterString += JSON.stringify({'type': 'field', 'value': val});
-                    toPush.fields.push(val);
+                    filterString += JSON.stringify({'type': 'field', 'value': val[1]});
+                    toPush.fields.push(val[0]);
                 });
 
                 toPush.fields.sort();
