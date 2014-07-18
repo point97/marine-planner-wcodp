@@ -57,9 +57,8 @@ function filteringModel() {
     // };
 
     self.updateFilter = function() {
-        // TODO: currently only grabbling Marine Debris layer, will need to update 1 or both (or all?) active filter layers (check for .active())
-        var layer = self.filterLayers()[0];
-        layer.toggleActive();
+        var layers = self.filterLayers();
+        layers.map(function(x) { x.toggleActive(); });
 
     	var filterString = "[",    	    
     		// startDate = options.startDate || self.startDate(),
@@ -108,8 +107,16 @@ function filteringModel() {
 
     	filterString += "]";
     	// return filterString;
-        layer.filter = filterString;
-        layer.toggleActive();
+        layers.map(function(x) {
+            x.filter = filterString;
+            x.toggleActive();
+        });
+
+        if (filterItems.length > 0) {
+            self.showFilterInfoButtonIsActive(true);
+        } else {
+            self.showFilterInfoButtonIsActive(false);
+        }
     };
 
  //    self.startDate.subscribe(function(newStartDate) {
