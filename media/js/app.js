@@ -148,18 +148,18 @@ $(document).ready(function() {
   });
 
 
-  // Filter Tab Select2 Multi Select Initialization 
-  $('#filter-by .select2-multiple').select2();
-  $('#filter-by .select2-multiple').on( "select2-open", function() {
-    if ( $(this).parents('[class*="has-"]').length ) {
-      var classNames = $(this).parents('[class*="has-"]')[0].className.split(/\s+/);
-      for (var i=0; i<classNames.length; ++i) {
-          if ( classNames[i].match("has-") ) {
-            $('#select2-drop').addClass( classNames[i] );
-          }
-      }
-    }
-  });
+  // Filter Tab Select2 Multi Select Initialization -- commenting out during rebase
+  // $('#filter-by .select2-multiple').select2();
+  // $('#filter-by .select2-multiple').on( "select2-open", function() {
+  //   if ( $(this).parents('[class*="has-"]').length ) {
+  //     var classNames = $(this).parents('[class*="has-"]')[0].className.split(/\s+/);
+  //     for (var i=0; i<classNames.length; ++i) {
+  //         if ( classNames[i].match("has-") ) {
+  //           $('#select2-drop').addClass( classNames[i] );
+  //         }
+  //     }
+  //   }
+  // });
   
   // making sure we can get typeahead working
   // $('#filter-input').typeahead({

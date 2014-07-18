@@ -522,6 +522,13 @@
                                     </span>-->
                                 </a>
                             </li>
+                            <li data-tab="filter" >
+                                <a href="#filter" data-toggle="tab" id="filterTab">Filter  
+                                    <!--<span data-bind="visible: activeLayers().length > 0">
+                                        (<span  data-bind="text: activeLayers().length">0</span>)
+                                    </span>-->
+                                </a>
+                            </li>
                             
                         </ul>
                         
@@ -686,6 +693,10 @@
                             </div>
                             <!-- END LEGEND TAB -->
                             
+                            <!-- FILTER TAB -->
+                            {% include "filters.html" %}
+                            <!-- END FILTER TAB -->
+                            
                         </div>
                     </div>
                 </div>
@@ -786,6 +797,7 @@
         <script src="{{MEDIA_URL}}/assets/jquery/jquery.ui.touch-punch.min.js"></script>
         <script src="{{MEDIA_URL}}/assets/jquery/jquery.jscrollpane.min.js"></script>
         <script src="{{MEDIA_URL}}/assets/date/date.js"></script>
+        <script src="{{MEDIA_URL}}/assets/underscore/underscore-min.js"></script>
 
         <script>
             var app = {};
@@ -827,6 +839,7 @@
         <script src="{{MEDIA_URL}}/js/map.js"></script>
         <script src="{{MEDIA_URL}}/js/state.js"></script>
         <script src="{{MEDIA_URL}}/js/models.js"></script>
+        <script src="{{MEDIA_URL}}/js/filters.js"></script>
         <script src="{{MEDIA_URL}}/js/bookmarks.js"></script>
         <script src="{{MEDIA_URL}}/js/server.js"></script>
         <script src="{{MEDIA_URL}}/js/printing.js"></script>
