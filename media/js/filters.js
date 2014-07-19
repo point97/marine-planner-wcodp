@@ -55,6 +55,11 @@ function filteringModel() {
     //     //     } 
     //     // }
     // };
+    
+    self.showFilterInfo = function() {
+    }
+    self.showFilterInfoButtonIsActive = ko.observable(false);
+    self.filterInfoItems = ko.observableArray();
 
     self.updateFilter = function() {
         var layers = self.filterLayers();
@@ -93,13 +98,23 @@ function filteringModel() {
         // self.emptyLayer(false);
 
         // var filterList = [];
-        $.each(filterItems, function(index, value) { 
-            var filterField = _.findWhere(self.filters().fields, {name: value.data});
-            if (filterField.slug) {
-                if (filterString.charAt(filterString.length-1) !== '[') {
-                    filterString += ','
-                }
-                filterString += JSON.stringify({'type': 'field', 'value': filterField.slug});
+        $.each(filterItems, function(index, value) {
+            var filterField = _.findWhere(self.filters(), {name: value.data});
+            if (filterField.field_name_tuples) {
+                var toPush = {
+                    'name': value.data,
+                    'fields': []
+                };
+                $.each(filterField.field_name_tuples, function(iter, val) {
+                    if (filterString.charAt(filterString.length-1) !== '[') {
+                        filterString += ','
+                    }
+                    filterString += JSON.stringify({'type': 'field', 'value': val[1]});
+                    toPush.fields.push(val[0]);
+                });
+
+                toPush.fields.sort();
+                self.filterInfoItems.push(toPush);
             }
         });
         // console.log(JSON.stringify(filterList));
