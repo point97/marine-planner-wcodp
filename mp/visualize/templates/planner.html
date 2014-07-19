@@ -107,7 +107,7 @@
         {% include "bookmark-modals.html" %}
 
         <!-- Active filter info MODAL -->
-        <div id="filter-info-modal" class="modal">
+        <!-- <div id="filter-info-modal" class="modal">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -130,7 +130,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
         <!-- end modals -->
 
         <!-- TOUR -->
@@ -426,8 +426,8 @@
                 
                 
                 <!-- Data Panel (left panel) -->
-                <div class="row" data-bind="visible: showLayers()">
-                  <div class="col-md-4 tabs">
+                <div class="row-fluid" data-bind="visible: showLayers()">
+                  <div class="span4 tabs">
                     <div class="sidebar-nav" data-bind="css: {'fullscreen-data': isFullScreen()}" style="min-width: 350px; max-width: 360px; height: 550px; top: 12px; z-index: 750; margin-left: 12px; background-color: white; border-radius: 10px; opacity: .9; border: 1px solid #ccc;">
                         
                         <!-- Header -->

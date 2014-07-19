@@ -618,6 +618,19 @@ img + h3 {
 #active .btn-info-sign {
     padding: 4px 8px;
 }
+#active .btn-layer > div {
+	display: inline-block;
+	line-height: 1;
+	padding-left: 8px;
+	margin-top: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	width: auto;
+    max-width: 90%;
+	/*height: inherit;*/
+    height: 16px;
+    vertical-align: middle;
+}
 
 #filter {
     outline: 0;
@@ -639,8 +652,7 @@ img + h3 {
 }
 #filter .btn-group .btn-layer {
 	text-align: left;
-	/* Bootstrap 3 fix */
-	/*width: 74%;*/
+	width: 94%;
 }
 #filter .btn-info-sign {
     padding: 4px 8px;
