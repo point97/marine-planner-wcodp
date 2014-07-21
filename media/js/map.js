@@ -772,7 +772,7 @@ app.addGridSummaryLayerToMap = function(layer) {
 app.addVectorLayerToMap = function(layer) {
 
     // TODO change layer flag from summarize_to_grid to is_filterable or something similar...
-    if (layer.type === 'Vector' && (layer.name === 'Beach Cleanups')) { //&& layer.summarize_to_grid) {
+    if (layer.type === 'Vector') { //&& layer.summarize_to_grid) {
         // layer.layer = app.addGridSummaryLayerToMap(layer);
         layer.layer = app.addFilterableLayerToMap(layer);
         return;
