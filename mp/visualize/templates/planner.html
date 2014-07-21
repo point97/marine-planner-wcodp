@@ -108,30 +108,26 @@
         {% include "bookmark-modals.html" %}
 
         <!-- Active filter info MODAL -->
-        <!-- <div id="filter-info-modal" class="modal">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>Active Filters</h3>
-                    </div>
-
-                    <div class="modal-body" style="overflow: auto; height: 600px;">
-                        <ul data-bind="foreach: app.viewModel.filterTab.filterInfoItems">
-                            <li>
-                                <p data-bind="text: name"></p>
-                                <ul data-bind="foreach: fields">
-                                    <li data-bind="text: $data"></li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button href="#" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                </div>
+        <div id="filter-info-modal" role="modal" class="modal hide fade">
+            <div class="modal-header">
+                <h3>Active Filters</h3>
             </div>
-        </div> -->
+
+            <div class="modal-body" style="overflow: auto; height: 600px;">
+                <ul data-bind="foreach: app.viewModel.filterTab.filterInfoItems">
+                    <li>
+                        <p data-bind="text: name"></p>
+                        <ul data-bind="foreach: fields">
+                            <li data-bind="text: $data"></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="modal-footer">
+                <button href="#" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
         <!-- end modals -->
 
         <!-- TOUR -->
