@@ -44,17 +44,36 @@ def getLegendJSON(request, url):
         return HttpResponse(content)
 
 def get_filters(request):
-    getUrl = settings.MARINE_DEBRIS_URL + 'events/get_filters'
-    if request.method == "GET": 
-        try:
-          results = requests.get(getUrl)
-        except Exception,e:
-          if(logger):
-            logger.exception(e)
-        else:
-          if(results.status_code == 200):          
-            return HttpResponse(results.text)
-          return(HttpResponse(''))
+    if request.method == "GET":
+        _all_concepts = RDFConcept.objects.all().select_related('lft', 'rght')
+        concepts = {}
+
+        for concept in _all_concepts:
+            fields = []
+
+            # If the concept itself has a slug, append it:
+            if concept.slug != '' and ' ' not in concept.slug:
+                fields.append(concept)
+
+            # Aggregate and append all the descendants of this concept, and append
+            # their slugs to the list:
+            subchildren = concept.get_descendants()
+            [fields.append(x) for x in subchildren if x.slug != '' and ' ' not in x.slug]
+
+            # Check to see if this concept has a relevant filter in the database:
+            if len(fields) > 0:
+                # Append if it exists, create it otherwise. This removes duplicate
+                # entries.
+                fun_tuples = [(x.preflabel, x.slug) for x in fields]
+                if concepts.get(concept.preflabel):
+                    map(concepts[concept.preflabel].append, fun_tuples)
+                    concepts[concept.preflabel] = list(set(concepts[concept.preflabel]))
+                else:
+                    concepts[concept.preflabel] = list(set(fun_tuples))
+        to_return = [{'name': k, 'field_name_tuples': v} for k,v in concepts.items()]
+
+        return HttpResponse(json.dumps(to_return), content_type="application/json")
+    return HttpResponse(json.dumps([]), content_type="application/json")
 
 
 def layer_proxy_view(request, layer_id):
