@@ -161,19 +161,9 @@ $(document).ready(function() {
   //   }
   // });
   
-  // making sure we can get typeahead working
-  // $('#filter-input').typeahead({
-  //     source: ["Derelict", "Cleanup"]
-  // });
-  (function () {
-        var keys = [];
-        for (var searchTerm in app.viewModel.layerSearchIndex) {
-            if (app.viewModel.layerSearchIndex.hasOwnProperty(searchTerm)) {
-                keys.push(searchTerm);
-            }
-        }
-        return keys;
-    })()
+  $('#filter-input').typeahead({
+      source: app.filterTypeAheadSource
+  });
 
   //fixes a problem in which the data accordion scrollbar was reinitialized before the app switched back to the data tab
   //causing the data tab to appear empty

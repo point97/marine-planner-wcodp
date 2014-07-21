@@ -80,15 +80,19 @@
                         <!-- </div> -->
                         <div id="filter-by" class="form-group" style="margin: 5px 0px 10px">
                             <label for="multiple" class="control-label">Filter by Debris Type</label>
-                            <select class="field select2-multiple" placeholder="Filter by debris type(s)..." data-bind="foreach: filters().fields" multiple>
-                              <option data-bind="text: $data.name, value: $data.slug"></option>
+                            <input id="filter-input" type="text" style="overflow: hidden; text-overflow: ellipsis;" placeholder="Filter By">
+                            <!--
+                            <select class="field select2-multiple" placeholder="Filter by debris type(s)..." data-bind="foreach: filters()" multiple>
+                              <option data-bind="text: $data.name"></option>
                             </select>
+                            -->
                         </div>
 
 
                         <span class="pull-right" style="margin-right: 3px">
                             <a id="filter-button" class="btn btn-default" data-bind="click: updateFilter, css: { 'enabled': filterButtonIsActive(), 'disabled': !filterButtonIsActive() }" style="outline: none; float: right; margin-right: -3px; margin-left: 6px;">Update Filter <i class="icon-large icon-filter"></i></a>
                             <!-- <a class="btn btn-default" data-toggle="modal" data-target="#filter-info-modal"data-bind="click: showFilterInfo, css: { 'enabled': showFilterInfoButtonIsActive(), 'disabled': !showFilterInfoButtonIsActive() }" style="outline: none; float: right;">Filter Info <i class="icon-large icon-info-sign"></i></a> -->
+                            <a class="btn btn-default" data-bind="click: showFilterInfo, css: { 'enabled': showFilterInfoButtonIsActive(), 'disabled': !showFilterInfoButtonIsActive() }" style="outline: none; float: right;">Filter Info <i class="icon-large icon-info-sign"></i></a>
                         </span>
                     </form>
                 </div>
