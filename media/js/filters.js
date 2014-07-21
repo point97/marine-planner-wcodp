@@ -68,8 +68,10 @@ function filteringModel() {
     self.filterInfoItems = ko.observableArray();
 
     self.updateFilter = function() {
-        var layers = self.filterLayers();
-        layers.map(function(x) { x.toggleActive(); });
+        var layers = _.filter(self.filterLayers(), function(x) {
+            return x.active() == true;
+        });
+        layers.map(function(x) { x.active(false); });
 
     	var filterString = "[",    	    
     		// startDate = options.startDate || self.startDate(),
@@ -132,7 +134,7 @@ function filteringModel() {
     	// return filterString;
         layers.map(function(x) {
             x.filter = filterString;
-            x.toggleActive();
+            layers.map(function(x) { x.active(true); });
         });
 
         if (filterItems.length > 0) {
