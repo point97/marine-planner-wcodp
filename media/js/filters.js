@@ -98,8 +98,8 @@ function filteringModel() {
         // } 
 
         // NOTE:  filterItems might only be relevant for Beach Cleanup layer and not for Derelict Gear layer...
-        //var filterItems = $('#filter-by .select2-choices .select2-search-choice div').contents();
-        var filterItems = $('#filter-by ul li').data("value");
+        var filterItems = $('#filter-by .select2-choices .select2-search-choice div').contents();
+        //var filterItems = $('#filter-by ul li').data("value");
         // TODO:  add spinner (somewhere) indicating to the user that the new layer is loading
         // self.loadingFilterLayer(true);
         // self.emptyLayer(false);
