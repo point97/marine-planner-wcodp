@@ -678,10 +678,18 @@ img + h3 {
     vertical-align: middle;
 }
 
+#filter-by {
+    margin: 5px 0px 10px;
+}
+
+#filter-by .select2-container {
+    overflow: auto;
+    max-height: 80px;
+}
+
 .theme .theme-context {
 	margin-bottom: 20px;
 }
-
 
 .theme li {
 	display: inline;
