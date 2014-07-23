@@ -3957,6 +3957,7 @@
             "sublayers": [],
             "attribute_title": "",
             "utfjsonp": false,
+            "filterable": true,
             "wms_slug": ""
         }
     },
@@ -4003,6 +4004,7 @@
             "sublayers": [],
             "attribute_title": "",
             "utfjsonp": false,
+            "filterable": true,
             "wms_slug": ""
         }
     },

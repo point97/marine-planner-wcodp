@@ -104,6 +104,8 @@ class Layer(models.Model):
     utfurl = models.CharField(max_length=255, blank=True, null=True)
     utfjsonp = models.BooleanField(default=False)
     summarize_to_grid = models.BooleanField(default=False)
+    # TODO: summarize_to_grid and filterable are basically the same.
+    filterable = models.BooleanField(default=False)
     proj = models.CharField(max_length=255, blank=True, null=True, help_text="will be EPSG:3857, if unspecified")
     #tooltip
     description = models.TextField(blank=True, null=True)
