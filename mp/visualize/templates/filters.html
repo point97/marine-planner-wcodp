@@ -27,13 +27,14 @@
                 <ul class="unstyled list" style="margin: 10px 5px 0px 5px;" data-bind="sortable: { data: filterLayers, options: {  } }">
                     <li>
                         <div class="btn-group">
-                            
+
                             <a class="btn btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive() }">
                                 <i class="icon-info-sign icon-large"></i>
                             </a>
 
                             <a class="btn btn-default btn-layer" data-bind="click: toggleActive, css: { 'active': active(), 'not-active': ! active() }"> <!--, click: toggleActive-->
                                 <div style="font-weight: normal">
+                                    <span><i class="icon-large icon-filter" data-bind="visible: filterable"></i></span>
                                     <span data-bind="text: name"></span>
                                     <i class="check icon-large icon-check" data-bind="visible: active() && visible()"></i>
                                     <i class="check icon-large icon-check-empty" data-bind="visible: active() && ! visible()"></i>

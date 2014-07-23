@@ -259,9 +259,9 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Aggregated Attribution Overlay -->
-                                    
+
                                     <div data-bind="visible: showFeatureAttribution">
                                         <div id="aggregated-attribute-overlay" style="display: none; top: 225px; right: 10px;" class="scrollpane" data-bind="visible: aggregatedAttributes, style: {width: aggregatedAttributesWidth}">
                                             <div id="aggregated-attribute-content" class="accordion">
@@ -278,11 +278,11 @@
                                                                     <dl data-bind="foreach: { data: $root.aggregatedAttributes()[name], afterAdd:$root.updateMarker }">
                                                                         <dt>
                                                                             <!-- ko if: $data.hasOwnProperty("tab") --> 
-                                                                            
+
                                                                             <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                                                                                                                                        
+
                                                                             <!-- /ko -->
-                                                                            
+
                                                                             <span data-bind="text: display"></span><span data-bind="visible: display && data ? true : data===0">:</span>
                                                                             <span style="font-weight: normal" data-bind="html: data"></span>
                                                                         </dt>
@@ -557,7 +557,8 @@
 
                                                                         <a class="btn btn-layer" data-bind="css: { 'active': active(), 'not-active': ! active() }, click: toggleActive">
                                                                             <div style="font-weight: normal">
-                                                                                <span style="padding-left: 5px;" data-bind="text: name"></span>
+                                                                                <span style="padding-left: 5px;"><i class="icon-large icon-filter" data-bind="visible: filterable"></i></span>
+                                                                                <span data-bind="text: name"></span>
                                                                                 <span class="caret" style="display:none" data-bind="visible: subLayers.length > 0"></span>
                                                                                 <i class="check icon-large icon-check" data-bind="visible: active() && visible()"></i>
                                                                                 <i class="check icon-large icon-check-empty" data-bind="visible: active() && ! visible()"></i>
