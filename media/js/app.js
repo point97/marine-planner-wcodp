@@ -140,11 +140,21 @@ $(document).ready(function() {
 
   // $('.datepicker').datepicker();
 
-  // date filters 
-  $('#filter-start-date').datepicker().on('changeDate', function(ev) {
-      app.viewModel.filterTab.startDate(ev.date);
-  });$('#filter-to-date').datepicker().on('changeDate', function(ev) {
-      app.viewModel.filterTab.toDate(ev.date);
+  // date filters
+  $('#filter-start-date').datepicker({
+      changeMonth: true,
+      changeYear: true,
+      onSelect: function(date_text) {
+          app.viewModel.filterTab.startDate(new Date(date_text));
+      }
+  });
+
+  $('#filter-to-date').datepicker({
+      changeMonth: true,
+      changeYear: true,
+      onSelect: function(date_text) {
+          app.viewModel.filterTab.toDate(new Date(date_text));
+      }
   });
 
 
