@@ -181,17 +181,17 @@ li a {
 .form-search input, .form-search input:focus{
 	width: 70%;
 	background-color: #eee;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  -moz-border-radius: 30px;
-  -webkit-border-radius: 30px;
-  border-radius: 30px;
-  border-top-right-radius: 0px;
-  border-bottom-right-radius: 0px;
-  -moz-border-top-right-radius: 0px;
-  -moz-border-bottom-right-radius: 0px;
-  -webkit-border-top-right-radius: 0px;
-  -webkit-border-bottom-right-radius: 0px;
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+	-moz-border-radius: 30px;
+	-webkit-border-radius: 30px;
+	border-radius: 30px;
+	border-top-right-radius: 0px;
+	border-bottom-right-radius: 0px;
+	-moz-border-top-right-radius: 0px;
+	-moz-border-bottom-right-radius: 0px;
+	-webkit-border-top-right-radius: 0px;
+	-webkit-border-bottom-right-radius: 0px;
 }
 
 .form-search .btn i {
@@ -199,35 +199,35 @@ li a {
 }
 
 #feedback-tab {
-    bottom: -2px;
-    background: #00446D;  /* for IE */
-    background: rgba(0, 68, 109, .5);
-    margin-left: 50%;
-    margin-right: 50%;
+	bottom: -2px;
+	background: #00446D;  /* for IE */
+	background: rgba(0, 68, 109, .5);
+	margin-left: 50%;
+	margin-right: 50%;
 
-    position: fixed;
-    z-index: 1005; /* Put it above the OpenLayers 'Sources: ' div */
-    /* positioning feedback button on bottom */
-    /*right: -26px;
-    top: 35%;*/
-    padding: 2px 8px;
-    border: 2px solid #ccc;
-    background: #2d8998; /* fallback for IE - IE6 requires background shorthand*/
-    background: rgba(45,137,152, 1);
+	position: fixed;
+	z-index: 1005; /* Put it above the OpenLayers 'Sources: ' div */
+	/* positioning feedback button on bottom */
+	/*right: -26px;
+	top: 35%;*/
+	padding: 2px 8px;
+	border: 2px solid #ccc;
+	background: #2d8998; /* fallback for IE - IE6 requires background shorthand*/
+	background: rgba(45,137,152, 1);
 
-    color: white;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-    -moz-border-top-left-radius: 10px;
-    -moz-border-top-right-radius: 10px;
-    -webkit-border-top-left-radius: 10px;
-    -webkit-border-top-right-radius: 10px;
-    /* positioning feedback button on bottom */
-    /*-webkit-transform: rotate(-90deg);
-    -moz-transform: rotate(-90deg);
-    -ms-transform: rotate(-90deg);
-    -o-transform: rotate(-90deg);
-    transform: rotate(-90deg);*/
+	color: white;
+	border-top-left-radius: 10px;
+	border-top-right-radius: 10px;
+	-moz-border-top-left-radius: 10px;
+	-moz-border-top-right-radius: 10px;
+	-webkit-border-top-left-radius: 10px;
+	-webkit-border-top-right-radius: 10px;
+	/* positioning feedback button on bottom */
+	/*-webkit-transform: rotate(-90deg);
+	-moz-transform: rotate(-90deg);
+	-ms-transform: rotate(-90deg);
+	-o-transform: rotate(-90deg);
+	transform: rotate(-90deg);*/
 }
 #feedback-tab a {
 	color: white;
