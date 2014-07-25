@@ -158,8 +158,19 @@ $(document).ready(function() {
   });
 
 
-  // Filter Tab Select2 Multi Select Initialization -- commenting out during rebase
+  app.updateFilterScrollbar = function() {
+      var selector = "#filter-by .select2-container";
+      var dataScrollpane = $(selector).data('jsp');
+      if (dataScrollpane === undefined) {
+          $(selector).jScrollPane();
+      } else {
+          dataScrollpane.reinitialise();
+      }
+  }
   $('#filter-by .select2-multiple').select2();
+  $('#filter-by .select2-multiple').on("select2-selecting", function() {
+    app.updateFilterScrollbar();
+  });
   $('#filter-by .select2-multiple').on( "select2-open", function() {
     if ( $(this).parents('[class*="has-"]').length ) {
       var classNames = $(this).parents('[class*="has-"]')[0].className.split(/\s+/);
@@ -181,6 +192,9 @@ $(document).ready(function() {
   $('#dataTab[data-toggle="tab"]').on('shown', function(e) {
     app.viewModel.updateScrollBars();
     app.viewModel.showLegend(false);
+  });
+  $('#filterTab[data-toggle="tab"]').on('shown', function(e) {
+      app.updateFilterScrollbar();
   });
   $('#activeTab[data-toggle="tab"]').on('shown', function(e) {
     app.viewModel.updateScrollBars();

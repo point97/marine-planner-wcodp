@@ -683,8 +683,8 @@ img + h3 {
 }
 
 #filter-by .select2-container {
-    overflow: auto;
     max-height: 80px;
+    overflow: hidden;
 }
 
 .theme .theme-context {
