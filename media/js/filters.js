@@ -22,7 +22,7 @@ function filteringModel() {
     self.filters = ko.observableArray();
     app.filterTypeAheadSource = function() {
         var filter_stuff = app.viewModel.filterTab.filters();
-        return filter_stuff.map(function(x) {
+        return jQuery.map(filter_stuff, function(x) {
             return x.name;
         });
     }
@@ -71,7 +71,7 @@ function filteringModel() {
         var layers = _.filter(self.filterLayers(), function(x) {
             return x.active() == true;
         });
-        layers.map(function(x) { x.active(false); });
+        jQuery.map(layers, function(x) { x.active(false); });
 
     	var filterString = "[",    	    
     		// startDate = options.startDate || self.startDate(),
@@ -132,9 +132,9 @@ function filteringModel() {
 
     	filterString += "]";
     	// return filterString;
-        layers.map(function(x) {
+        jQuery.map(layers, function(x) {
             x.filter = filterString;
-            layers.map(function(x) { x.active(true); });
+            jQuery.map(layers, function(x) { x.active(true); });
         });
 
         if (filterItems.length > 0) {
