@@ -40,6 +40,8 @@
             </div>
         </div>
         <div class="modal-footer">
+            <input type="button" href="#" class="btn" data-dismiss="modal" value="Close">
+            <input type="submit" class="btn btn-primary" value="Sign In">
             <div id="signinButton" class="pull-left">
                 <span class="g-signin" data-scope="{{ plus_scope }}"
                     data-clientid="{{ plus_id }}"
@@ -49,8 +51,6 @@
                     data-callback="signInCallback">
                 </span>
             </div>
-            <input type="button" href="#" class="btn" data-dismiss="modal" value="Close">
-            <input type="submit" class="btn btn-primary" value="Sign In">
         </div>
   </form>
 </div>
