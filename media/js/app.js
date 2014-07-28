@@ -168,9 +168,9 @@ $(document).ready(function() {
       }
   }
   $('#filter-by .select2-multiple').select2();
-  $('#filter-by .select2-multiple').on("select2-selecting", function() {
-    app.updateFilterScrollbar();
-  });
+  $('#filter-by .select2-multiple')
+      .on("select2-selecting", app.updateFilterScrollbar)
+      .on("select2-removed", app.updateFilterScrollbar);
   $('#filter-by .select2-multiple').on( "select2-open", function() {
     if ( $(this).parents('[class*="has-"]').length ) {
       var classNames = $(this).parents('[class*="has-"]')[0].className.split(/\s+/);
