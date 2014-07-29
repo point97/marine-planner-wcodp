@@ -71,7 +71,15 @@ function filteringModel() {
         var layers = _.filter(self.filterLayers(), function(x) {
             return x.active() == true;
         });
-        jQuery.map(layers, function(x) { x.active(false); });
+        for (var i in layers) {
+            var idx = self.filterLayers().indexOf(layers[i]);
+            if (idx != -1) {
+                // NOTE: We use toggleActive here because it has hooks into
+                // the map stuff that will actually cause it to update the
+                // filters.
+                self.filterLayers()[idx].toggleActive();
+            }
+        }
 
     	var filterString = "[",    	    
     		// startDate = options.startDate || self.startDate(),
@@ -131,11 +139,17 @@ function filteringModel() {
         // layer.filter = JSON.stringify(filterList);
 
     	filterString += "]";
-    	// return filterString;
-        jQuery.map(layers, function(x) {
-            x.filter = filterString;
-            jQuery.map(layers, function(x) { x.active(true); });
-        });
+
+        for (var i in layers) {
+            var idx = self.filterLayers().indexOf(layers[i]);
+            if (idx != -1) {
+                // NOTE: We use toggleActive here because it has hooks into
+                // the map stuff that will actually cause it to update the
+                // filters.
+                self.filterLayers()[idx].toggleActive();
+                self.filterLayers()[idx].filter = filterString;
+            }
+        }
 
         if (filterItems.length > 0) {
             self.showFilterInfoButtonIsActive(true);
