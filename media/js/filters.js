@@ -81,13 +81,14 @@ function filteringModel() {
             }
         }
 
-    	var filterString = "[",    	    
+    	var filterString = "[",
     		// startDate = options.startDate || self.startDate(),
     		// toDate = options.toDate || self.toDate(),
             // eventTypes = options.eventTypes || self.eventTypes;
             startDate = self.startDate(),
             toDate = self.toDate(),
             eventTypes = self.eventTypes;
+            categoryFilterStr = "[";
     	if (startDate) {
     		// filterString = '?filter=[{"type":"fromDate","value":' + '"' + startDate.getDate() + '/' + (startDate.getMonth()+1) + '/' + startDate.getFullYear() + '"}]';	
     		filterString += JSON.stringify({'type': 'fromDate', 'value': (startDate.getMonth()+1) + '/' + startDate.getDate() + '/' + startDate.getFullYear()});
@@ -118,27 +119,40 @@ function filteringModel() {
         // var filterList = [];
         $.each(filterItems, function(index, value) {
             var filterField = _.findWhere(self.filters(), {name: value.data});
-            if (filterField.field_name_tuples) {
+            if (filterField.slug) {
                 var toPush = {
                     'name': value.data,
                     'fields': []
                 };
-                $.each(filterField.field_name_tuples, function(iter, val) {
-                    if (filterString.charAt(filterString.length-1) !== '[') {
-                        filterString += ','
-                    }
-                    filterString += JSON.stringify({'type': 'field', 'value': val[1]});
-                    toPush.fields.push(val[0]);
+
+                // This is for the 'Active Filters' display:
+                $.each(filterField.subfields, function(iter, val) {
+                    toPush.fields.push(val);
                 });
+
+                // Actually build the filter string with the slug we have:
+                if (filterString.charAt(filterString.length-1) !== '[') {
+                    filterString += ','
+                }
+                filterString += JSON.stringify({'type': 'field', 'value': filterField.slug});
 
                 toPush.fields.sort();
                 self.filterInfoItems.push(toPush);
+            } else if (filterField.name && filterField.subfields.length > 0) {
+                //This is probably a category
+                if (categoryFilterStr.charAt(categoryFilterStr.length-1) !== '[') {
+                    categoryFilterStr += ','
+                }
+                categoryFilterStr += JSON.stringify({'value': filterField.name});
             }
         });
         // console.log(JSON.stringify(filterList));
         // layer.filter = JSON.stringify(filterList);
 
     	filterString += "]";
+    	categoryFilterStr += "]";
+        if (categoryFilterStr != '[]')
+            filterString += "&" + categoryFilterStr
 
         for (var i in layers) {
             var idx = self.filterLayers().indexOf(layers[i]);
