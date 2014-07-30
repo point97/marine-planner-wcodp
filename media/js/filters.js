@@ -152,7 +152,7 @@ function filteringModel() {
     	filterString += "]";
     	categoryFilterStr += "]";
         if (categoryFilterStr != '[]')
-            filterString += "&" + categoryFilterStr
+            filterString += "&categories=" + categoryFilterStr
 
         for (var i in layers) {
             var idx = self.filterLayers().indexOf(layers[i]);
@@ -160,8 +160,8 @@ function filteringModel() {
                 // NOTE: We use toggleActive here because it has hooks into
                 // the map stuff that will actually cause it to update the
                 // filters.
-                self.filterLayers()[idx].toggleActive();
                 self.filterLayers()[idx].filter = filterString;
+                self.filterLayers()[idx].toggleActive();
             }
         }
 
