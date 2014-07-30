@@ -8,7 +8,7 @@ from ontology.models import RDFConcept
 from ontology.utils import get_filters as ontology_get_filters
 from proxy.views import proxy_view
 
-from urllib import urlencode
+from urllib import urlencode, quote as url_quote
 from urlparse import urlparse
 import requests, logging, httplib2, logging.config, json
 #PROXY_FORMAT = u"http://%s/%s" % (settings.PROXY_DOMAIN, u"%s")
@@ -76,5 +76,30 @@ def get_filters(request):
 
 def layer_proxy_view(request, layer_id):
     layer = get_object_or_404(Layer, id=layer_id, proxy_url=True)
-    return proxy_view(request, layer.url)
+
+    if request.GET.get('categories'):
+        cats = json.loads(request.GET['categories'])
+        # Get all of the categories we need to OR together
+        for category in cats:
+            print "Trying to get {}".format(category)
+            # We have duplicates in the database because we turned a graph
+            # into a tree. That was bad. So just get the first one because
+            # They *should* be the same. The duplicates, I mean.
+            cat = RDFConcept.objects.filter(preflabel=category)[0]
+
+            # Now for all of the children
+            for child in cat.get_descendants():
+                if not child.slug:
+                    continue
+                jsonified = json.dumps([{
+                    'type': 'field',
+                    'value': child.slug
+                }])
+                request_url = "{url}&filter={json}".format(
+                    url=layer.url,
+                    json=url_quote(jsonified)
+                )
+                print "REQUESTING: {}".format(request_url)
+    main_req = proxy_view(request, layer.url)
+    return main_req
 

@@ -119,31 +119,30 @@ function filteringModel() {
         // var filterList = [];
         $.each(filterItems, function(index, value) {
             var filterField = _.findWhere(self.filters(), {name: value.data});
+            var toPush = {
+                'name': value.data,
+                'fields': []
+            };
+
+            // This is for the 'Active Filters' display:
+            $.each(filterField.subfields, function(iter, val) {
+                toPush.fields.push(val);
+            });
+            toPush.fields.sort();
+            self.filterInfoItems.push(toPush);
+
             if (filterField.slug) {
-                var toPush = {
-                    'name': value.data,
-                    'fields': []
-                };
-
-                // This is for the 'Active Filters' display:
-                $.each(filterField.subfields, function(iter, val) {
-                    toPush.fields.push(val);
-                });
-
                 // Actually build the filter string with the slug we have:
                 if (filterString.charAt(filterString.length-1) !== '[') {
                     filterString += ','
                 }
                 filterString += JSON.stringify({'type': 'field', 'value': filterField.slug});
-
-                toPush.fields.sort();
-                self.filterInfoItems.push(toPush);
             } else if (filterField.name && filterField.subfields.length > 0) {
                 //This is probably a category
                 if (categoryFilterStr.charAt(categoryFilterStr.length-1) !== '[') {
                     categoryFilterStr += ','
                 }
-                categoryFilterStr += JSON.stringify({'value': filterField.name});
+                categoryFilterStr += JSON.stringify(filterField.name);
             }
         });
         // console.log(JSON.stringify(filterList));
