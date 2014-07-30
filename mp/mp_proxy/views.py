@@ -10,7 +10,7 @@ from proxy.views import proxy_view
 
 from urllib import urlencode, quote as url_quote
 from urlparse import urlparse
-import requests, logging, httplib2, logging.config, json
+import grequests, requests, logging, httplib2, logging.config, json
 #PROXY_FORMAT = u"http://%s/%s" % (settings.PROXY_DOMAIN, u"%s")
 
 def getLegendJSON(request, url):
@@ -76,10 +76,15 @@ def get_filters(request):
 
 def layer_proxy_view(request, layer_id):
     layer = get_object_or_404(Layer, id=layer_id, proxy_url=True)
+    urls = []
+    async_url_fetch_results = None
+    new_req_url = None
 
     if request.GET.get('categories'):
+        new_req_url = "{}&filter{}".format(layer.url, request.GET.get('filter'))
         cats = json.loads(request.GET['categories'])
-        # Get all of the categories we need to OR together
+        # Get all of the categories we need to OR together. We are going to
+        # send a LOT of requests.
         for category in cats:
             print "Trying to get {}".format(category)
             # We have duplicates in the database because we turned a graph
@@ -99,7 +104,15 @@ def layer_proxy_view(request, layer_id):
                     url=layer.url,
                     json=url_quote(jsonified)
                 )
-                print "REQUESTING: {}".format(request_url)
-    main_req = proxy_view(request, layer.url)
-    return main_req
+                urls.append(request_url)
+            rs = (grequests.get(u) for u in urls)
+            async_url_fetch_results = grequests.map(rs)
+
+    resp = None
+    if new_req_url:
+        r = requests.get(new_req_url)
+        resp = HttpResponse(r.content, r.status_code)
+    else:
+        resp = proxy_view(request, layer.url)
+    return resp
 
