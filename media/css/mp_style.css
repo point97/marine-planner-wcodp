@@ -683,8 +683,8 @@ img + h3 {
 }
 
 #filter-by .select2-container {
-    overflow: auto;
     max-height: 80px;
+    overflow: hidden;
 }
 
 .theme .theme-context {
@@ -808,40 +808,40 @@ img + h3 {
     float: left;
 }
 #signinButton {
-    padding: 15px;
+    margin-left: 5px;
 }
-    #signinButton h4 {
-        margin-top: 0;
-    }
-    #signinButton div {
-        float: right !important;
-    }
+#signinButton h4 {
+    margin-top: 0;
+}
+#signinButton div {
+    float: right !important;
+}
+#loginControls li {
+    list-style-type: none;
+    display: inline;
+}
 #login-buttons {
     top: 8px;
     right: 65px;
     z-index: 1019!important;
 }
-    #login-buttons .dropdown-menu {
-        right: 0;
-        left: auto;
-    }
-    #login-buttons .btn-large {
-        padding: 6px 9px;
-    }
-    #login-buttons img {
-        height: 30px;
-    }
-    #login-buttons .caret {
-        margin-top: 11px;
-    }
+#login-buttons .dropdown-menu {
+    right: 0;
+    left: auto;
+}
+#login-buttons .btn-large {
+    padding: 6px 9px;
+}
+#login-buttons img {
+    height: 30px;
+}
+#login-buttons .caret {
+    margin-top: 11px;
+}
 #signinButton h4 {
     margin: 0 5px 10px;
     color: #000;
 }
-
-
-
-
 #basemaps {
 	top: 8px;
 	right: 8px;

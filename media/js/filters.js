@@ -22,7 +22,7 @@ function filteringModel() {
     self.filters = ko.observableArray();
     app.filterTypeAheadSource = function() {
         var filter_stuff = app.viewModel.filterTab.filters();
-        return filter_stuff.map(function(x) {
+        return jQuery.map(filter_stuff, function(x) {
             return x.name;
         });
     }
@@ -71,15 +71,24 @@ function filteringModel() {
         var layers = _.filter(self.filterLayers(), function(x) {
             return x.active() == true;
         });
-        layers.map(function(x) { x.active(false); });
+        for (var i in layers) {
+            var idx = self.filterLayers().indexOf(layers[i]);
+            if (idx != -1) {
+                // NOTE: We use toggleActive here because it has hooks into
+                // the map stuff that will actually cause it to update the
+                // filters.
+                self.filterLayers()[idx].toggleActive();
+            }
+        }
 
-    	var filterString = "[",    	    
+    	var filterString = "[",
     		// startDate = options.startDate || self.startDate(),
     		// toDate = options.toDate || self.toDate(),
             // eventTypes = options.eventTypes || self.eventTypes;
             startDate = self.startDate(),
             toDate = self.toDate(),
             eventTypes = self.eventTypes;
+            categoryFilterStr = "[";
     	if (startDate) {
     		// filterString = '?filter=[{"type":"fromDate","value":' + '"' + startDate.getDate() + '/' + (startDate.getMonth()+1) + '/' + startDate.getFullYear() + '"}]';	
     		filterString += JSON.stringify({'type': 'fromDate', 'value': (startDate.getMonth()+1) + '/' + startDate.getDate() + '/' + startDate.getFullYear()});
@@ -110,32 +119,50 @@ function filteringModel() {
         // var filterList = [];
         $.each(filterItems, function(index, value) {
             var filterField = _.findWhere(self.filters(), {name: value.data});
-            if (filterField.field_name_tuples) {
-                var toPush = {
-                    'name': value.data,
-                    'fields': []
-                };
-                $.each(filterField.field_name_tuples, function(iter, val) {
-                    if (filterString.charAt(filterString.length-1) !== '[') {
-                        filterString += ','
-                    }
-                    filterString += JSON.stringify({'type': 'field', 'value': val[1]});
-                    toPush.fields.push(val[0]);
-                });
+            var toPush = {
+                'name': value.data,
+                'fields': []
+            };
 
-                toPush.fields.sort();
-                self.filterInfoItems.push(toPush);
+            // This is for the 'Active Filters' display:
+            $.each(filterField.subfields, function(iter, val) {
+                toPush.fields.push(val);
+            });
+            toPush.fields.sort();
+            self.filterInfoItems.push(toPush);
+
+            if (filterField.slug) {
+                // Actually build the filter string with the slug we have:
+                if (filterString.charAt(filterString.length-1) !== '[') {
+                    filterString += ','
+                }
+                filterString += JSON.stringify({'type': 'field', 'value': filterField.slug});
+            } else if (filterField.name && filterField.subfields.length > 0) {
+                //This is probably a category
+                if (categoryFilterStr.charAt(categoryFilterStr.length-1) !== '[') {
+                    categoryFilterStr += ','
+                }
+                categoryFilterStr += JSON.stringify(filterField.name);
             }
         });
         // console.log(JSON.stringify(filterList));
         // layer.filter = JSON.stringify(filterList);
 
     	filterString += "]";
-    	// return filterString;
-        layers.map(function(x) {
-            x.filter = filterString;
-            layers.map(function(x) { x.active(true); });
-        });
+    	categoryFilterStr += "]";
+        if (categoryFilterStr != '[]')
+            filterString += "&categories=" + categoryFilterStr
+
+        for (var i in layers) {
+            var idx = self.filterLayers().indexOf(layers[i]);
+            if (idx != -1) {
+                // NOTE: We use toggleActive here because it has hooks into
+                // the map stuff that will actually cause it to update the
+                // filters.
+                self.filterLayers()[idx].filter = filterString;
+                self.filterLayers()[idx].toggleActive();
+            }
+        }
 
         if (filterItems.length > 0) {
             self.showFilterInfoButtonIsActive(true);

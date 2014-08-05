@@ -56,8 +56,10 @@ class Command(BaseCommand):
     def create_children(self, parent_concept, parent_dom_node):
         for child in parent_dom_node.getchildren():
             if child.tag == PREFLABEL_TAG:
+                # This will give us 'Cat_Toxic' vs. 'Toxic':
+                split_uri = parent_concept.uri.split("/")[-1]
                 # Attempt to reconcile debris-specific slugs with names from the ontology:
-                debris_json_matches = [x for x in self.debris_json if x['name'] == child.text]
+                debris_json_matches = [x for x in self.debris_json if split_uri == x['slug']]
                 if len(debris_json_matches) == 1:
                     parent_concept.slug = debris_json_matches[0]['slug']
 
