@@ -21,6 +21,7 @@
         <link href="{{MEDIA_URL}}assets/openlayers/scalebar-thin.css" rel="stylesheet">
         <link href="{{MEDIA_URL}}css/style.css" rel="stylesheet">
         <link href="{{MEDIA_URL}}assets/pageguide/pageguide.css" rel="stylesheet">
+        <link href="{{MEDIA_URL}}wcodp/css/wcodp.css" rel="stylesheet">
 
         <link href="{{MEDIA_URL}}assets/smoothness/jquery-ui-1.9.1.custom.css" rel="stylesheet">
         <link href="{{MEDIA_URL}}assets/jquery/jquery.mCustomScrollbar.css" rel="stylesheet">
@@ -98,7 +99,7 @@
         
     </head>
     
-    <body style="margin: 0px;">
+    <body class="wcodp" style="margin: 0px;">
     
         
         <!-- modals -->
@@ -396,19 +397,19 @@
                 <!-- Data Panel (left panel) -->
                 <div class="row-fluid" data-bind="visible: showLayers()">
                 <div class="span4 tabs">
-                    <div class="sidebar-nav" data-bind="css: {'fullscreen-data': isFullScreen()}" style="min-width: 350px; max-width: 350px; height: 550px; top: 12px; z-index: 750; margin-left: 12px; background-color: white; border-radius: 10px; opacity: .9; border: 1px solid #ccc;">
+                    <div class="sidebar-nav" data-bind="css: {'fullscreen-data': isFullScreen()}" style="min-width: 350px; max-width: 350px; height: 650px; top: 12px; z-index: 750; margin-left: 12px; background-color: white; border-radius: 10px; opacity: .9; border: 1px solid #ccc;">
                         
                         <!-- Header -->
                         <div>
                             <div class="row-fluid">
-                                <div class="span12">
+                                <div class="span12" style="text-align: center">
                                     {% if project_home_page %}
                                     <a href="{{project_home_page}}" style="text-decoration: none">
                                     {% else %}
                                     <a style="text-decoration: none; cursor: default;">
                                     {% endif %}
                                         {% if project_logo %}
-                                        <img src="{{project_logo}}"/>
+                                        <img src="{{project_logo}}" style="width: 252px; height: 136px;"/>
                                         {% else %}
                                             {% if project_name %}
                                             <h2 style="margin-left: 15px; margin-bottom: 0px;" id="project-name-header">{{project_name}}</h2>
