@@ -25,8 +25,11 @@ LOG_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), 'logs'))
 
 ADMIN_MEDIA_PATH = "/usr/local/venv/marine-planner/lib/python2.7/site-packages/django/contrib/admin/static/admin/"
 
+STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
 INSTALLED_APPS += ('django_extensions',
                    'social.apps.django_app.default',
+                   'django.contrib.staticfiles',
                    'general',
                    'data_manager',
                    'mp_settings',
@@ -35,6 +38,8 @@ INSTALLED_APPS += ('django_extensions',
                    'django.contrib.humanize',
                    'flatblocks',
                    'mp_proxy',
+                   'ontology',
+                   'django_mptt_admin',
                    'map_proxy'
                    )
 
@@ -52,6 +57,9 @@ ADMINS = (
     ('Edwin Knuth', 'edwin@pointnineseven.com'),
     ('Scott Fletcher', 'scott@pointnineseven.com'),
 )
+
+MARINE_DEBRIS_URL = 'http://debris-db.westcoastoceans.org/'
+MP_ONTOLOGY_URL = 'http://143.239.249.181:8080/sws/SWS?request=GetConceptHierarchy&responseLanguage=en&elementSet=extended'
 
 # FEEDBACK_RECIPIENT = "Marine Planning Team <mp-team@marineplanner.org>"
 # HELP_EMAIL = "mp-team@marineplanner.org"
