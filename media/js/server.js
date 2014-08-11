@@ -52,6 +52,29 @@ app.viewModel.loadLayers = function(data) {
         
 		self.themes.push(theme);
 	});
+
+	// filterable layers
+	var marineDebrisTheme = _.findWhere(self.themes(), {name: 'Marine Debris'});
+	var marineDebrisLayers = marineDebrisTheme.layers();
+	$.each(marineDebrisLayers, function(i, layer) {
+		self.filterTab.filterLayers.push(layer);
+		// if (layer.name.indexOf('All') !== 0) {
+		// if ( layer.name === 'Beach Cleanups' ) {
+		// 	self.filterTab.filterLayers.push(layer);	
+		// } else {
+		// 	self.filterTab.inclusiveFilterLayer = layer;
+		// }
+	});
+	// self.themes.remove(marineDebrisTheme);
+
+	// load filters
+	// var primaryFilters = [{'display_name': 'Materials', 'depth': 3}, {'display_name': 'Properties', 'depth': 2}, {'display_name': 'Uses & Industry', 'depth': 4}];
+	// $.each(primaryFilters, function(i, filter) {
+	// 	var filter = new primaryFilterModel(filter);
+	// 	self.filterTab.primaryFilters.push(filter);
+	// });
+
+
 	app.typeAheadSource = (function () {
             var keys = [];
             for (var searchTerm in app.viewModel.layerSearchIndex) {

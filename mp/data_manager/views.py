@@ -35,7 +35,7 @@ def get_json(request, project=None):
         "themes": [theme.toDict for theme in Theme.objects.all().order_by('display_name')],
         "success": True
     }
-    return HttpResponse(simplejson.dumps(json))
+    return HttpResponse(simplejson.dumps(json), content_type='application/json')
 
 
 def create_layer(request):

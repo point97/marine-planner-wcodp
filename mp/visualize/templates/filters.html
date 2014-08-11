@@ -1,0 +1,152 @@
+
+
+<!-- FILTER TAB -->
+<div class="tab-pane fade" id="filter" style="background-color: white; height: 100%" data-bind="with: filterTab">
+    <div class="row-fluid" style="height: 100%">
+        <div id="filter-content" class="span12" style="height: 100%;">
+            <!-- <div data-bind="visible: filterLayers().length === 0">
+                <div style="margin: 20px;">
+                    <p>
+                        You currently have no activated filter layers. 
+                    </p>
+                    <p>
+                        Filter layers that are activated in the Data tab will appear in this Filter tab.
+                    </p>
+                    <p>
+                        Layers in this tab can be filtered by date range and by debris type.
+                    </p>
+                    <p>
+                        If you haven't used the filter tab before you might want to explore the tutorial.
+                    </p>
+                </div>
+            </div> -->
+            <!-- <div data-bind="if: filterLayers().length !== 0"> --> <!-- helped solve a problem with primary filters, but caused a problem with datepicker not initializing -->
+            <!-- <div data-bind="visible: filterLayers().length !== 0"> -->
+            <div>
+                <!-- Data Layers -->
+                <ul class="unstyled list" style="margin: 10px 5px 0px 5px;" data-bind="sortable: { data: filterLayers, options: {  } }">
+                    <li>
+                        <div class="btn-group">
+
+                            <a class="btn btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive() }">
+                                <i class="icon-info-sign icon-large"></i>
+                            </a>
+
+                            <a class="btn btn-default btn-layer" data-bind="click: toggleActive, css: { 'active': active(), 'not-active': ! active() }"> <!--, click: toggleActive-->
+                                <div style="font-weight: normal">
+                                    <span><i class="icon-large icon-filter" data-bind="visible: filterable"></i></span>
+                                    <span data-bind="text: name"></span>
+                                    <i class="check icon-large icon-check" data-bind="visible: active() && visible()"></i>
+                                    <i class="check icon-large icon-check-empty" data-bind="visible: active() && ! visible()"></i>
+                                </div>
+                            </a>
+
+                            <!-- <button class="btn btn-default btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive()}"><span class="glyphicon glyphicon-info-sign glyphicon-lg"></span></button>
+                            <a class="btn btn-default btn-layer" data-bind="css: { 'active': visible() }, click: toggleVisible">
+                                <div data-bind="text: name"></div>
+                                <span rel="tooltip" data-bind="attr: {title: sharedBy}">
+                                    <i class="glyphicon glyphicon-group" data-bind="visible: shared" style="padding-left: 10px"></i>
+                                </span>
+                                <span ><i class="glyphicon check" data-bind="css: { 'glyphicon-check': visible(), 'glyphicon-unchecked': ! visible() }"></i></span>
+                            </a>
+                            <a class="btn btn-default opacity-button" data-bind="click: $parent.showOpacity"><i class="glyphicon glyphicon-adjust"></i></a>
+                            <button class="btn btn-default" data-bind="click: toggleActive">
+                                <i class="glyphicon glyphicon-remove"></i>
+                            </button> -->
+
+                        </div>
+                    </li>
+                </ul>
+
+                <!-- Date Range -->
+                <p style="margin-left: 15px; padding-left: 0px;" class="control-label">Filter by Date</p>
+                <div style="height: 35px; margin-left: 15px; margin-right: 15px;">
+                    <div class="input-append date span4" style="padding-right: 0px;" id="date-filter-start" data-date-format="dd-mm-yyyy">
+                        <input id="filter-start-date" type="text" value="03/22/2002" data-bind="datepicker: startDate" class="datepicker" placeholder="Start Date" style="max-width: 100px">
+                        <!-- <span data-bind="text:startDate"></span> -->
+                        <!-- <span class="add-on"><i class="icon-th"></i></span> -->
+                    </div>
+                    <label class="span4" style="padding: 0; margin-top: 7px; text-align: center;">To</label>
+                    <div class="input-append date span4" style="padding-left: 0px; margin-left: -5px;" id="date-filter-end" data-date-format="dd-mm-yyyy">
+                        <input id="filter-to-date" type="text" data-bind="datepicker: toDate" class="datepicker" placeholder="End Date" style="max-width: 100px;">
+                        <!-- <span class="add-on"><i class="icon-th"></i></span> -->
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div style="margin: 10px 20px 20px 15px; height: 30px">
+                    <form>
+                        <!-- <div class="span9" style="line-height: 25px;"> -->
+                            <!-- <input id="filter-input" data-role="tagsinput" value="Amsterdam,Washington" style="width: 225px; border-radius: 4px;" type="text" placeholder="Filter By" /> -->
+                            <!-- <input id="filter-input" type="text" class="filter-box" data-provide="typeahead" data-bind="eventTypes" style="overflow: hidden; text-overflow: ellipsis;" placeholder="Filter By"> -->
+                        <!-- </div> -->
+                        <div id="filter-by" class="span12 form-group">
+                            <label for="multiple" class="control-label">Filter by Debris Type</label>
+                            <select style="width: 320px;" class="field select2-multiple" data-bind="foreach: filters()" multiple>
+                              <option data-bind="text: $data.name"></option>
+                            </select>
+                        </div>
+
+
+                        <span class="pull-right" style="margin-right: 3px">
+                            <a id="filter-button" class="btn btn-default" data-bind="click: updateFilter, css: { 'enabled': filterButtonIsActive(), 'disabled': !filterButtonIsActive() }" style="outline: none; float: right; margin-right: -3px; margin-left: 6px;">Update Filter <i class="icon-large icon-filter"></i></a>
+                            <!-- <a class="btn btn-default" data-toggle="modal" data-target="#filter-info-modal"data-bind="click: showFilterInfo, css: { 'enabled': showFilterInfoButtonIsActive(), 'disabled': !showFilterInfoButtonIsActive() }" style="outline: none; float: right;">Filter Info <i class="icon-large icon-info-sign"></i></a> -->
+                            <a class="btn btn-default" data-toggle="modal" data-target="#filter-info-modal" data-bind="click: showFilterInfo, css: { 'enabled': showFilterInfoButtonIsActive(), 'disabled': !showFilterInfoButtonIsActive() }" style="outline: none; float: right;">Filter Info <i class="icon-large icon-info-sign"></i></a>
+                        </span>
+                    </form>
+                </div>
+
+                <!--<div id="filter-accordion" style="max-height: 100%;" data-bind="foreach: primaryFilters">
+                    <div class="accordion">
+                        <div class="accordion-group">
+                            <div class="accordion-heading" data-bind="click: setOpenPrimaryFilter, css: { 'active': isOpenPrimaryFilter() }">
+                                <div>
+                                    <a class="accordion-toggle" style="text-decoration: none"> 
+                                        <span data-bind="text: name"></span>
+                                        <!-- ko foreach: new Array(depth)  -->
+                                            <!-- <span><i class="icon-check-empty"></i></span> -->
+                                        <!-- /ko -->​
+                      <!--               </a>
+                                </div>
+                            </div>
+                            <div class="accordion-body collapse" data-bind="css: { 'in': isOpenPrimaryFilter() }">
+                                <div class="accordion-inner">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+ 				-->
+
+
+            </div>
+
+            <!-- <ul class="unstyled list" style="margin: 20px 5px;" data-bind="foreach: filterLayers">
+                <li>
+                    <div class="btn-group">
+                        <button class="btn btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive()}"><i class="icon-info-sign icon-large"></i></button>
+                        <a class="btn btn-layer" data-bind="css: { 'active': visible() }, click: toggleVisible">
+                            <div data-bind="text: name"></div>
+                            <span rel="tooltip" data-bind="attr: {title: sharedBy}">
+                                <i class="icon-group" data-bind="visible: shared" style="padding-left: 10px"></i>
+                            </span>
+                            <span ><i class="icon-large check" data-bind="css: { 'icon-check': visible(), 'icon-check-empty': ! visible() }"></i></span>
+                        </a>
+                        <button class="btn" data-bind="click: toggleActive">
+                            <i class="icon-remove">
+                            </i>
+                        </button>
+                    </div>
+                </li>
+            </ul> -->
+
+            
+            <!-- <div style="margin-top: 40px; margin-left: 15px; font-size: 14px; font-weight: bold;" data-bind="visible: emptyLayer()"> -->
+                <!-- <span>Layer is Empty</span> -->
+                <!-- <span>Loading Layers</span> -->
+                <!-- <span class="spin" style="margin-left: 10px;"><i class='glyphicon glyphicon-lg glyphicon-refresh'></i></span> -->
+            <!-- </div> -->
+
+        </div>
+    </div>
+</div>

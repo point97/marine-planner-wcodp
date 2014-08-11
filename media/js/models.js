@@ -7,6 +7,7 @@ function layerModel(options, parent) {
     self.name = options.name || null;
     self.featureAttributionName = self.name;
     self.url = options.url || null;
+    self.filterable = options.filterable || false;
     self.arcgislayers = options.arcgis_layers || -1;
     self.wms_slug = options.wms_slug || '';
     self.type = options.type || null;
@@ -142,14 +143,14 @@ function layerModel(options, parent) {
     // opacity
     self.opacity.subscribe(function(newOpacity) {
         if (self.layer.CLASS_NAME === "OpenLayers.Layer.Vector") {
-            self.layer.styleMap.styles.default.defaultStyle.strokeOpacity = newOpacity;
-            self.layer.styleMap.styles.default.defaultStyle.graphicOpacity = newOpacity;
+            self.layer.styleMap.styles["default"].defaultStyle.strokeOpacity = newOpacity;
+            self.layer.styleMap.styles["default"].defaultStyle.graphicOpacity = newOpacity;
             //fill is currently turned off for many of the vector layers
             //the following should not override the zeroed out fill opacity
             //however we do still need to account for shipping lanes (in which styling is handled via lookup)
             if (self.fillOpacity > 0) {
                 var newFillOpacity = self.fillOpacity - (self.defaultOpacity - newOpacity);
-                self.layer.styleMap.styles.default.defaultStyle.fillOpacity = newFillOpacity;
+                self.layer.styleMap.styles["default"].defaultStyle.fillOpacity = newFillOpacity;
             }
             self.layer.redraw();
         } else {
@@ -248,6 +249,11 @@ function layerModel(options, parent) {
         // remove from active layers
         app.viewModel.activeLayers.remove(layer);
 
+        // remove from filter layers
+        // if (layer.summarize_to_grid) {
+        //     app.viewModel.filterTab.filterLayers.remove(layer);
+        // }        
+
         //remove the key/value pair from aggregatedAttributes
         app.viewModel.removeFromAggregatedAttributes(layer.name);
 
@@ -342,10 +348,15 @@ function layerModel(options, parent) {
     self.activateBaseLayer = function() {
         var layer = this;
 
-        app.addLayerToMap(layer);
+        if (layer.summarize_to_grid) {
+            // app.viewModel.filterTab.filterLayers.unshift(layer);
+            app.viewModel.filterTab.filterButtonIsActive(true);
+        } else {
+            app.addLayerToMap(layer);
 
-        //now that we now longer use the selectfeature control we can simply do the following
-        app.viewModel.activeLayers.unshift(layer);
+            //now that we now longer use the selectfeature control we can simply do the following
+            app.viewModel.activeLayers.unshift(layer);
+        }
 
         // set the active flag
         layer.active(true);

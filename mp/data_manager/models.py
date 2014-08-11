@@ -104,6 +104,8 @@ class Layer(models.Model):
     utfurl = models.CharField(max_length=255, blank=True, null=True)
     utfjsonp = models.BooleanField(default=False)
     summarize_to_grid = models.BooleanField(default=False)
+    # TODO: summarize_to_grid and filterable are basically the same.
+    filterable = models.BooleanField(default=False)
     proj = models.CharField(max_length=255, blank=True, null=True, help_text="will be EPSG:3857, if unspecified")
     #tooltip
     description = models.TextField(blank=True, null=True)
@@ -275,6 +277,7 @@ class Layer(models.Model):
                 'id': layer.id,
                 'name': layer.name,
                 'type': layer.layer_type,
+                'filterable': layer.filterable,
                 'url': layer.url,
                 'arcgis_layers': layer.arcgis_layers,
                 'wms_slug': layer.wms_slug,
@@ -309,6 +312,7 @@ class Layer(models.Model):
             'id': self.id,
             'name': self.name,
             'type': self.layer_type,
+            'filterable': self.filterable,
             'url': self.url,
             'arcgis_layers': self.arcgis_layers,
             'wms_slug': self.wms_slug,

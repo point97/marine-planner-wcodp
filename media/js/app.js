@@ -137,12 +137,64 @@ $(document).ready(function() {
      $(event.target).closest('form').find('input').val(null).focus();
   });
 
+
+  // $('.datepicker').datepicker();
+
+  // date filters
+  $('#filter-start-date').datepicker({
+      changeMonth: true,
+      changeYear: true,
+      onSelect: function(date_text) {
+          app.viewModel.filterTab.startDate(new Date(date_text));
+      }
+  });
+
+  $('#filter-to-date').datepicker({
+      changeMonth: true,
+      changeYear: true,
+      onSelect: function(date_text) {
+          app.viewModel.filterTab.toDate(new Date(date_text));
+      }
+  });
+
+
+  app.updateFilterScrollbar = function() {
+      var selector = "#filter-by .select2-container";
+      var dataScrollpane = $(selector).data('jsp');
+      if (dataScrollpane === undefined) {
+          $(selector).jScrollPane();
+      } else {
+          dataScrollpane.reinitialise();
+      }
+  }
+  $('#filter-by .select2-multiple').select2();
+  $('#filter-by .select2-multiple')
+      .on("select2-selecting", app.updateFilterScrollbar)
+      .on("select2-removed", app.updateFilterScrollbar);
+  $('#filter-by .select2-multiple').on( "select2-open", function() {
+    if ( $(this).parents('[class*="has-"]').length ) {
+      var classNames = $(this).parents('[class*="has-"]')[0].className.split(/\s+/);
+      for (var i=0; i<classNames.length; ++i) {
+          if ( classNames[i].match("has-") ) {
+            $('#select2-drop').addClass( classNames[i] );
+          }
+      }
+    }
+  });
+  
+  //$('#filter-input').typeahead({
+  //    source: app.filterTypeAheadSource
+  //});
+
   //fixes a problem in which the data accordion scrollbar was reinitialized before the app switched back to the data tab
   //causing the data tab to appear empty
   //the following appears to fix that problem
   $('#dataTab[data-toggle="tab"]').on('shown', function(e) {
     app.viewModel.updateScrollBars();
     app.viewModel.showLegend(false);
+  });
+  $('#filterTab[data-toggle="tab"]').on('shown', function(e) {
+      app.updateFilterScrollbar();
   });
   $('#activeTab[data-toggle="tab"]').on('shown', function(e) {
     app.viewModel.updateScrollBars();
@@ -174,14 +226,6 @@ $(document).ready(function() {
     }
   })
   */
-  $('#add-layer-modal').on('shown', function () {
-    // do something…
-    console.log('bind');
-    $('#add-layer-modal .icon-info-sign').popover({
-      trigger: 'hover',
-      container: 'body'
-    });
-  });
 
   app.fullscreen = {};
   // fullscreen stuff
