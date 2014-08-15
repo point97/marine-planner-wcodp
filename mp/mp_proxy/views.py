@@ -80,36 +80,38 @@ def layer_proxy_view(request, layer_id):
     async_url_fetch_results = None
     new_req_url = None
 
-    if request.GET.get('categories'):
-        # Remove the 'categories' from the URL we are going to request later as
-        # the main URL:
-        new_req_url = "{}&filter{}".format(layer.url, request.GET.get('filter'))
-        # Get all of the categories we need to OR together. We are going to
-        # send a LOT of requests.
-        cats = json.loads(request.GET['categories'])
-        for category in cats:
-            print "Trying to get {}".format(category)
-            # We have duplicates in the database because we turned a graph
-            # into a tree. That was bad. So just get the first one because
-            # They *should* be the same. The duplicates, I mean.
-            cat = RDFConcept.objects.filter(preflabel=category)[0]
+    to = request.GET.get('to')
+    from_ = request.GET.get('from')
+    concepts = request.GET.get('concepts', [])
+    if concepts: 
+        concepts = [concepts.split(',')]
+    categories = request.GET.get('categories', [])
+    if categories: 
+        categories = categories.split(',')
+    type_ = request.GET.get('type')
+    
+    for category in categories:
+        # Get the list of categories in the concept
+        concept_list = RDFConcept.objects.filter(preflabel=category)
+        if not concept_list:
+            continue
+        concepts.append(child.slug 
+                        for child in concept_list[0].get_descendants()
+                        if child.slug)
 
-            # Now for all of the children
-            for child in cat.get_descendants():
-                if not child.slug:
-                    continue
-                jsonified = json.dumps([{
-                    'type': 'field',
-                    'value': child.slug
-                }])
-                request_url = "{url}&filter={json}".format(
-                    url=layer.url,
-                    json=url_quote(jsonified)
-                )
-                urls.append(request_url)
-            print "Making {} requests.".format(len(urls))
-            rs = (grequests.get(u) for u in urls)
-            async_url_fetch_results = grequests.map(rs)
+    query_parameters = []
+    if from_:
+        query_parameters.append("from=%s" % from_)
+    if to: 
+        query_parameters.append("to=%s" % to)
+    if type_: 
+        query_parameters.append("type=%s" % type_)
+
+    for concept_list in concepts:
+        query_parameters.append('c=%s' % (','.join(concept_list)))
+
+    if query_parameters: 
+        new_req_url = '%s&%s' % (layer.url, '&'.join(query_parameters))
 
     resp = None
     the_grand_or_list = {}
@@ -118,13 +120,6 @@ def layer_proxy_view(request, layer_id):
         # So now that we have request data we need to stick it all together:
         for key, value in r.json().items():
             the_grand_or_list[key] = value
-
-        for async_result in async_url_fetch_results:
-            for key, value in async_result.json().items():
-                if type(value) == type(dict()):
-                    the_grand_or_list[key] = dict(the_grand_or_list[key].items() + value.items())
-                elif type(value) == type(list()):
-                    the_grand_or_list[key] = the_grand_or_list[key] + value
 
         resp = HttpResponse(json.dumps(the_grand_or_list), r.status_code)
     else:
