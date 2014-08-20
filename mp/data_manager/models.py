@@ -103,6 +103,7 @@ class Layer(models.Model):
     utfurl = models.CharField(max_length=255, blank=True, null=True)
     utfjsonp = models.BooleanField(default=False)
     summarize_to_grid = models.BooleanField(default=False)
+    geoportal_id = models.CharField(max_length=255, blank=True, null=True, help_text="GeoPortal UUID")
     proj = models.CharField(max_length=255, blank=True, null=True, help_text="will be EPSG:3857, if unspecified")
     #tooltip
     description = models.TextField(blank=True, null=True)
