@@ -37,6 +37,20 @@ def get_json(request, project=None):
     }
     return HttpResponse(simplejson.dumps(json))
 
+'''
+Responds with a json object containing a list of those layers containing a Geoportal UUID 
+'''
+def geoportal_ids(request): 
+    geoportal_layers = Layer.objects.exclude(geoportal_id__isnull=True).exclude(geoportal_id__exact='')
+    json = { "geoportal_layers": [] }
+    for layer in geoportal_layers:
+        json["geoportal_layers"].append({
+            "name": layer.name,
+            "slug": layer.slug,
+            "uuid": layer.geoportal_id
+        })
+    return HttpResponse(simplejson.dumps(json))
+
 
 def create_layer(request):
     if request.POST:
