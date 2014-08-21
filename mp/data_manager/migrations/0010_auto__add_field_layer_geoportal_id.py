@@ -8,11 +8,6 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Layer.filterable'
-        db.add_column(u'data_manager_layer', 'filterable',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
-                      keep_default=False)
-
         # Adding field 'Layer.geoportal_id'
         db.add_column(u'data_manager_layer', 'geoportal_id',
                       self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True),
@@ -20,9 +15,6 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
-        # Deleting field 'Layer.filterable'
-        db.delete_column(u'data_manager_layer', 'filterable')
-
         # Deleting field 'Layer.geoportal_id'
         db.delete_column(u'data_manager_layer', 'geoportal_id')
 
