@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.utils import simplejson
 from django.views.decorators.cache import cache_page
+from general.decorators import jsonp
 from models import *
 
 
@@ -35,6 +36,21 @@ def get_json(request, project=None):
         "themes": [theme.toDict for theme in Theme.objects.all().order_by('display_name')],
         "success": True
     }
+    return HttpResponse(simplejson.dumps(json), content_type='application/json')
+
+'''
+Responds with a json object containing a list of those layers containing a Geoportal UUID 
+'''
+@jsonp
+def geoportal_ids(request): 
+    geoportal_layers = Layer.objects.exclude(geoportal_id__isnull=True).exclude(geoportal_id__exact='')
+    json = { "geoportal_layers": [] }
+    for layer in geoportal_layers:
+        json["geoportal_layers"].append({
+            "name": layer.name,
+            "slug": layer.slug,
+            "uuid": layer.geoportal_id
+        })
     return HttpResponse(simplejson.dumps(json), content_type='application/json')
 
 

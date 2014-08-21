@@ -127,3 +127,16 @@ def layer_proxy_view(request, layer_id):
         resp = proxy_view(request, layer.url)
     return resp
 
+
+def capabilities_proxy_view(request, layer_id):
+    layer = get_object_or_404(Layer, id=layer_id)
+    if layer.url.endswith('?'):
+        orig_url = layer.url[:-1]
+    else:
+        orig_url = layer.url
+    capabilities_url = orig_url + '?request=getCapabilities'
+    extra_requests_args = {'headers': {'CONTENT-TYPE': 'text/xml'}}
+    return proxy_view(request, capabilities_url, extra_requests_args)
+
+
+

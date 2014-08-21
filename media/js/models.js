@@ -39,10 +39,10 @@ function layerModel(options, parent) {
         self.featureAttributionName = 'OCS Lease Blocks -- DRAFT Report';
     } else if (self.featureAttributionName === 'Party & Charter Boat') {
         self.featureAttributionName = 'Party & Charter Boat Trips';
-    }
-
-    // if legend is not provided, try using legend from web services
-    if ( !self.legend && self.url && (self.arcgislayers !== -1) ) {
+    } 
+    
+    // if legend is not provided, try using legend from web services 
+    if ( !self.legend && self.url && self.type=='ArcRest' && (self.arcgislayers !== -1) ) {
         $.ajax({
             dataType: "jsonp",
             //http://ocean.floridamarine.org/arcgis/rest/services/SAFMC/SAFMC_Regulations/MapServer/legend/?f=pjson
@@ -78,7 +78,41 @@ function layerModel(options, parent) {
             }
         });
     }
+    if (!self.legend && self.url && self.type=='WMS' && self.wms_slug) {
+        // self.legend = window.location.origin + '/proxy/legend/' + self.id;
+        
+        var request = OpenLayers.Request.GET({ 
+            // url: self.url + "request=GetCapabilities", 
+            url: '/proxy/capabilities/' + self.id,
+            success: function(response) { 
+                console.log(self.name);
+                console.log(self.wms_slug);
+                if (self.wms_slug === 'ports1m') {
+                    var wms_slug = 'ports';
+                } else {
+                    var wms_slug = self.wms_slug;
+                }
+                var CAPformat = new OpenLayers.Format.WMSCapabilities(); 
+                var cap = CAPformat.read(response.responseXML || response.responseText); 
+                if (cap.capability && cap.capability.layers) {
+                    var capLayer = _.findWhere(cap.capability.layers, {'name': wms_slug});
+                    if (capLayer && capLayer.styles) {
+                        self.legend = capLayer.styles[0].legend.href;    
+                        console.log('self.legend = ' + self.legend);                
+                    }
+                }
+                //reset visibility (to reset activeLegendLayers)
+                var visible = self.visible();
+                self.visible(false);
+                self.visible(visible);
+            },
+            error: function(msg) {
+                debugger;
+            }
+        }); 
 
+    }
+    
     // set target blank for all links
     if (options.description) {
         $descriptionTemp = $("<div/>", {
@@ -1490,9 +1524,21 @@ function viewModel() {
 
     self.getLayerBySlug = function(slug) {
         for (var x=0; x<self.themes().length; x++) {
-            var layer_list = $.grep(self.themes()[x].layers(), function(layer) { return self.convertToSlug(layer.name) === slug; });
+            var layer_list = $.grep(self.themes()[x].layers(), function(layer) { 
+                return self.convertToSlug(layer.name) === slug; 
+            });
             if (layer_list.length > 0) {
                 return layer_list[0];
+            }
+        }
+        for (var x=0; x<self.themes().length; x++) {
+            for (var y=0; y<self.themes()[x].layers().length; y++) {
+                var sublayer_list = $.grep(self.themes()[x].layers()[y].subLayers, function(sublayer) {
+                    return self.convertToSlug(sublayer.name) === slug;
+                });
+                if (sublayer_list.length > 0) {
+                    return sublayer_list[0];
+                }
             }
         }
         return false;

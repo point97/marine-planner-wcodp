@@ -37,15 +37,23 @@ portal/wordpress/.htaccess
 portal/wordpress/wp-config.php
 printing/shots/*
 /media/data_manager/utfgrid
+/media/crop/*
 scripts/cookbooks/node_*.json
 
 mp/data_manager/fixtures/datadump_2013_11_20.json
-
 mp/data_manager/fixtures/initial_data_orig.json
-
 mp/data_manager/fixtures/datadump_2014_05_16.json
-
 mp/data_manager/fixtures/wcodp-md_datadump_20140516.json
+mp/data_manager/fixtures/08212014_initial_data.json
+mp/data_manager/fixtures/crop_initial_data.json
+mp/data_manager/fixtures/ofr_initial_data.json
 
-/media/assets/openlayers/archive/*
+mp/logs/main.log
+
+mp/logs/main_debug.log
+
 /media/assets/openlayers/build/*
+/media/assets/openlayers/tools/*
+/media/assets/openlayers/lib/*
+/media/assets/openlayers/archive/*
+

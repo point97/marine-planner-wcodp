@@ -5,5 +5,6 @@ urlpatterns = patterns('',
     (r'^layer/([A-Za-z0-9_-]+)$', update_layer),
     (r'^layer', create_layer),
     (r'^wa_config', load_config),
-    (r'^get_json/([\w-]*)', get_json)
+    (r'^get_json/([\w-]*)', get_json),
+    (r'^geoportal_ids', geoportal_ids)
 )

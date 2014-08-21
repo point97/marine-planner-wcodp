@@ -54,17 +54,21 @@ app.viewModel.loadLayers = function(data) {
 	});
 
 	// filterable layers
-	var marineDebrisTheme = _.findWhere(self.themes(), {name: 'Marine Debris'});
-	var marineDebrisLayers = marineDebrisTheme.layers();
-	$.each(marineDebrisLayers, function(i, layer) {
-		self.filterTab.filterLayers.push(layer);
-		// if (layer.name.indexOf('All') !== 0) {
-		// if ( layer.name === 'Beach Cleanups' ) {
-		// 	self.filterTab.filterLayers.push(layer);	
-		// } else {
-		// 	self.filterTab.inclusiveFilterLayer = layer;
-		// }
-	});
+	try {
+		var marineDebrisTheme = _.findWhere(self.themes(), {name: 'Marine Debris'});
+		var marineDebrisLayers = marineDebrisTheme.layers();
+		$.each(marineDebrisLayers, function(i, layer) {
+			self.filterTab.filterLayers.push(layer);
+			// if (layer.name.indexOf('All') !== 0) {
+			// if ( layer.name === 'Beach Cleanups' ) {
+			// 	self.filterTab.filterLayers.push(layer);	
+			// } else {
+			// 	self.filterTab.inclusiveFilterLayer = layer;
+			// }
+		});
+	} catch(e) {
+		console.log(e);
+	}
 	// self.themes.remove(marineDebrisTheme);
 
 	// load filters

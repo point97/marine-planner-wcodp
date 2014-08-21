@@ -11934,6 +11934,535 @@ OpenLayers.Layer.Google.v2 = {
     
 };
 /* ======================================================================
+    OpenLayers/Format.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/BaseTypes/Class.js
+ * @requires OpenLayers/Util.js
+ */
+
+/**
+ * Class: OpenLayers.Format
+ * Base class for format reading/writing a variety of formats.  Subclasses
+ *     of OpenLayers.Format are expected to have read and write methods.
+ */
+OpenLayers.Format = OpenLayers.Class({
+    
+    /**
+     * Property: options
+     * {Object} A reference to options passed to the constructor.
+     */
+    options: null,
+    
+    /**
+     * APIProperty: externalProjection
+     * {<OpenLayers.Projection>} When passed a externalProjection and
+     *     internalProjection, the format will reproject the geometries it
+     *     reads or writes. The externalProjection is the projection used by
+     *     the content which is passed into read or which comes out of write.
+     *     In order to reproject, a projection transformation function for the
+     *     specified projections must be available. This support may be 
+     *     provided via proj4js or via a custom transformation function. See
+     *     {<OpenLayers.Projection.addTransform>} for more information on
+     *     custom transformations.
+     */
+    externalProjection: null,
+
+    /**
+     * APIProperty: internalProjection
+     * {<OpenLayers.Projection>} When passed a externalProjection and
+     *     internalProjection, the format will reproject the geometries it
+     *     reads or writes. The internalProjection is the projection used by
+     *     the geometries which are returned by read or which are passed into
+     *     write.  In order to reproject, a projection transformation function
+     *     for the specified projections must be available. This support may be
+     *     provided via proj4js or via a custom transformation function. See
+     *     {<OpenLayers.Projection.addTransform>} for more information on
+     *     custom transformations.
+     */
+    internalProjection: null,
+
+    /**
+     * APIProperty: data
+     * {Object} When <keepData> is true, this is the parsed string sent to
+     *     <read>.
+     */
+    data: null,
+
+    /**
+     * APIProperty: keepData
+     * {Object} Maintain a reference (<data>) to the most recently read data.
+     *     Default is false.
+     */
+    keepData: false,
+
+    /**
+     * Constructor: OpenLayers.Format
+     * Instances of this class are not useful.  See one of the subclasses.
+     *
+     * Parameters:
+     * options - {Object} An optional object with properties to set on the
+     *           format
+     *
+     * Valid options:
+     * keepData - {Boolean} If true, upon <read>, the data property will be
+     *     set to the parsed object (e.g. the json or xml object).
+     *
+     * Returns:
+     * An instance of OpenLayers.Format
+     */
+    initialize: function(options) {
+        OpenLayers.Util.extend(this, options);
+        this.options = options;
+    },
+    
+    /**
+     * APIMethod: destroy
+     * Clean up.
+     */
+    destroy: function() {
+    },
+
+    /**
+     * Method: read
+     * Read data from a string, and return an object whose type depends on the
+     * subclass. 
+     * 
+     * Parameters:
+     * data - {string} Data to read/parse.
+     *
+     * Returns:
+     * Depends on the subclass
+     */
+    read: function(data) {
+        throw new Error('Read not implemented.');
+    },
+    
+    /**
+     * Method: write
+     * Accept an object, and return a string. 
+     *
+     * Parameters:
+     * object - {Object} Object to be serialized
+     *
+     * Returns:
+     * {String} A string representation of the object.
+     */
+    write: function(object) {
+        throw new Error('Write not implemented.');
+    },
+
+    CLASS_NAME: "OpenLayers.Format"
+});     
+/* ======================================================================
+    OpenLayers/Format/JSON.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * Note:
+ * This work draws heavily from the public domain JSON serializer/deserializer
+ *     at http://www.json.org/json.js. Rewritten so that it doesn't modify
+ *     basic data prototypes.
+ */
+
+/**
+ * @requires OpenLayers/Format.js
+ */
+
+/**
+ * Class: OpenLayers.Format.JSON
+ * A parser to read/write JSON safely.  Create a new instance with the
+ *     <OpenLayers.Format.JSON> constructor.
+ *
+ * Inherits from:
+ *  - <OpenLayers.Format>
+ */
+OpenLayers.Format.JSON = OpenLayers.Class(OpenLayers.Format, {
+    
+    /**
+     * APIProperty: indent
+     * {String} For "pretty" printing, the indent string will be used once for
+     *     each indentation level.
+     */
+    indent: "    ",
+    
+    /**
+     * APIProperty: space
+     * {String} For "pretty" printing, the space string will be used after
+     *     the ":" separating a name/value pair.
+     */
+    space: " ",
+    
+    /**
+     * APIProperty: newline
+     * {String} For "pretty" printing, the newline string will be used at the
+     *     end of each name/value pair or array item.
+     */
+    newline: "\n",
+    
+    /**
+     * Property: level
+     * {Integer} For "pretty" printing, this is incremented/decremented during
+     *     serialization.
+     */
+    level: 0,
+
+    /**
+     * Property: pretty
+     * {Boolean} Serialize with extra whitespace for structure.  This is set
+     *     by the <write> method.
+     */
+    pretty: false,
+
+    /**
+     * Property: nativeJSON
+     * {Boolean} Does the browser support native json?
+     */
+    nativeJSON: (function() {
+        return !!(window.JSON && typeof JSON.parse == "function" && typeof JSON.stringify == "function");
+    })(),
+
+    /**
+     * Constructor: OpenLayers.Format.JSON
+     * Create a new parser for JSON.
+     *
+     * Parameters:
+     * options - {Object} An optional object whose properties will be set on
+     *     this instance.
+     */
+
+    /**
+     * APIMethod: read
+     * Deserialize a json string.
+     *
+     * Parameters:
+     * json - {String} A JSON string
+     * filter - {Function} A function which will be called for every key and
+     *     value at every level of the final result. Each value will be
+     *     replaced by the result of the filter function. This can be used to
+     *     reform generic objects into instances of classes, or to transform
+     *     date strings into Date objects.
+     *     
+     * Returns:
+     * {Object} An object, array, string, or number .
+     */
+    read: function(json, filter) {
+        var object;
+        if (this.nativeJSON) {
+            object = JSON.parse(json, filter);
+        } else try {
+            /**
+             * Parsing happens in three stages. In the first stage, we run the
+             *     text against a regular expression which looks for non-JSON
+             *     characters. We are especially concerned with '()' and 'new'
+             *     because they can cause invocation, and '=' because it can
+             *     cause mutation. But just to be safe, we will reject all
+             *     unexpected characters.
+             */
+            if (/^[\],:{}\s]*$/.test(json.replace(/\\["\\\/bfnrtu]/g, '@').
+                                replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').
+                                replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
+
+                /**
+                 * In the second stage we use the eval function to compile the
+                 *     text into a JavaScript structure. The '{' operator is
+                 *     subject to a syntactic ambiguity in JavaScript - it can
+                 *     begin a block or an object literal. We wrap the text in
+                 *     parens to eliminate the ambiguity.
+                 */
+                object = eval('(' + json + ')');
+
+                /**
+                 * In the optional third stage, we recursively walk the new
+                 *     structure, passing each name/value pair to a filter
+                 *     function for possible transformation.
+                 */
+                if(typeof filter === 'function') {
+                    function walk(k, v) {
+                        if(v && typeof v === 'object') {
+                            for(var i in v) {
+                                if(v.hasOwnProperty(i)) {
+                                    v[i] = walk(i, v[i]);
+                                }
+                            }
+                        }
+                        return filter(k, v);
+                    }
+                    object = walk('', object);
+                }
+            }
+        } catch(e) {
+            // Fall through if the regexp test fails.
+        }
+
+        if(this.keepData) {
+            this.data = object;
+        }
+
+        return object;
+    },
+
+    /**
+     * APIMethod: write
+     * Serialize an object into a JSON string.
+     *
+     * Parameters:
+     * value - {String} The object, array, string, number, boolean or date
+     *     to be serialized.
+     * pretty - {Boolean} Structure the output with newlines and indentation.
+     *     Default is false.
+     *
+     * Returns:
+     * {String} The JSON string representation of the input value.
+     */
+    write: function(value, pretty) {
+        this.pretty = !!pretty;
+        var json = null;
+        var type = typeof value;
+        if(this.serialize[type]) {
+            try {
+                json = (!this.pretty && this.nativeJSON) ?
+                    JSON.stringify(value) :
+                    this.serialize[type].apply(this, [value]);
+            } catch(err) {
+                OpenLayers.Console.error("Trouble serializing: " + err);
+            }
+        }
+        return json;
+    },
+    
+    /**
+     * Method: writeIndent
+     * Output an indentation string depending on the indentation level.
+     *
+     * Returns:
+     * {String} An appropriate indentation string.
+     */
+    writeIndent: function() {
+        var pieces = [];
+        if(this.pretty) {
+            for(var i=0; i<this.level; ++i) {
+                pieces.push(this.indent);
+            }
+        }
+        return pieces.join('');
+    },
+    
+    /**
+     * Method: writeNewline
+     * Output a string representing a newline if in pretty printing mode.
+     *
+     * Returns:
+     * {String} A string representing a new line.
+     */
+    writeNewline: function() {
+        return (this.pretty) ? this.newline : '';
+    },
+    
+    /**
+     * Method: writeSpace
+     * Output a string representing a space if in pretty printing mode.
+     *
+     * Returns:
+     * {String} A space.
+     */
+    writeSpace: function() {
+        return (this.pretty) ? this.space : '';
+    },
+
+    /**
+     * Property: serialize
+     * Object with properties corresponding to the serializable data types.
+     *     Property values are functions that do the actual serializing.
+     */
+    serialize: {
+        /**
+         * Method: serialize.object
+         * Transform an object into a JSON string.
+         *
+         * Parameters:
+         * object - {Object} The object to be serialized.
+         * 
+         * Returns:
+         * {String} A JSON string representing the object.
+         */
+        'object': function(object) {
+            // three special objects that we want to treat differently
+            if(object == null) {
+                return "null";
+            }
+            if(object.constructor == Date) {
+                return this.serialize.date.apply(this, [object]);
+            }
+            if(object.constructor == Array) {
+                return this.serialize.array.apply(this, [object]);
+            }
+            var pieces = ['{'];
+            this.level += 1;
+            var key, keyJSON, valueJSON;
+            
+            var addComma = false;
+            for(key in object) {
+                if(object.hasOwnProperty(key)) {
+                    // recursive calls need to allow for sub-classing
+                    keyJSON = OpenLayers.Format.JSON.prototype.write.apply(this,
+                                                    [key, this.pretty]);
+                    valueJSON = OpenLayers.Format.JSON.prototype.write.apply(this,
+                                                    [object[key], this.pretty]);
+                    if(keyJSON != null && valueJSON != null) {
+                        if(addComma) {
+                            pieces.push(',');
+                        }
+                        pieces.push(this.writeNewline(), this.writeIndent(),
+                                    keyJSON, ':', this.writeSpace(), valueJSON);
+                        addComma = true;
+                    }
+                }
+            }
+            
+            this.level -= 1;
+            pieces.push(this.writeNewline(), this.writeIndent(), '}');
+            return pieces.join('');
+        },
+        
+        /**
+         * Method: serialize.array
+         * Transform an array into a JSON string.
+         *
+         * Parameters:
+         * array - {Array} The array to be serialized
+         * 
+         * Returns:
+         * {String} A JSON string representing the array.
+         */
+        'array': function(array) {
+            var json;
+            var pieces = ['['];
+            this.level += 1;
+    
+            for(var i=0, len=array.length; i<len; ++i) {
+                // recursive calls need to allow for sub-classing
+                json = OpenLayers.Format.JSON.prototype.write.apply(this,
+                                                    [array[i], this.pretty]);
+                if(json != null) {
+                    if(i > 0) {
+                        pieces.push(',');
+                    }
+                    pieces.push(this.writeNewline(), this.writeIndent(), json);
+                }
+            }
+
+            this.level -= 1;    
+            pieces.push(this.writeNewline(), this.writeIndent(), ']');
+            return pieces.join('');
+        },
+        
+        /**
+         * Method: serialize.string
+         * Transform a string into a JSON string.
+         *
+         * Parameters:
+         * string - {String} The string to be serialized
+         * 
+         * Returns:
+         * {String} A JSON string representing the string.
+         */
+        'string': function(string) {
+            // If the string contains no control characters, no quote characters, and no
+            // backslash characters, then we can simply slap some quotes around it.
+            // Otherwise we must also replace the offending characters with safe
+            // sequences.    
+            var m = {
+                '\b': '\\b',
+                '\t': '\\t',
+                '\n': '\\n',
+                '\f': '\\f',
+                '\r': '\\r',
+                '"' : '\\"',
+                '\\': '\\\\'
+            };
+            if(/["\\\x00-\x1f]/.test(string)) {
+                return '"' + string.replace(/([\x00-\x1f\\"])/g, function(a, b) {
+                    var c = m[b];
+                    if(c) {
+                        return c;
+                    }
+                    c = b.charCodeAt();
+                    return '\\u00' +
+                        Math.floor(c / 16).toString(16) +
+                        (c % 16).toString(16);
+                }) + '"';
+            }
+            return '"' + string + '"';
+        },
+
+        /**
+         * Method: serialize.number
+         * Transform a number into a JSON string.
+         *
+         * Parameters:
+         * number - {Number} The number to be serialized.
+         *
+         * Returns:
+         * {String} A JSON string representing the number.
+         */
+        'number': function(number) {
+            return isFinite(number) ? String(number) : "null";
+        },
+        
+        /**
+         * Method: serialize.boolean
+         * Transform a boolean into a JSON string.
+         *
+         * Parameters:
+         * bool - {Boolean} The boolean to be serialized.
+         * 
+         * Returns:
+         * {String} A JSON string representing the boolean.
+         */
+        'boolean': function(bool) {
+            return String(bool);
+        },
+        
+        /**
+         * Method: serialize.object
+         * Transform a date into a JSON string.
+         *
+         * Parameters:
+         * date - {Date} The date to be serialized.
+         * 
+         * Returns:
+         * {String} A JSON string representing the date.
+         */
+        'date': function(date) {    
+            function format(number) {
+                // Format integers to have at least two digits.
+                return (number < 10) ? '0' + number : number;
+            }
+            return '"' + date.getFullYear() + '-' +
+                    format(date.getMonth() + 1) + '-' +
+                    format(date.getDate()) + 'T' +
+                    format(date.getHours()) + ':' +
+                    format(date.getMinutes()) + ':' +
+                    format(date.getSeconds()) + '"';
+        }
+    },
+
+    CLASS_NAME: "OpenLayers.Format.JSON" 
+
+});     
+/* ======================================================================
     OpenLayers/Geometry.js
    ====================================================================== */
 
@@ -17816,133 +18345,6 @@ OpenLayers.Renderer.Canvas.LABEL_FACTOR = {
  *     http://code.google.com/p/android/issues/detail?id=5141.
  */
 OpenLayers.Renderer.Canvas.drawImageScaleFactor = null;
-/* ======================================================================
-    OpenLayers/Format.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/BaseTypes/Class.js
- * @requires OpenLayers/Util.js
- */
-
-/**
- * Class: OpenLayers.Format
- * Base class for format reading/writing a variety of formats.  Subclasses
- *     of OpenLayers.Format are expected to have read and write methods.
- */
-OpenLayers.Format = OpenLayers.Class({
-    
-    /**
-     * Property: options
-     * {Object} A reference to options passed to the constructor.
-     */
-    options: null,
-    
-    /**
-     * APIProperty: externalProjection
-     * {<OpenLayers.Projection>} When passed a externalProjection and
-     *     internalProjection, the format will reproject the geometries it
-     *     reads or writes. The externalProjection is the projection used by
-     *     the content which is passed into read or which comes out of write.
-     *     In order to reproject, a projection transformation function for the
-     *     specified projections must be available. This support may be 
-     *     provided via proj4js or via a custom transformation function. See
-     *     {<OpenLayers.Projection.addTransform>} for more information on
-     *     custom transformations.
-     */
-    externalProjection: null,
-
-    /**
-     * APIProperty: internalProjection
-     * {<OpenLayers.Projection>} When passed a externalProjection and
-     *     internalProjection, the format will reproject the geometries it
-     *     reads or writes. The internalProjection is the projection used by
-     *     the geometries which are returned by read or which are passed into
-     *     write.  In order to reproject, a projection transformation function
-     *     for the specified projections must be available. This support may be
-     *     provided via proj4js or via a custom transformation function. See
-     *     {<OpenLayers.Projection.addTransform>} for more information on
-     *     custom transformations.
-     */
-    internalProjection: null,
-
-    /**
-     * APIProperty: data
-     * {Object} When <keepData> is true, this is the parsed string sent to
-     *     <read>.
-     */
-    data: null,
-
-    /**
-     * APIProperty: keepData
-     * {Object} Maintain a reference (<data>) to the most recently read data.
-     *     Default is false.
-     */
-    keepData: false,
-
-    /**
-     * Constructor: OpenLayers.Format
-     * Instances of this class are not useful.  See one of the subclasses.
-     *
-     * Parameters:
-     * options - {Object} An optional object with properties to set on the
-     *           format
-     *
-     * Valid options:
-     * keepData - {Boolean} If true, upon <read>, the data property will be
-     *     set to the parsed object (e.g. the json or xml object).
-     *
-     * Returns:
-     * An instance of OpenLayers.Format
-     */
-    initialize: function(options) {
-        OpenLayers.Util.extend(this, options);
-        this.options = options;
-    },
-    
-    /**
-     * APIMethod: destroy
-     * Clean up.
-     */
-    destroy: function() {
-    },
-
-    /**
-     * Method: read
-     * Read data from a string, and return an object whose type depends on the
-     * subclass. 
-     * 
-     * Parameters:
-     * data - {string} Data to read/parse.
-     *
-     * Returns:
-     * Depends on the subclass
-     */
-    read: function(data) {
-        throw new Error('Read not implemented.');
-    },
-    
-    /**
-     * Method: write
-     * Accept an object, and return a string. 
-     *
-     * Parameters:
-     * object - {Object} Object to be serialized
-     *
-     * Returns:
-     * {String} A string representation of the object.
-     */
-    write: function(object) {
-        throw new Error('Write not implemented.');
-    },
-
-    CLASS_NAME: "OpenLayers.Format"
-});     
 /* ======================================================================
     OpenLayers/Format/XML.js
    ====================================================================== */
@@ -26595,7 +26997,7 @@ OpenLayers.Geometry.MultiLineString = OpenLayers.Class(
     CLASS_NAME: "OpenLayers.Geometry.MultiLineString"
 });
 /* ======================================================================
-    OpenLayers/Format/JSON.js
+    OpenLayers/Format/OGCExceptionReport.js
    ====================================================================== */
 
 /* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
@@ -26604,72 +27006,45 @@ OpenLayers.Geometry.MultiLineString = OpenLayers.Class(
  * full text of the license. */
 
 /**
- * Note:
- * This work draws heavily from the public domain JSON serializer/deserializer
- *     at http://www.json.org/json.js. Rewritten so that it doesn't modify
- *     basic data prototypes.
+ * @requires OpenLayers/Format/XML.js
  */
 
 /**
- * @requires OpenLayers/Format.js
- */
-
-/**
- * Class: OpenLayers.Format.JSON
- * A parser to read/write JSON safely.  Create a new instance with the
- *     <OpenLayers.Format.JSON> constructor.
+ * Class: OpenLayers.Format.OGCExceptionReport
+ * Class to read exception reports for various OGC services and versions.
  *
  * Inherits from:
- *  - <OpenLayers.Format>
+ *  - <OpenLayers.Format.XML>
  */
-OpenLayers.Format.JSON = OpenLayers.Class(OpenLayers.Format, {
-    
-    /**
-     * APIProperty: indent
-     * {String} For "pretty" printing, the indent string will be used once for
-     *     each indentation level.
-     */
-    indent: "    ",
-    
-    /**
-     * APIProperty: space
-     * {String} For "pretty" printing, the space string will be used after
-     *     the ":" separating a name/value pair.
-     */
-    space: " ",
-    
-    /**
-     * APIProperty: newline
-     * {String} For "pretty" printing, the newline string will be used at the
-     *     end of each name/value pair or array item.
-     */
-    newline: "\n",
-    
-    /**
-     * Property: level
-     * {Integer} For "pretty" printing, this is incremented/decremented during
-     *     serialization.
-     */
-    level: 0,
+OpenLayers.Format.OGCExceptionReport = OpenLayers.Class(OpenLayers.Format.XML, {
 
     /**
-     * Property: pretty
-     * {Boolean} Serialize with extra whitespace for structure.  This is set
-     *     by the <write> method.
+     * Property: namespaces
+     * {Object} Mapping of namespace aliases to namespace URIs.
      */
-    pretty: false,
+    namespaces: {
+        ogc: "http://www.opengis.net/ogc"
+    },
 
     /**
-     * Property: nativeJSON
-     * {Boolean} Does the browser support native json?
+     * Property: regExes
+     * Compiled regular expressions for manipulating strings.
      */
-    nativeJSON: (function() {
-        return !!(window.JSON && typeof JSON.parse == "function" && typeof JSON.stringify == "function");
-    })(),
+    regExes: {
+        trimSpace: (/^\s*|\s*$/g),
+        removeSpace: (/\s*/g),
+        splitSpace: (/\s+/),
+        trimComma: (/\s*,\s*/g)
+    },
 
     /**
-     * Constructor: OpenLayers.Format.JSON
-     * Create a new parser for JSON.
+     * Property: defaultPrefix
+     */
+    defaultPrefix: "ogc",
+
+    /**
+     * Constructor: OpenLayers.Format.OGCExceptionReport
+     * Create a new parser for OGC exception reports.
      *
      * Parameters:
      * options - {Object} An optional object whose properties will be set on
@@ -26678,324 +27053,853 @@ OpenLayers.Format.JSON = OpenLayers.Class(OpenLayers.Format, {
 
     /**
      * APIMethod: read
-     * Deserialize a json string.
+     * Read OGC exception report data from a string, and return an object with
+     * information about the exceptions.
      *
      * Parameters:
-     * json - {String} A JSON string
-     * filter - {Function} A function which will be called for every key and
-     *     value at every level of the final result. Each value will be
-     *     replaced by the result of the filter function. This can be used to
-     *     reform generic objects into instances of classes, or to transform
-     *     date strings into Date objects.
-     *     
+     * data - {String} or {DOMElement} data to read/parse.
+     *
      * Returns:
-     * {Object} An object, array, string, or number .
+     * {Object} Information about the exceptions that occurred.
      */
-    read: function(json, filter) {
-        var object;
-        if (this.nativeJSON) {
-            object = JSON.parse(json, filter);
-        } else try {
-            /**
-             * Parsing happens in three stages. In the first stage, we run the
-             *     text against a regular expression which looks for non-JSON
-             *     characters. We are especially concerned with '()' and 'new'
-             *     because they can cause invocation, and '=' because it can
-             *     cause mutation. But just to be safe, we will reject all
-             *     unexpected characters.
-             */
-            if (/^[\],:{}\s]*$/.test(json.replace(/\\["\\\/bfnrtu]/g, '@').
-                                replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').
-                                replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
+    read: function(data) {
+        var result;
+        if(typeof data == "string") {
+            data = OpenLayers.Format.XML.prototype.read.apply(this, [data]);
+        }
+        var root = data.documentElement;
+        var exceptionInfo = {exceptionReport: null}; 
+        if (root) {
+            this.readChildNodes(data, exceptionInfo);
+            if (exceptionInfo.exceptionReport === null) {
+                // fall-back to OWSCommon since this is a common output format for exceptions
+                // we cannot easily use the ows readers directly since they differ for 1.0 and 1.1
+                exceptionInfo = new OpenLayers.Format.OWSCommon().read(data);
+            }
+        }
+        return exceptionInfo;
+    },
 
-                /**
-                 * In the second stage we use the eval function to compile the
-                 *     text into a JavaScript structure. The '{' operator is
-                 *     subject to a syntactic ambiguity in JavaScript - it can
-                 *     begin a block or an object literal. We wrap the text in
-                 *     parens to eliminate the ambiguity.
-                 */
-                object = eval('(' + json + ')');
+    /**
+     * Property: readers
+     * Contains public functions, grouped by namespace prefix, that will
+     *     be applied when a namespaced node is found matching the function
+     *     name.  The function will be applied in the scope of this parser
+     *     with two arguments: the node being read and a context object passed
+     *     from the parent.
+     */
+    readers: {
+        "ogc": {
+            "ServiceExceptionReport": function(node, obj) {
+                obj.exceptionReport = {exceptions: []};
+                this.readChildNodes(node, obj.exceptionReport);
+            },
+            "ServiceException": function(node, exceptionReport) {
+                var exception = {
+                    code: node.getAttribute("code"),
+                    locator: node.getAttribute("locator"),
+                    text: this.getChildValue(node)
+                };
+                exceptionReport.exceptions.push(exception);
+            }
+        }
+    },
+    
+    CLASS_NAME: "OpenLayers.Format.OGCExceptionReport"
+    
+});
+/* ======================================================================
+    OpenLayers/Format/XML/VersionedOGC.js
+   ====================================================================== */
 
-                /**
-                 * In the optional third stage, we recursively walk the new
-                 *     structure, passing each name/value pair to a filter
-                 *     function for possible transformation.
-                 */
-                if(typeof filter === 'function') {
-                    function walk(k, v) {
-                        if(v && typeof v === 'object') {
-                            for(var i in v) {
-                                if(v.hasOwnProperty(i)) {
-                                    v[i] = walk(i, v[i]);
-                                }
-                            }
-                        }
-                        return filter(k, v);
-                    }
-                    object = walk('', object);
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Format/XML.js
+ * @requires OpenLayers/Format/OGCExceptionReport.js
+ */
+
+/**
+ * Class: OpenLayers.Format.XML.VersionedOGC
+ * Base class for versioned formats, i.e. a format which supports multiple
+ * versions.
+ * 
+ * Inherits from:
+ *  - <OpenLayers.Format.XML>
+ */
+OpenLayers.Format.XML.VersionedOGC = OpenLayers.Class(OpenLayers.Format.XML, {
+    
+    /**
+     * APIProperty: defaultVersion
+     * {String} Version number to assume if none found.
+     */
+    defaultVersion: null,
+    
+    /**
+     * APIProperty: version
+     * {String} Specify a version string if one is known.
+     */
+    version: null,
+
+    /**
+     * APIProperty: profile
+     * {String} If provided, use a custom profile.
+     */
+    profile: null,
+
+    /**
+     * APIProperty: errorProperty
+     * {String} Which property of the returned object to check for in order to
+     * determine whether or not parsing has failed. In the case that the
+     * errorProperty is undefined on the returned object, the document will be
+     * run through an OGCExceptionReport parser.
+     */
+    errorProperty: null,
+
+    /**
+     * Property: name
+     * {String} The name of this parser, this is the part of the CLASS_NAME
+     * except for "OpenLayers.Format."
+     */
+    name: null,
+
+    /**
+     * APIProperty: stringifyOutput
+     * {Boolean} If true, write will return a string otherwise a DOMElement.
+     * Default is false.
+     */
+    stringifyOutput: false,
+
+    /**
+     * Property: parser
+     * {Object} Instance of the versioned parser.  Cached for multiple read and
+     *     write calls of the same version.
+     */
+    parser: null,
+
+    /**
+     * Constructor: OpenLayers.Format.XML.VersionedOGC.
+     * Constructor.
+     *
+     * Parameters:
+     * options - {Object} Optional object whose properties will be set on
+     *     the object.
+     */
+    initialize: function(options) {
+        OpenLayers.Format.XML.prototype.initialize.apply(this, [options]);
+        var className = this.CLASS_NAME;
+        this.name = className.substring(className.lastIndexOf(".")+1);
+    },
+
+    /**
+     * Method: getVersion
+     * Returns the version to use. Subclasses can override this function
+     * if a different version detection is needed.
+     *
+     * Parameters:
+     * root - {DOMElement}
+     * options - {Object} Optional configuration object.
+     *
+     * Returns:
+     * {String} The version to use.
+     */
+    getVersion: function(root, options) {
+        var version;
+        // read
+        if (root) {
+            version = this.version;
+            if(!version) {
+                version = root.getAttribute("version");
+                if(!version) {
+                    version = this.defaultVersion;
                 }
             }
-        } catch(e) {
-            // Fall through if the regexp test fails.
+        } else { // write
+            version = (options && options.version) || 
+                this.version || this.defaultVersion;
         }
+        return version;
+    },
 
-        if(this.keepData) {
-            this.data = object;
+    /**
+     * Method: getParser
+     * Get an instance of the cached parser if available, otherwise create one.
+     *
+     * Parameters:
+     * version - {String}
+     *
+     * Returns:
+     * {<OpenLayers.Format>}
+     */
+    getParser: function(version) {
+        version = version || this.defaultVersion;
+        var profile = this.profile ? "_" + this.profile : "";
+        if(!this.parser || this.parser.VERSION != version) {
+            var format = OpenLayers.Format[this.name][
+                "v" + version.replace(/\./g, "_") + profile
+            ];
+            if(!format) {
+                throw "Can't find a " + this.name + " parser for version " +
+                      version + profile;
+            }
+            this.parser = new format(this.options);
         }
-
-        return object;
+        return this.parser;
     },
 
     /**
      * APIMethod: write
-     * Serialize an object into a JSON string.
+     * Write a document.
      *
      * Parameters:
-     * value - {String} The object, array, string, number, boolean or date
-     *     to be serialized.
-     * pretty - {Boolean} Structure the output with newlines and indentation.
-     *     Default is false.
+     * obj - {Object} An object representing the document.
+     * options - {Object} Optional configuration object.
      *
      * Returns:
-     * {String} The JSON string representation of the input value.
+     * {String} The document as a string
      */
-    write: function(value, pretty) {
-        this.pretty = !!pretty;
-        var json = null;
-        var type = typeof value;
-        if(this.serialize[type]) {
-            try {
-                json = (!this.pretty && this.nativeJSON) ?
-                    JSON.stringify(value) :
-                    this.serialize[type].apply(this, [value]);
-            } catch(err) {
-                OpenLayers.Console.error("Trouble serializing: " + err);
-            }
+    write: function(obj, options) {
+        var version = this.getVersion(null, options);
+        this.parser = this.getParser(version);
+        var root = this.parser.write(obj, options);
+        if (this.stringifyOutput === false) {
+            return root;
+        } else {
+            return OpenLayers.Format.XML.prototype.write.apply(this, [root]);
         }
-        return json;
-    },
-    
-    /**
-     * Method: writeIndent
-     * Output an indentation string depending on the indentation level.
-     *
-     * Returns:
-     * {String} An appropriate indentation string.
-     */
-    writeIndent: function() {
-        var pieces = [];
-        if(this.pretty) {
-            for(var i=0; i<this.level; ++i) {
-                pieces.push(this.indent);
-            }
-        }
-        return pieces.join('');
-    },
-    
-    /**
-     * Method: writeNewline
-     * Output a string representing a newline if in pretty printing mode.
-     *
-     * Returns:
-     * {String} A string representing a new line.
-     */
-    writeNewline: function() {
-        return (this.pretty) ? this.newline : '';
-    },
-    
-    /**
-     * Method: writeSpace
-     * Output a string representing a space if in pretty printing mode.
-     *
-     * Returns:
-     * {String} A space.
-     */
-    writeSpace: function() {
-        return (this.pretty) ? this.space : '';
     },
 
     /**
-     * Property: serialize
-     * Object with properties corresponding to the serializable data types.
-     *     Property values are functions that do the actual serializing.
+     * APIMethod: read
+     * Read a doc and return an object representing the document.
+     *
+     * Parameters:
+     * data - {String | DOMElement} Data to read.
+     * options - {Object} Options for the reader.
+     *
+     * Returns:
+     * {Object} An object representing the document.
      */
-    serialize: {
-        /**
-         * Method: serialize.object
-         * Transform an object into a JSON string.
-         *
-         * Parameters:
-         * object - {Object} The object to be serialized.
-         * 
-         * Returns:
-         * {String} A JSON string representing the object.
-         */
-        'object': function(object) {
-            // three special objects that we want to treat differently
-            if(object == null) {
-                return "null";
-            }
-            if(object.constructor == Date) {
-                return this.serialize.date.apply(this, [object]);
-            }
-            if(object.constructor == Array) {
-                return this.serialize.array.apply(this, [object]);
-            }
-            var pieces = ['{'];
-            this.level += 1;
-            var key, keyJSON, valueJSON;
-            
-            var addComma = false;
-            for(key in object) {
-                if(object.hasOwnProperty(key)) {
-                    // recursive calls need to allow for sub-classing
-                    keyJSON = OpenLayers.Format.JSON.prototype.write.apply(this,
-                                                    [key, this.pretty]);
-                    valueJSON = OpenLayers.Format.JSON.prototype.write.apply(this,
-                                                    [object[key], this.pretty]);
-                    if(keyJSON != null && valueJSON != null) {
-                        if(addComma) {
-                            pieces.push(',');
-                        }
-                        pieces.push(this.writeNewline(), this.writeIndent(),
-                                    keyJSON, ':', this.writeSpace(), valueJSON);
-                        addComma = true;
+    read: function(data, options) {
+        if(typeof data == "string") {
+            data = OpenLayers.Format.XML.prototype.read.apply(this, [data]);
+        }
+        var root = data.documentElement;
+        var version = this.getVersion(root);
+        this.parser = this.getParser(version);
+        var obj = this.parser.read(data, options);
+        if (this.errorProperty !== null && obj[this.errorProperty] === undefined) {
+            // an error must have happened, so parse it and report back
+            var format = new OpenLayers.Format.OGCExceptionReport();
+            obj.error = format.read(data);
+        }
+        obj.version = version;
+        return obj;
+    },
+
+    CLASS_NAME: "OpenLayers.Format.XML.VersionedOGC"
+});
+/* ======================================================================
+    OpenLayers/Format/WMSCapabilities.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Format/XML/VersionedOGC.js
+ */
+
+/**
+ * Class: OpenLayers.Format.WMSCapabilities
+ * Read WMS Capabilities.
+ * 
+ * Inherits from:
+ *  - <OpenLayers.Format.XML.VersionedOGC>
+ */
+OpenLayers.Format.WMSCapabilities = OpenLayers.Class(OpenLayers.Format.XML.VersionedOGC, {
+    
+    /**
+     * APIProperty: defaultVersion
+     * {String} Version number to assume if none found.  Default is "1.1.1".
+     */
+    defaultVersion: "1.1.1",
+    
+    /**
+     * APIProperty: profile
+     * {String} If provided, use a custom profile.
+     *
+     * Currently supported profiles:
+     * - WMSC - parses vendor specific capabilities for WMS-C.
+     */
+    profile: null,
+    
+    /**
+     * Constructor: OpenLayers.Format.WMSCapabilities
+     * Create a new parser for WMS capabilities.
+     *
+     * Parameters:
+     * options - {Object} An optional object whose properties will be set on
+     *     this instance.
+     */
+
+    /**
+     * APIMethod: read
+     * Read capabilities data from a string, and return a list of layers. 
+     * 
+     * Parameters: 
+     * data - {String} or {DOMElement} data to read/parse.
+     *
+     * Returns:
+     * {Array} List of named layers.
+     */
+    
+    CLASS_NAME: "OpenLayers.Format.WMSCapabilities" 
+
+});
+/* ======================================================================
+    OpenLayers/Format/WMSCapabilities/v1.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Format/WMSCapabilities.js
+ * @requires OpenLayers/Format/OGCExceptionReport.js
+ * @requires OpenLayers/Format/XML.js
+ */
+
+/**
+ * Class: OpenLayers.Format.WMSCapabilities.v1
+ * Abstract class not to be instantiated directly. Creates
+ * the common parts for both WMS 1.1.X and WMS 1.3.X.
+ * 
+ * Inherits from:
+ *  - <OpenLayers.Format.XML>
+ */
+OpenLayers.Format.WMSCapabilities.v1 = OpenLayers.Class(
+    OpenLayers.Format.XML, {
+    
+    /**
+     * Property: namespaces
+     * {Object} Mapping of namespace aliases to namespace URIs.
+     */
+    namespaces: {
+        wms: "http://www.opengis.net/wms",
+        xlink: "http://www.w3.org/1999/xlink",
+        xsi: "http://www.w3.org/2001/XMLSchema-instance"
+    },
+
+    /**
+     * Property: defaultPrefix
+     */
+    defaultPrefix: "wms",
+    
+    /**
+     * Constructor: OpenLayers.Format.WMSCapabilities.v1
+     * Create an instance of one of the subclasses.
+     *
+     * Parameters:
+     * options - {Object} An optional object whose properties will be set on
+     *     this instance.
+     */
+
+    /**
+     * APIMethod: read
+     * Read capabilities data from a string, and return a list of layers. 
+     * 
+     * Parameters: 
+     * data - {String} or {DOMElement} data to read/parse.
+     *
+     * Returns:
+     * {Array} List of named layers.
+     */
+    read: function(data) {
+        if(typeof data == "string") {
+            data = OpenLayers.Format.XML.prototype.read.apply(this, [data]);
+        }
+        var raw = data;
+        if(data && data.nodeType == 9) {
+            data = data.documentElement;
+        }
+        var capabilities = {};
+        this.readNode(data, capabilities);
+        if (capabilities.service === undefined) {
+            // an exception must have occurred, so parse it
+            var parser = new OpenLayers.Format.OGCExceptionReport();
+            capabilities.error = parser.read(raw);
+        }
+        return capabilities;
+    },
+
+    /**
+     * Property: readers
+     * Contains public functions, grouped by namespace prefix, that will
+     *     be applied when a namespaced node is found matching the function
+     *     name.  The function will be applied in the scope of this parser
+     *     with two arguments: the node being read and a context object passed
+     *     from the parent.
+     */
+    readers: {
+        "wms": {
+            "Service": function(node, obj) {
+                obj.service = {};
+                this.readChildNodes(node, obj.service);
+            },
+            "Name": function(node, obj) {
+                obj.name = this.getChildValue(node);
+            },
+            "Title": function(node, obj) {
+                obj.title = this.getChildValue(node);
+            },
+            "Abstract": function(node, obj) {
+                obj["abstract"] = this.getChildValue(node);
+            },
+            "BoundingBox": function(node, obj) {
+                var bbox = {};
+                bbox.bbox = [
+                    parseFloat(node.getAttribute("minx")),
+                    parseFloat(node.getAttribute("miny")),
+                    parseFloat(node.getAttribute("maxx")),
+                    parseFloat(node.getAttribute("maxy"))
+                ];
+                var res = {
+                    x: parseFloat(node.getAttribute("resx")),
+                    y: parseFloat(node.getAttribute("resy"))
+                };
+
+                if (! (isNaN(res.x) && isNaN(res.y))) {
+                    bbox.res = res;
+                }
+                // return the bbox so that descendant classes can set the
+                // CRS and SRS and add it to the obj
+                return bbox;
+            },
+            "OnlineResource": function(node, obj) {
+                obj.href = this.getAttributeNS(node, this.namespaces.xlink, 
+                    "href");
+            },
+            "ContactInformation": function(node, obj) {
+                obj.contactInformation = {};
+                this.readChildNodes(node, obj.contactInformation);
+            },
+            "ContactPersonPrimary": function(node, obj) {
+                obj.personPrimary = {};
+                this.readChildNodes(node, obj.personPrimary);
+            },
+            "ContactPerson": function(node, obj) {
+                obj.person = this.getChildValue(node);
+            },
+            "ContactOrganization": function(node, obj) {
+                obj.organization = this.getChildValue(node);
+            },
+            "ContactPosition": function(node, obj) {
+                obj.position = this.getChildValue(node);
+            },
+            "ContactAddress": function(node, obj) {
+                obj.contactAddress = {};
+                this.readChildNodes(node, obj.contactAddress);
+            },
+            "AddressType": function(node, obj) {
+                obj.type = this.getChildValue(node);
+            },
+            "Address": function(node, obj) {
+                obj.address = this.getChildValue(node);
+            },
+            "City": function(node, obj) {
+                obj.city = this.getChildValue(node);
+            },
+            "StateOrProvince": function(node, obj) {
+                obj.stateOrProvince = this.getChildValue(node);
+            },
+            "PostCode": function(node, obj) {
+                obj.postcode = this.getChildValue(node);
+            },
+            "Country": function(node, obj) {
+                obj.country = this.getChildValue(node);
+            },
+            "ContactVoiceTelephone": function(node, obj) {
+                obj.phone = this.getChildValue(node);
+            },
+            "ContactFacsimileTelephone": function(node, obj) {
+                obj.fax = this.getChildValue(node);
+            },
+            "ContactElectronicMailAddress": function(node, obj) {
+                obj.email = this.getChildValue(node);
+            },
+            "Fees": function(node, obj) {
+                var fees = this.getChildValue(node);
+                if (fees && fees.toLowerCase() != "none") {
+                    obj.fees = fees;
+                }
+            },
+            "AccessConstraints": function(node, obj) {
+                var constraints = this.getChildValue(node);
+                if (constraints && constraints.toLowerCase() != "none") {
+                    obj.accessConstraints = constraints;
+                }
+            },
+            "Capability": function(node, obj) {
+                obj.capability = {
+                    nestedLayers: [],
+                    layers: []
+                };
+                this.readChildNodes(node, obj.capability);
+            },
+            "Request": function(node, obj) {
+                obj.request = {};
+                this.readChildNodes(node, obj.request);
+            },
+            "GetCapabilities": function(node, obj) {
+                obj.getcapabilities = {formats: []};
+                this.readChildNodes(node, obj.getcapabilities);
+            },
+            "Format": function(node, obj) {
+                if (OpenLayers.Util.isArray(obj.formats)) {
+                    obj.formats.push(this.getChildValue(node));
+                } else {
+                    obj.format = this.getChildValue(node);
+                }
+            },
+            "DCPType": function(node, obj) {
+                this.readChildNodes(node, obj);
+            },
+            "HTTP": function(node, obj) {
+                this.readChildNodes(node, obj);
+            },
+            "Get": function(node, obj) {
+                obj.get = {};
+                this.readChildNodes(node, obj.get);
+                // backwards compatibility
+                if (!obj.href) {
+                    obj.href = obj.get.href;
+                }
+            },
+            "Post": function(node, obj) {
+                obj.post = {};
+                this.readChildNodes(node, obj.post);
+                // backwards compatibility
+                if (!obj.href) {
+                    obj.href = obj.get.href;
+                }
+            },
+            "GetMap": function(node, obj) {
+                obj.getmap = {formats: []};
+                this.readChildNodes(node, obj.getmap);
+            },
+            "GetFeatureInfo": function(node, obj) {
+                obj.getfeatureinfo = {formats: []};
+                this.readChildNodes(node, obj.getfeatureinfo);
+            },
+            "Exception": function(node, obj) {
+                obj.exception = {formats: []};
+                this.readChildNodes(node, obj.exception);
+            },
+            "Layer": function(node, obj) {
+                var parentLayer, capability;
+                if (obj.capability) {
+                    capability = obj.capability;
+                    parentLayer = obj;
+                } else {
+                    capability = obj;
+                }
+                var attrNode = node.getAttributeNode("queryable");
+                var queryable = (attrNode && attrNode.specified) ? 
+                    node.getAttribute("queryable") : null;
+                attrNode = node.getAttributeNode("cascaded");
+                var cascaded = (attrNode && attrNode.specified) ?
+                    node.getAttribute("cascaded") : null;
+                attrNode = node.getAttributeNode("opaque");
+                var opaque = (attrNode && attrNode.specified) ?
+                    node.getAttribute('opaque') : null;
+                var noSubsets = node.getAttribute('noSubsets');
+                var fixedWidth = node.getAttribute('fixedWidth');
+                var fixedHeight = node.getAttribute('fixedHeight');
+                var parent = parentLayer || {},
+                    extend = OpenLayers.Util.extend;
+                var layer = {
+                    nestedLayers: [],
+                    styles: parentLayer ? [].concat(parentLayer.styles) : [],
+                    srs: parentLayer ? extend({}, parent.srs) : {}, 
+                    metadataURLs: [],
+                    bbox: parentLayer ? extend({}, parent.bbox) : {},
+                    llbbox: parent.llbbox,
+                    dimensions: parentLayer ? extend({}, parent.dimensions) : {},
+                    authorityURLs: parentLayer ? extend({}, parent.authorityURLs) : {},
+                    identifiers: {},
+                    keywords: [],
+                    queryable: (queryable && queryable !== "") ? 
+                        (queryable === "1" || queryable === "true" ) :
+                        (parent.queryable || false),
+                    cascaded: (cascaded !== null) ? parseInt(cascaded) :
+                        (parent.cascaded || 0),
+                    opaque: opaque ? 
+                        (opaque === "1" || opaque === "true" ) :
+                        (parent.opaque || false),
+                    noSubsets: (noSubsets !== null) ? 
+                        (noSubsets === "1" || noSubsets === "true" ) :
+                        (parent.noSubsets || false),
+                    fixedWidth: (fixedWidth != null) ? 
+                        parseInt(fixedWidth) : (parent.fixedWidth || 0),
+                    fixedHeight: (fixedHeight != null) ? 
+                        parseInt(fixedHeight) : (parent.fixedHeight || 0),
+                    minScale: parent.minScale,
+                    maxScale: parent.maxScale,
+                    attribution: parent.attribution
+                };
+                obj.nestedLayers.push(layer);
+                layer.capability = capability;
+                this.readChildNodes(node, layer);
+                delete layer.capability;
+                if(layer.name) {
+                    var parts = layer.name.split(":"),
+                        request = capability.request,
+                        gfi = request.getfeatureinfo;
+                    if(parts.length > 0) {
+                        layer.prefix = parts[0];
+                    }
+                    capability.layers.push(layer);
+                    if (layer.formats === undefined) {
+                        layer.formats = request.getmap.formats;
+                    }
+                    if (layer.infoFormats === undefined && gfi) {
+                        layer.infoFormats = gfi.formats;
                     }
                 }
+            },
+            "Attribution": function(node, obj) {
+                obj.attribution = {};
+                this.readChildNodes(node, obj.attribution);
+            },
+            "LogoURL": function(node, obj) {
+                obj.logo = {
+                    width: node.getAttribute("width"),
+                    height: node.getAttribute("height")
+                };
+                this.readChildNodes(node, obj.logo);
+            },
+            "Style": function(node, obj) {
+                var style = {};
+                obj.styles.push(style);
+                this.readChildNodes(node, style);
+            },
+            "LegendURL": function(node, obj) {
+                var legend = {
+                    width: node.getAttribute("width"),
+                    height: node.getAttribute("height")
+                };
+                obj.legend = legend;
+                this.readChildNodes(node, legend);
+            },
+            "MetadataURL": function(node, obj) {
+                var metadataURL = {type: node.getAttribute("type")};
+                obj.metadataURLs.push(metadataURL);
+                this.readChildNodes(node, metadataURL);
+            },
+            "DataURL": function(node, obj) {
+                obj.dataURL = {};
+                this.readChildNodes(node, obj.dataURL);
+            },
+            "FeatureListURL": function(node, obj) {
+                obj.featureListURL = {};
+                this.readChildNodes(node, obj.featureListURL);
+            },
+            "AuthorityURL": function(node, obj) {
+                var name = node.getAttribute("name");
+                var authority = {};
+                this.readChildNodes(node, authority);
+                obj.authorityURLs[name] = authority.href;
+            },
+            "Identifier": function(node, obj) {
+                var authority = node.getAttribute("authority");
+                obj.identifiers[authority] = this.getChildValue(node);
+            },
+            "KeywordList": function(node, obj) {
+                this.readChildNodes(node, obj);
+            },
+            "SRS": function(node, obj) {
+                obj.srs[this.getChildValue(node)] = true;
             }
-            
-            this.level -= 1;
-            pieces.push(this.writeNewline(), this.writeIndent(), '}');
-            return pieces.join('');
-        },
-        
-        /**
-         * Method: serialize.array
-         * Transform an array into a JSON string.
-         *
-         * Parameters:
-         * array - {Array} The array to be serialized
-         * 
-         * Returns:
-         * {String} A JSON string representing the array.
-         */
-        'array': function(array) {
-            var json;
-            var pieces = ['['];
-            this.level += 1;
-    
-            for(var i=0, len=array.length; i<len; ++i) {
-                // recursive calls need to allow for sub-classing
-                json = OpenLayers.Format.JSON.prototype.write.apply(this,
-                                                    [array[i], this.pretty]);
-                if(json != null) {
-                    if(i > 0) {
-                        pieces.push(',');
-                    }
-                    pieces.push(this.writeNewline(), this.writeIndent(), json);
-                }
-            }
-
-            this.level -= 1;    
-            pieces.push(this.writeNewline(), this.writeIndent(), ']');
-            return pieces.join('');
-        },
-        
-        /**
-         * Method: serialize.string
-         * Transform a string into a JSON string.
-         *
-         * Parameters:
-         * string - {String} The string to be serialized
-         * 
-         * Returns:
-         * {String} A JSON string representing the string.
-         */
-        'string': function(string) {
-            // If the string contains no control characters, no quote characters, and no
-            // backslash characters, then we can simply slap some quotes around it.
-            // Otherwise we must also replace the offending characters with safe
-            // sequences.    
-            var m = {
-                '\b': '\\b',
-                '\t': '\\t',
-                '\n': '\\n',
-                '\f': '\\f',
-                '\r': '\\r',
-                '"' : '\\"',
-                '\\': '\\\\'
-            };
-            if(/["\\\x00-\x1f]/.test(string)) {
-                return '"' + string.replace(/([\x00-\x1f\\"])/g, function(a, b) {
-                    var c = m[b];
-                    if(c) {
-                        return c;
-                    }
-                    c = b.charCodeAt();
-                    return '\\u00' +
-                        Math.floor(c / 16).toString(16) +
-                        (c % 16).toString(16);
-                }) + '"';
-            }
-            return '"' + string + '"';
-        },
-
-        /**
-         * Method: serialize.number
-         * Transform a number into a JSON string.
-         *
-         * Parameters:
-         * number - {Number} The number to be serialized.
-         *
-         * Returns:
-         * {String} A JSON string representing the number.
-         */
-        'number': function(number) {
-            return isFinite(number) ? String(number) : "null";
-        },
-        
-        /**
-         * Method: serialize.boolean
-         * Transform a boolean into a JSON string.
-         *
-         * Parameters:
-         * bool - {Boolean} The boolean to be serialized.
-         * 
-         * Returns:
-         * {String} A JSON string representing the boolean.
-         */
-        'boolean': function(bool) {
-            return String(bool);
-        },
-        
-        /**
-         * Method: serialize.object
-         * Transform a date into a JSON string.
-         *
-         * Parameters:
-         * date - {Date} The date to be serialized.
-         * 
-         * Returns:
-         * {String} A JSON string representing the date.
-         */
-        'date': function(date) {    
-            function format(number) {
-                // Format integers to have at least two digits.
-                return (number < 10) ? '0' + number : number;
-            }
-            return '"' + date.getFullYear() + '-' +
-                    format(date.getMonth() + 1) + '-' +
-                    format(date.getDate()) + 'T' +
-                    format(date.getHours()) + ':' +
-                    format(date.getMinutes()) + ':' +
-                    format(date.getSeconds()) + '"';
         }
     },
 
-    CLASS_NAME: "OpenLayers.Format.JSON" 
+    CLASS_NAME: "OpenLayers.Format.WMSCapabilities.v1" 
 
-});     
+});
+/* ======================================================================
+    OpenLayers/Format/WMSCapabilities/v1_3.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Format/WMSCapabilities/v1.js
+ */
+
+/**
+ * Class: OpenLayers.Format.WMSCapabilities/v1_3
+ * Abstract base class for WMS Capabilities version 1.3.X. 
+ * SLD 1.1.0 adds in the extra operations DescribeLayer and GetLegendGraphic, 
+ * see: http://schemas.opengis.net/sld/1.1.0/sld_capabilities.xsd
+ * 
+ * Inherits from:
+ *  - <OpenLayers.Format.WMSCapabilities.v1>
+ */
+OpenLayers.Format.WMSCapabilities.v1_3 = OpenLayers.Class(
+    OpenLayers.Format.WMSCapabilities.v1, {
+    
+    /**
+     * Property: readers
+     * Contains public functions, grouped by namespace prefix, that will
+     *     be applied when a namespaced node is found matching the function
+     *     name.  The function will be applied in the scope of this parser
+     *     with two arguments: the node being read and a context object passed
+     *     from the parent.
+     */
+    readers: {
+        "wms": OpenLayers.Util.applyDefaults({
+            "WMS_Capabilities": function(node, obj) {
+                this.readChildNodes(node, obj);
+            },
+            "LayerLimit": function(node, obj) {
+                obj.layerLimit = parseInt(this.getChildValue(node));
+            },
+            "MaxWidth": function(node, obj) {
+                obj.maxWidth = parseInt(this.getChildValue(node));
+            },
+            "MaxHeight": function(node, obj) {
+                obj.maxHeight = parseInt(this.getChildValue(node));
+            },
+            "BoundingBox": function(node, obj) {
+                var bbox = OpenLayers.Format.WMSCapabilities.v1.prototype.readers["wms"].BoundingBox.apply(this, [node, obj]);
+                bbox.srs  = node.getAttribute("CRS");
+                obj.bbox[bbox.srs] = bbox;
+            },
+            "CRS": function(node, obj) {
+                // CRS is the synonym of SRS
+                this.readers.wms.SRS.apply(this, [node, obj]); 
+            },
+            "EX_GeographicBoundingBox": function(node, obj) {
+                // replacement of LatLonBoundingBox
+                obj.llbbox = [];
+                this.readChildNodes(node, obj.llbbox);
+                
+            },
+            "westBoundLongitude": function(node, obj) {
+                obj[0] = this.getChildValue(node);
+            },
+            "eastBoundLongitude": function(node, obj) {
+                obj[2] = this.getChildValue(node);
+            },
+            "southBoundLatitude": function(node, obj) {
+                obj[1] = this.getChildValue(node);
+            },
+            "northBoundLatitude": function(node, obj) {
+                obj[3] = this.getChildValue(node);
+            },
+            "MinScaleDenominator": function(node, obj) {
+                obj.maxScale = parseFloat(this.getChildValue(node)).toPrecision(16);
+            },
+            "MaxScaleDenominator": function(node, obj) {
+                obj.minScale = parseFloat(this.getChildValue(node)).toPrecision(16);
+            },
+            "Dimension": function(node, obj) {
+                // dimension has extra attributes: default, multipleValues, 
+                // nearestValue, current which used to be part of Extent. It now
+                // also contains the values.
+                var name = node.getAttribute("name").toLowerCase();
+                var dim = {
+                    name: name,
+                    units: node.getAttribute("units"),
+                    unitsymbol: node.getAttribute("unitSymbol"),
+                    nearestVal: node.getAttribute("nearestValue") === "1",
+                    multipleVal: node.getAttribute("multipleValues") === "1",
+                    "default": node.getAttribute("default") || "",
+                    current: node.getAttribute("current") === "1",
+                    values: this.getChildValue(node).split(",")
+                    
+                };
+                // Theoretically there can be more dimensions with the same
+                // name, but with a different unit. Until we meet such a case,
+                // let's just keep the same structure as the WMS 1.1 
+                // GetCapabilities parser uses. We will store the last
+                // one encountered.
+                obj.dimensions[dim.name] = dim;
+            },
+            "Keyword": function(node, obj) {
+                // TODO: should we change the structure of keyword in v1.js?
+                // Make it an object with a value instead of a string?
+                var keyword = {value: this.getChildValue(node), 
+                    vocabulary: node.getAttribute("vocabulary")};
+                if (obj.keywords) {
+                    obj.keywords.push(keyword);
+                }
+            }
+        }, OpenLayers.Format.WMSCapabilities.v1.prototype.readers["wms"]),
+        "sld": {
+            "UserDefinedSymbolization": function(node, obj) {
+                this.readers.wms.UserDefinedSymbolization.apply(this, [node, obj]);
+                // add the two extra attributes
+                obj.userSymbols.inlineFeature = parseInt(node.getAttribute("InlineFeature")) == 1;
+                obj.userSymbols.remoteWCS = parseInt(node.getAttribute("RemoteWCS")) == 1;
+            },
+            "DescribeLayer": function(node, obj) {
+                this.readers.wms.DescribeLayer.apply(this, [node, obj]);
+            },
+            "GetLegendGraphic": function(node, obj) {
+                this.readers.wms.GetLegendGraphic.apply(this, [node, obj]);
+            }
+        }
+    },
+    
+    CLASS_NAME: "OpenLayers.Format.WMSCapabilities.v1_3" 
+
+});
+/* ======================================================================
+    OpenLayers/Format/WMSCapabilities/v1_3_0.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Format/WMSCapabilities/v1_3.js
+ */
+
+/**
+ * Class: OpenLayers.Format.WMSCapabilities/v1_3_0
+ * Read WMS Capabilities version 1.3.0. 
+ * SLD 1.1.0 adds in the extra operations DescribeLayer and GetLegendGraphic, 
+ * see: http://schemas.opengis.net/sld/1.1.0/sld_capabilities.xsd
+ * 
+ * Inherits from:
+ *  - <OpenLayers.Format.WMSCapabilities.v1_3>
+ */
+OpenLayers.Format.WMSCapabilities.v1_3_0 = OpenLayers.Class(
+    OpenLayers.Format.WMSCapabilities.v1_3, {
+    
+    /**
+     * Property: version
+     * {String} The specific parser version.
+     */
+    version: "1.3.0",
+    
+    CLASS_NAME: "OpenLayers.Format.WMSCapabilities.v1_3_0" 
+
+});
 /* ======================================================================
     OpenLayers/Renderer/Elements.js
    ====================================================================== */
@@ -28051,441 +28955,6 @@ OpenLayers.Renderer.Elements = OpenLayers.Class(OpenLayers.Renderer, {
     },
 
     CLASS_NAME: "OpenLayers.Renderer.Elements"
-});
-
-/* ======================================================================
-    OpenLayers/Control/Panel.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/Control.js
- * @requires OpenLayers/Events/buttonclick.js
- */
-
-/**
- * Class: OpenLayers.Control.Panel
- * The Panel control is a container for other controls. With it toolbars
- * may be composed.
- *
- * Inherits from:
- *  - <OpenLayers.Control>
- */
-OpenLayers.Control.Panel = OpenLayers.Class(OpenLayers.Control, {
-    /**
-     * Property: controls
-     * {Array(<OpenLayers.Control>)}
-     */
-    controls: null,    
-    
-    /**
-     * APIProperty: autoActivate
-     * {Boolean} Activate the control when it is added to a map.  Default is
-     *     true.
-     */
-    autoActivate: true,
-
-    /** 
-     * APIProperty: defaultControl
-     * {<OpenLayers.Control>} The control which is activated when the control is
-     * activated (turned on), which also happens at instantiation.
-     * If <saveState> is true, <defaultControl> will be nullified after the
-     * first activation of the panel.
-     */
-    defaultControl: null,
-    
-    /**
-     * APIProperty: saveState
-     * {Boolean} If set to true, the active state of this panel's controls will
-     * be stored on panel deactivation, and restored on reactivation. Default
-     * is false.
-     */
-    saveState: false,
-      
-    /**
-     * APIProperty: allowDepress
-     * {Boolean} If is true the <OpenLayers.Control.TYPE_TOOL> controls can 
-     *     be deactivated by clicking the icon that represents them.  Default 
-     *     is false.
-     */
-    allowDepress: false,
-    
-    /**
-     * Property: activeState
-     * {Object} stores the active state of this panel's controls.
-     */
-    activeState: null,
-
-    /**
-     * Constructor: OpenLayers.Control.Panel
-     * Create a new control panel.
-     *
-     * Each control in the panel is represented by an icon. When clicking 
-     *     on an icon, the <activateControl> method is called.
-     *
-     * Specific properties for controls on a panel:
-     * type - {Number} One of <OpenLayers.Control.TYPE_TOOL>,
-     *     <OpenLayers.Control.TYPE_TOGGLE>, <OpenLayers.Control.TYPE_BUTTON>.
-     *     If not provided, <OpenLayers.Control.TYPE_TOOL> is assumed.
-     * title - {string} Text displayed when mouse is over the icon that 
-     *     represents the control.     
-     *
-     * The <OpenLayers.Control.type> of a control determines the behavior when
-     * clicking its icon:
-     * <OpenLayers.Control.TYPE_TOOL> - The control is activated and other
-     *     controls of this type in the same panel are deactivated. This is
-     *     the default type.
-     * <OpenLayers.Control.TYPE_TOGGLE> - The active state of the control is
-     *     toggled.
-     * <OpenLayers.Control.TYPE_BUTTON> - The
-     *     <OpenLayers.Control.Button.trigger> method of the control is called,
-     *     but its active state is not changed.
-     *
-     * If a control is <OpenLayers.Control.active>, it will be drawn with the
-     * olControl[Name]ItemActive class, otherwise with the
-     * olControl[Name]ItemInactive class.
-     *
-     * Parameters:
-     * options - {Object} An optional object whose properties will be used
-     *     to extend the control.
-     */
-    initialize: function(options) {
-        OpenLayers.Control.prototype.initialize.apply(this, [options]);
-        this.controls = [];
-        this.activeState = {};
-    },
-
-    /**
-     * APIMethod: destroy
-     */
-    destroy: function() {
-        if (this.map) {
-            this.map.events.unregister("buttonclick", this, this.onButtonClick);
-        }
-        OpenLayers.Control.prototype.destroy.apply(this, arguments);
-        for (var ctl, i = this.controls.length - 1; i >= 0; i--) {
-            ctl = this.controls[i];
-            if (ctl.events) {
-                ctl.events.un({
-                    activate: this.iconOn,
-                    deactivate: this.iconOff
-                });
-            }
-            ctl.panel_div = null;
-        }
-        this.activeState = null;
-    },
-
-    /**
-     * APIMethod: activate
-     */
-    activate: function() {
-        if (OpenLayers.Control.prototype.activate.apply(this, arguments)) {
-            var control;
-            for (var i=0, len=this.controls.length; i<len; i++) {
-                control = this.controls[i];
-                if (control === this.defaultControl ||
-                            (this.saveState && this.activeState[control.id])) {
-                    control.activate();
-                }
-            }    
-            if (this.saveState === true) {
-                this.defaultControl = null;
-            }
-            this.redraw();
-            return true;
-        } else {
-            return false;
-        }
-    },
-    
-    /**
-     * APIMethod: deactivate
-     */
-    deactivate: function() {
-        if (OpenLayers.Control.prototype.deactivate.apply(this, arguments)) {
-            var control;
-            for (var i=0, len=this.controls.length; i<len; i++) {
-                control = this.controls[i];
-                this.activeState[control.id] = control.deactivate();
-            }    
-            this.redraw();
-            return true;
-        } else {
-            return false;
-        }
-    },
-    
-    /**
-     * Method: draw
-     *
-     * Returns:
-     * {DOMElement}
-     */    
-    draw: function() {
-        OpenLayers.Control.prototype.draw.apply(this, arguments);
-        if (this.outsideViewport) {
-            this.events.attachToElement(this.div);
-            this.events.register("buttonclick", this, this.onButtonClick);
-        } else {
-            this.map.events.register("buttonclick", this, this.onButtonClick);
-        }
-        this.addControlsToMap(this.controls);
-        return this.div;
-    },
-
-    /**
-     * Method: redraw
-     */
-    redraw: function() {
-        for (var l=this.div.childNodes.length, i=l-1; i>=0; i--) {
-            this.div.removeChild(this.div.childNodes[i]);
-        }
-        this.div.innerHTML = "";
-        if (this.active) {
-            for (var i=0, len=this.controls.length; i<len; i++) {
-                this.div.appendChild(this.controls[i].panel_div);
-            }
-        }
-    },
-    
-    /**
-     * APIMethod: activateControl
-     * This method is called when the user click on the icon representing a 
-     *     control in the panel.
-     *
-     * Parameters:
-     * control - {<OpenLayers.Control>}
-     */
-    activateControl: function (control) {
-        if (!this.active) { return false; }
-        if (control.type == OpenLayers.Control.TYPE_BUTTON) {
-            control.trigger();
-            return;
-        }
-        if (control.type == OpenLayers.Control.TYPE_TOGGLE) {
-            if (control.active) {
-                control.deactivate();
-            } else {
-                control.activate();
-            }
-            return;
-        }
-        if (this.allowDepress && control.active) {
-            control.deactivate();
-        } else {
-            var c;
-            for (var i=0, len=this.controls.length; i<len; i++) {
-                c = this.controls[i];
-                if (c != control &&
-                   (c.type === OpenLayers.Control.TYPE_TOOL || c.type == null)) {
-                    c.deactivate();
-                }
-            }
-            control.activate();
-        }
-    },
-
-    /**
-     * APIMethod: addControls
-     * To build a toolbar, you add a set of controls to it. addControls
-     * lets you add a single control or a list of controls to the 
-     * Control Panel.
-     *
-     * Parameters:
-     * controls - {<OpenLayers.Control>} Controls to add in the panel.
-     */    
-    addControls: function(controls) {
-        if (!(OpenLayers.Util.isArray(controls))) {
-            controls = [controls];
-        }
-        this.controls = this.controls.concat(controls);
-
-        for (var i=0, len=controls.length; i<len; i++) {
-            var control = controls[i],
-                element = this.createControlMarkup(control);
-            OpenLayers.Element.addClass(element, 
-                                        control.displayClass + "ItemInactive");
-            OpenLayers.Element.addClass(element, "olButton");
-            if (control.title != ""  && !element.title) {
-                element.title = control.title;
-            }
-            control.panel_div = element;
-        }
-
-        if (this.map) { // map.addControl() has already been called on the panel
-            this.addControlsToMap(controls);
-            this.redraw();
-        }
-    },
-
-    /**
-     * APIMethod: createControlMarkup
-     * This function just creates a div for the control. If specific HTML
-     * markup is needed this function can be overridden in specific classes,
-     * or at panel instantiation time:
-     *
-     * Example:
-     * (code)
-     * var panel = new OpenLayers.Control.Panel({
-     *     defaultControl: control,
-     *     // ovverride createControlMarkup to create actual buttons
-     *     // including texts wrapped into span elements.
-     *     createControlMarkup: function(control) {
-     *         var button = document.createElement('button'),
-     *             span = document.createElement('span');
-     *         if (control.text) {
-     *             span.innerHTML = control.text;
-     *         }
-     *         return button;
-     *     }
-     *  });
-     * (end)
-     *
-     * Parameters:
-     * control - {<OpenLayers.Control>} The control to create the HTML
-     *     markup for.
-     *
-     * Returns:
-     * {DOMElement} The markup.
-     */
-    createControlMarkup: function(control) {
-        return document.createElement("div");
-    },
-   
-    /**
-     * Method: addControlsToMap
-     * Only for internal use in draw() and addControls() methods.
-     *
-     * Parameters:
-     * controls - {Array(<OpenLayers.Control>)} Controls to add into map.
-     */         
-    addControlsToMap: function (controls) {
-        var control;
-        for (var i=0, len=controls.length; i<len; i++) {
-            control = controls[i];
-            if (control.autoActivate === true) {
-                control.autoActivate = false;
-                this.map.addControl(control);
-                control.autoActivate = true;
-            } else {
-                this.map.addControl(control);
-                control.deactivate();
-            }
-            control.events.on({
-                activate: this.iconOn,
-                deactivate: this.iconOff
-            });
-        }  
-    },
-
-    /**
-     * Method: iconOn
-     * Internal use, for use only with "controls[i].events.on/un".
-     */
-     iconOn: function() {
-        var d = this.panel_div; // "this" refers to a control on panel!
-        var re = new RegExp("\\b(" + this.displayClass + "Item)Inactive\\b");
-        d.className = d.className.replace(re, "$1Active");
-    },
-
-    /**
-     * Method: iconOff
-     * Internal use, for use only with "controls[i].events.on/un".
-     */
-     iconOff: function() {
-        var d = this.panel_div; // "this" refers to a control on panel!
-        var re = new RegExp("\\b(" + this.displayClass + "Item)Active\\b");
-        d.className = d.className.replace(re, "$1Inactive");
-    },
-    
-    /**
-     * Method: onButtonClick
-     *
-     * Parameters:
-     * evt - {Event}
-     */
-    onButtonClick: function (evt) {
-        var controls = this.controls,
-            button = evt.buttonElement;
-        for (var i=controls.length-1; i>=0; --i) {
-            if (controls[i].panel_div === button) {
-                this.activateControl(controls[i]);
-                break;
-            }
-        }
-    },
-
-    /**
-     * APIMethod: getControlsBy
-     * Get a list of controls with properties matching the given criteria.
-     *
-     * Parameters:
-     * property - {String} A control property to be matched.
-     * match - {String | Object} A string to match.  Can also be a regular
-     *     expression literal or object.  In addition, it can be any object
-     *     with a method named test.  For reqular expressions or other, if
-     *     match.test(control[property]) evaluates to true, the control will be
-     *     included in the array returned.  If no controls are found, an empty
-     *     array is returned.
-     *
-     * Returns:
-     * {Array(<OpenLayers.Control>)} A list of controls matching the given criteria.
-     *     An empty array is returned if no matches are found.
-     */
-    getControlsBy: function(property, match) {
-        var test = (typeof match.test == "function");
-        var found = OpenLayers.Array.filter(this.controls, function(item) {
-            return item[property] == match || (test && match.test(item[property]));
-        });
-        return found;
-    },
-
-    /**
-     * APIMethod: getControlsByName
-     * Get a list of contorls with names matching the given name.
-     *
-     * Parameters:
-     * match - {String | Object} A control name.  The name can also be a regular
-     *     expression literal or object.  In addition, it can be any object
-     *     with a method named test.  For reqular expressions or other, if
-     *     name.test(control.name) evaluates to true, the control will be included
-     *     in the list of controls returned.  If no controls are found, an empty
-     *     array is returned.
-     *
-     * Returns:
-     * {Array(<OpenLayers.Control>)} A list of controls matching the given name.
-     *     An empty array is returned if no matches are found.
-     */
-    getControlsByName: function(match) {
-        return this.getControlsBy("name", match);
-    },
-
-    /**
-     * APIMethod: getControlsByClass
-     * Get a list of controls of a given type (CLASS_NAME).
-     *
-     * Parameters:
-     * match - {String | Object} A control class name.  The type can also be a
-     *     regular expression literal or object.  In addition, it can be any
-     *     object with a method named test.  For reqular expressions or other,
-     *     if type.test(control.CLASS_NAME) evaluates to true, the control will
-     *     be included in the list of controls returned.  If no controls are
-     *     found, an empty array is returned.
-     *
-     * Returns:
-     * {Array(<OpenLayers.Control>)} A list of controls matching the given type.
-     *     An empty array is returned if no matches are found.
-     */
-    getControlsByClass: function(match) {
-        return this.getControlsBy("CLASS_NAME", match);
-    },
-
-    CLASS_NAME: "OpenLayers.Control.Panel"
 });
 
 /* ======================================================================
@@ -30301,6 +30770,476 @@ OpenLayers.Layer.TMS = OpenLayers.Class(OpenLayers.Layer.Grid, {
     CLASS_NAME: "OpenLayers.Layer.TMS"
 });
 /* ======================================================================
+    OpenLayers/Format/OWSCommon.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Format/XML/VersionedOGC.js
+ */
+
+/**
+ * Class: OpenLayers.Format.OWSCommon
+ * Read OWSCommon. Create a new instance with the <OpenLayers.Format.OWSCommon>
+ *     constructor.
+ * 
+ * Inherits from:
+ *  - <OpenLayers.Format.XML.VersionedOGC>
+ */
+OpenLayers.Format.OWSCommon = OpenLayers.Class(OpenLayers.Format.XML.VersionedOGC, {
+    
+    /**
+     * APIProperty: defaultVersion
+     * {String} Version number to assume if none found.  Default is "1.0.0".
+     */
+    defaultVersion: "1.0.0",
+    
+    /**
+     * Constructor: OpenLayers.Format.OWSCommon
+     * Create a new parser for OWSCommon.
+     *
+     * Parameters:
+     * options - {Object} An optional object whose properties will be set on
+     *     this instance.
+     */
+
+    /**
+     * Method: getVersion
+     * Returns the version to use. Subclasses can override this function
+     * if a different version detection is needed.
+     *
+     * Parameters:
+     * root - {DOMElement}
+     * options - {Object} Optional configuration object.
+     *
+     * Returns:
+     * {String} The version to use.
+     */
+    getVersion: function(root, options) {
+        var version = this.version;
+        if(!version) {
+            // remember version does not correspond to the OWS version
+            // it corresponds to the WMS/WFS/WCS etc. request version
+            var uri = root.getAttribute("xmlns:ows");
+            // the above will fail if the namespace prefix is different than
+            // ows and if the namespace is declared on a different element
+            if (uri && uri.substring(uri.lastIndexOf("/")+1) === "1.1") {
+                version ="1.1.0";
+            } 
+            if(!version) {
+                version = this.defaultVersion;
+            }
+        }
+        return version;
+    },
+
+    /**
+     * APIMethod: read
+     * Read an OWSCommon document and return an object.
+     *
+     * Parameters:
+     * data - {String | DOMElement} Data to read.
+     * options - {Object} Options for the reader.
+     *
+     * Returns:
+     * {Object} An object representing the structure of the document.
+     */
+
+    CLASS_NAME: "OpenLayers.Format.OWSCommon" 
+});
+/* ======================================================================
+    OpenLayers/Format/OWSCommon/v1.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Format/OWSCommon.js
+ */
+
+/**
+ * Class: OpenLayers.Format.OWSCommon.v1
+ * Common readers and writers for OWSCommon v1.X formats
+ *
+ * Inherits from:
+ *  - <OpenLayers.Format.XML>
+ */
+OpenLayers.Format.OWSCommon.v1 = OpenLayers.Class(OpenLayers.Format.XML, {
+   
+    /**
+     * Property: regExes
+     * Compiled regular expressions for manipulating strings.
+     */
+    regExes: {
+        trimSpace: (/^\s*|\s*$/g),
+        removeSpace: (/\s*/g),
+        splitSpace: (/\s+/),
+        trimComma: (/\s*,\s*/g)
+    },
+
+    /**
+     * Method: read
+     *
+     * Parameters:
+     * data - {DOMElement} An OWSCommon document element.
+     * options - {Object} Options for the reader.
+     *
+     * Returns:
+     * {Object} An object representing the OWSCommon document.
+     */
+    read: function(data, options) {
+        options = OpenLayers.Util.applyDefaults(options, this.options);
+        var ows = {};
+        this.readChildNodes(data, ows);
+        return ows;
+    },
+
+    /**
+     * Property: readers
+     * Contains public functions, grouped by namespace prefix, that will
+     *     be applied when a namespaced node is found matching the function
+     *     name.  The function will be applied in the scope of this parser
+     *     with two arguments: the node being read and a context object passed
+     *     from the parent.
+     */
+    readers: {
+        "ows": {
+            "Exception": function(node, exceptionReport) {
+                var exception = {
+                    code: node.getAttribute('exceptionCode'),
+                    locator: node.getAttribute('locator'),
+                    texts: []
+                };
+                exceptionReport.exceptions.push(exception);
+                this.readChildNodes(node, exception);
+            },
+            "ExceptionText": function(node, exception) {
+                var text = this.getChildValue(node);
+                exception.texts.push(text);
+            },
+            "ServiceIdentification": function(node, obj) {
+                obj.serviceIdentification = {};
+                this.readChildNodes(node, obj.serviceIdentification);
+            },
+            "Title": function(node, obj) {
+                obj.title = this.getChildValue(node);
+            },
+            "Abstract": function(node, serviceIdentification) {
+                serviceIdentification["abstract"] = this.getChildValue(node);
+            },
+            "Keywords": function(node, serviceIdentification) {
+                serviceIdentification.keywords = {};
+                this.readChildNodes(node, serviceIdentification.keywords);
+            },
+            "Keyword": function(node, keywords) {
+                keywords[this.getChildValue(node)] = true;
+            },
+            "ServiceType": function(node, serviceIdentification) {
+                serviceIdentification.serviceType = {
+                    codeSpace: node.getAttribute('codeSpace'), 
+                    value: this.getChildValue(node)};
+            },
+            "ServiceTypeVersion": function(node, serviceIdentification) {
+                serviceIdentification.serviceTypeVersion = this.getChildValue(node);
+            },
+            "Fees": function(node, serviceIdentification) {
+                serviceIdentification.fees = this.getChildValue(node);
+            },
+            "AccessConstraints": function(node, serviceIdentification) {
+                serviceIdentification.accessConstraints = 
+                    this.getChildValue(node);
+            },
+            "ServiceProvider": function(node, obj) {
+                obj.serviceProvider = {};
+                this.readChildNodes(node, obj.serviceProvider);
+            },
+            "ProviderName": function(node, serviceProvider) {
+                serviceProvider.providerName = this.getChildValue(node);
+            },
+            "ProviderSite": function(node, serviceProvider) {
+                serviceProvider.providerSite = this.getAttributeNS(node, 
+                    this.namespaces.xlink, "href");
+            },
+            "ServiceContact": function(node, serviceProvider) {
+                serviceProvider.serviceContact = {};
+                this.readChildNodes(node, serviceProvider.serviceContact);
+            },
+            "IndividualName": function(node, serviceContact) {
+                serviceContact.individualName = this.getChildValue(node);
+            },
+            "PositionName": function(node, serviceContact) {
+                serviceContact.positionName = this.getChildValue(node);
+            },
+            "ContactInfo": function(node, serviceContact) {
+                serviceContact.contactInfo = {};
+                this.readChildNodes(node, serviceContact.contactInfo);
+            },
+            "Phone": function(node, contactInfo) {
+                contactInfo.phone = {};
+                this.readChildNodes(node, contactInfo.phone);
+            },
+            "Voice": function(node, phone) {
+                phone.voice = this.getChildValue(node);
+            },
+            "Address": function(node, contactInfo) {
+                contactInfo.address = {};
+                this.readChildNodes(node, contactInfo.address);
+            },
+            "DeliveryPoint": function(node, address) {
+                address.deliveryPoint = this.getChildValue(node);
+            },
+            "City": function(node, address) {
+                address.city = this.getChildValue(node);
+            },
+            "AdministrativeArea": function(node, address) {
+                address.administrativeArea = this.getChildValue(node);
+            },
+            "PostalCode": function(node, address) {
+                address.postalCode = this.getChildValue(node);
+            },
+            "Country": function(node, address) {
+                address.country = this.getChildValue(node);
+            },
+            "ElectronicMailAddress": function(node, address) {
+                address.electronicMailAddress = this.getChildValue(node);
+            },
+            "Role": function(node, serviceContact) {
+                serviceContact.role = this.getChildValue(node);
+            },
+            "OperationsMetadata": function(node, obj) {
+                obj.operationsMetadata = {};
+                this.readChildNodes(node, obj.operationsMetadata);
+            },
+            "Operation": function(node, operationsMetadata) {
+                var name = node.getAttribute("name");
+                operationsMetadata[name] = {};
+                this.readChildNodes(node, operationsMetadata[name]);
+            },
+            "DCP": function(node, operation) {
+                operation.dcp = {};
+                this.readChildNodes(node, operation.dcp);
+            },
+            "HTTP": function(node, dcp) {
+                dcp.http = {};
+                this.readChildNodes(node, dcp.http);
+            },
+            "Get": function(node, http) {
+                if (!http.get) {
+                    http.get = [];
+                }
+                var obj = {
+                    url: this.getAttributeNS(node, this.namespaces.xlink, "href")
+                };
+                this.readChildNodes(node, obj);
+                http.get.push(obj);
+            },
+            "Post": function(node, http) {
+                if (!http.post) {
+                    http.post = [];
+                }
+                var obj = {
+                    url: this.getAttributeNS(node, this.namespaces.xlink, "href")
+                };
+                this.readChildNodes(node, obj);
+                http.post.push(obj);
+            },
+            "Parameter": function(node, operation) {
+                if (!operation.parameters) {
+                    operation.parameters = {};
+                }
+                var name = node.getAttribute("name");
+                operation.parameters[name] = {};
+                this.readChildNodes(node, operation.parameters[name]);
+            },
+            "Constraint": function(node, obj) {
+                if (!obj.constraints) {
+                    obj.constraints = {};
+                }
+                var name = node.getAttribute("name");
+                obj.constraints[name] = {};
+                this.readChildNodes(node, obj.constraints[name]);
+            },
+            "Value": function(node, allowedValues) {
+                allowedValues[this.getChildValue(node)] = true;
+            },
+            "OutputFormat": function(node, obj) {
+                obj.formats.push({value: this.getChildValue(node)});
+                this.readChildNodes(node, obj);
+            },
+            "WGS84BoundingBox": function(node, obj) {
+                var boundingBox = {};
+                boundingBox.crs = node.getAttribute("crs");
+                if (obj.BoundingBox) {
+                    obj.BoundingBox.push(boundingBox);
+                } else {
+                    obj.projection = boundingBox.crs;
+                    boundingBox = obj;
+               }
+               this.readChildNodes(node, boundingBox);
+            },
+            "BoundingBox": function(node, obj) {
+                // FIXME: We consider that BoundingBox is the same as WGS84BoundingBox
+                // LowerCorner = "min_x min_y"
+                // UpperCorner = "max_x max_y"
+                // It should normally depend on the projection
+                this.readers['ows']['WGS84BoundingBox'].apply(this, [node, obj]);
+            },
+            "LowerCorner": function(node, obj) {
+                var str = this.getChildValue(node).replace(
+                    this.regExes.trimSpace, "");
+                str = str.replace(this.regExes.trimComma, ",");
+                var pointList = str.split(this.regExes.splitSpace);
+                obj.left = pointList[0];
+                obj.bottom = pointList[1];
+            },
+            "UpperCorner": function(node, obj) {
+                var str = this.getChildValue(node).replace(
+                    this.regExes.trimSpace, "");
+                str = str.replace(this.regExes.trimComma, ",");
+                var pointList = str.split(this.regExes.splitSpace);
+                obj.right = pointList[0];
+                obj.top = pointList[1];
+                obj.bounds = new OpenLayers.Bounds(obj.left, obj.bottom,
+                    obj.right, obj.top);
+                delete obj.left;
+                delete obj.bottom;
+                delete obj.right;
+                delete obj.top;
+            },
+            "Language": function(node, obj) {
+                obj.language = this.getChildValue(node);
+            }
+        }
+    },
+
+    /**
+     * Property: writers
+     * As a compliment to the readers property, this structure contains public
+     *     writing functions grouped by namespace alias and named like the
+     *     node names they produce.
+     */
+    writers: {
+        "ows": {
+            "BoundingBox": function(options) {
+                var node = this.createElementNSPlus("ows:BoundingBox", {
+                    attributes: {
+                        crs: options.projection
+                    }
+                });
+                this.writeNode("ows:LowerCorner", options, node);
+                this.writeNode("ows:UpperCorner", options, node);
+                return node;
+            },
+            "LowerCorner": function(options) {
+                var node = this.createElementNSPlus("ows:LowerCorner", {
+                    value: options.bounds.left + " " + options.bounds.bottom });
+                return node;
+            },
+            "UpperCorner": function(options) {
+                var node = this.createElementNSPlus("ows:UpperCorner", {
+                    value: options.bounds.right + " " + options.bounds.top });
+                return node;
+            },
+            "Identifier": function(identifier) {
+                var node = this.createElementNSPlus("ows:Identifier", {
+                    value: identifier });
+                return node;
+            },
+            "Title": function(title) {
+                var node = this.createElementNSPlus("ows:Title", {
+                    value: title });
+                return node;
+            },
+            "Abstract": function(abstractValue) {
+                var node = this.createElementNSPlus("ows:Abstract", {
+                    value: abstractValue });
+                return node;
+            },
+            "OutputFormat": function(format) {
+                var node = this.createElementNSPlus("ows:OutputFormat", {
+                    value: format });
+                return node;
+            }
+        }
+    },
+
+    CLASS_NAME: "OpenLayers.Format.OWSCommon.v1"
+
+});
+/* ======================================================================
+    OpenLayers/Format/OWSCommon/v1_0_0.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Format/OWSCommon/v1.js
+ */
+
+/**
+ * Class: OpenLayers.Format.OWSCommon.v1_0_0
+ * Parser for OWS Common version 1.0.0.
+ *
+ * Inherits from:
+ *  - <OpenLayers.Format.OWSCommon.v1>
+ */
+OpenLayers.Format.OWSCommon.v1_0_0 = OpenLayers.Class(OpenLayers.Format.OWSCommon.v1, {
+    
+    /**
+     * Property: namespaces
+     * {Object} Mapping of namespace aliases to namespace URIs.
+     */
+    namespaces: {
+        ows: "http://www.opengis.net/ows",
+        xlink: "http://www.w3.org/1999/xlink"
+    },    
+    
+    /**
+     * Property: readers
+     * Contains public functions, grouped by namespace prefix, that will
+     *     be applied when a namespaced node is found matching the function
+     *     name.  The function will be applied in the scope of this parser
+     *     with two arguments: the node being read and a context object passed
+     *     from the parent.
+     */
+    readers: {
+        "ows": OpenLayers.Util.applyDefaults({
+            "ExceptionReport": function(node, obj) {
+                obj.success = false;
+                obj.exceptionReport = {
+                    version: node.getAttribute('version'),
+                    language: node.getAttribute('language'),
+                    exceptions: []
+                };
+                this.readChildNodes(node, obj.exceptionReport);
+            } 
+        }, OpenLayers.Format.OWSCommon.v1.prototype.readers.ows)
+    },
+
+    /**
+     * Property: writers
+     * As a compliment to the readers property, this structure contains public
+     *     writing functions grouped by namespace alias and named like the
+     *     node names they produce.
+     */
+    writers: {
+        "ows": OpenLayers.Format.OWSCommon.v1.prototype.writers.ows
+    },
+    
+    CLASS_NAME: "OpenLayers.Format.OWSCommon.v1_0_0"
+
+});
+/* ======================================================================
     OpenLayers/Strategy.js
    ====================================================================== */
 
@@ -31453,7 +32392,7 @@ OpenLayers.Filter = OpenLayers.Class({
     CLASS_NAME: "OpenLayers.Filter"
 });
 /* ======================================================================
-    OpenLayers/Format/WKT.js
+    OpenLayers/Popup.js
    ====================================================================== */
 
 /* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
@@ -31462,386 +32401,1614 @@ OpenLayers.Filter = OpenLayers.Class({
  * full text of the license. */
 
 /**
- * @requires OpenLayers/Format.js
- * @requires OpenLayers/Feature/Vector.js
+ * @requires OpenLayers/BaseTypes/Class.js
+ */
+
+
+/**
+ * Class: OpenLayers.Popup
+ * A popup is a small div that can opened and closed on the map.
+ * Typically opened in response to clicking on a marker.  
+ * See <OpenLayers.Marker>.  Popup's don't require their own
+ * layer and are added the the map using the <OpenLayers.Map.addPopup>
+ * method.
+ *
+ * Example:
+ * (code)
+ * popup = new OpenLayers.Popup("chicken", 
+ *                    new OpenLayers.LonLat(5,40),
+ *                    new OpenLayers.Size(200,200),
+ *                    "example popup",
+ *                    true);
+ *       
+ * map.addPopup(popup);
+ * (end)
+ */
+OpenLayers.Popup = OpenLayers.Class({
+
+    /** 
+     * Property: events  
+     * {<OpenLayers.Events>} custom event manager 
+     */
+    events: null,
+    
+    /** Property: id
+     * {String} the unique identifier assigned to this popup.
+     */
+    id: "",
+
+    /** 
+     * Property: lonlat 
+     * {<OpenLayers.LonLat>} the position of this popup on the map
+     */
+    lonlat: null,
+
+    /** 
+     * Property: div 
+     * {DOMElement} the div that contains this popup.
+     */
+    div: null,
+
+    /** 
+     * Property: contentSize 
+     * {<OpenLayers.Size>} the width and height of the content.
+     */
+    contentSize: null,    
+
+    /** 
+     * Property: size 
+     * {<OpenLayers.Size>} the width and height of the popup.
+     */
+    size: null,    
+
+    /** 
+     * Property: contentHTML 
+     * {String} An HTML string for this popup to display.
+     */
+    contentHTML: null,
+    
+    /** 
+     * Property: backgroundColor 
+     * {String} the background color used by the popup.
+     */
+    backgroundColor: "",
+    
+    /** 
+     * Property: opacity 
+     * {float} the opacity of this popup (between 0.0 and 1.0)
+     */
+    opacity: "",
+
+    /** 
+     * Property: border 
+     * {String} the border size of the popup.  (eg 2px)
+     */
+    border: "",
+    
+    /** 
+     * Property: contentDiv 
+     * {DOMElement} a reference to the element that holds the content of
+     *              the div.
+     */
+    contentDiv: null,
+    
+    /** 
+     * Property: groupDiv 
+     * {DOMElement} First and only child of 'div'. The group Div contains the
+     *     'contentDiv' and the 'closeDiv'.
+     */
+    groupDiv: null,
+
+    /** 
+     * Property: closeDiv
+     * {DOMElement} the optional closer image
+     */
+    closeDiv: null,
+
+    /** 
+     * APIProperty: autoSize
+     * {Boolean} Resize the popup to auto-fit the contents.
+     *     Default is false.
+     */
+    autoSize: false,
+
+    /**
+     * APIProperty: minSize
+     * {<OpenLayers.Size>} Minimum size allowed for the popup's contents.
+     */
+    minSize: null,
+
+    /**
+     * APIProperty: maxSize
+     * {<OpenLayers.Size>} Maximum size allowed for the popup's contents.
+     */
+    maxSize: null,
+
+    /** 
+     * Property: displayClass
+     * {String} The CSS class of the popup.
+     */
+    displayClass: "olPopup",
+
+    /** 
+     * Property: contentDisplayClass
+     * {String} The CSS class of the popup content div.
+     */
+    contentDisplayClass: "olPopupContent",
+
+    /** 
+     * Property: padding 
+     * {int or <OpenLayers.Bounds>} An extra opportunity to specify internal 
+     *     padding of the content div inside the popup. This was originally
+     *     confused with the css padding as specified in style.css's 
+     *     'olPopupContent' class. We would like to get rid of this altogether,
+     *     except that it does come in handy for the framed and anchoredbubble
+     *     popups, who need to maintain yet another barrier between their 
+     *     content and the outer border of the popup itself. 
+     * 
+     *     Note that in order to not break API, we must continue to support 
+     *     this property being set as an integer. Really, though, we'd like to 
+     *     have this specified as a Bounds object so that user can specify
+     *     distinct left, top, right, bottom paddings. With the 3.0 release
+     *     we can make this only a bounds.
+     */
+    padding: 0,
+
+    /** 
+     * Property: disableFirefoxOverflowHack
+     * {Boolean} The hack for overflow in Firefox causes all elements 
+     *     to be re-drawn, which causes Flash elements to be 
+     *     re-initialized, which is troublesome.
+     *     With this property the hack can be disabled.
+     */
+    disableFirefoxOverflowHack: false,
+
+    /**
+     * Method: fixPadding
+     * To be removed in 3.0, this function merely helps us to deal with the 
+     *     case where the user may have set an integer value for padding, 
+     *     instead of an <OpenLayers.Bounds> object.
+     */
+    fixPadding: function() {
+        if (typeof this.padding == "number") {
+            this.padding = new OpenLayers.Bounds(
+                this.padding, this.padding, this.padding, this.padding
+            );
+        }
+    },
+
+    /**
+     * APIProperty: panMapIfOutOfView
+     * {Boolean} When drawn, pan map such that the entire popup is visible in
+     *     the current viewport (if necessary).
+     *     Default is false.
+     */
+    panMapIfOutOfView: false,
+    
+    /**
+     * APIProperty: keepInMap 
+     * {Boolean} If panMapIfOutOfView is false, and this property is true, 
+     *     contrain the popup such that it always fits in the available map
+     *     space. By default, this is not set on the base class. If you are
+     *     creating popups that are near map edges and not allowing pannning,
+     *     and especially if you have a popup which has a
+     *     fixedRelativePosition, setting this to false may be a smart thing to
+     *     do. Subclasses may want to override this setting.
+     *   
+     *     Default is false.
+     */
+    keepInMap: false,
+
+    /**
+     * APIProperty: closeOnMove
+     * {Boolean} When map pans, close the popup.
+     *     Default is false.
+     */
+    closeOnMove: false,
+    
+    /** 
+     * Property: map 
+     * {<OpenLayers.Map>} this gets set in Map.js when the popup is added to the map
+     */
+    map: null,
+
+    /** 
+    * Constructor: OpenLayers.Popup
+    * Create a popup.
+    * 
+    * Parameters: 
+    * id - {String} a unqiue identifier for this popup.  If null is passed
+    *               an identifier will be automatically generated. 
+    * lonlat - {<OpenLayers.LonLat>}  The position on the map the popup will
+    *                                 be shown.
+    * contentSize - {<OpenLayers.Size>} The size of the content.
+    * contentHTML - {String}          An HTML string to display inside the   
+    *                                 popup.
+    * closeBox - {Boolean}            Whether to display a close box inside
+    *                                 the popup.
+    * closeBoxCallback - {Function}   Function to be called on closeBox click.
+    */
+    initialize:function(id, lonlat, contentSize, contentHTML, closeBox, closeBoxCallback) {
+        if (id == null) {
+            id = OpenLayers.Util.createUniqueID(this.CLASS_NAME + "_");
+        }
+
+        this.id = id;
+        this.lonlat = lonlat;
+
+        this.contentSize = (contentSize != null) ? contentSize 
+                                  : new OpenLayers.Size(
+                                                   OpenLayers.Popup.WIDTH,
+                                                   OpenLayers.Popup.HEIGHT);
+        if (contentHTML != null) { 
+             this.contentHTML = contentHTML;
+        }
+        this.backgroundColor = OpenLayers.Popup.COLOR;
+        this.opacity = OpenLayers.Popup.OPACITY;
+        this.border = OpenLayers.Popup.BORDER;
+
+        this.div = OpenLayers.Util.createDiv(this.id, null, null, 
+                                             null, null, null, "hidden");
+        this.div.className = this.displayClass;
+        
+        var groupDivId = this.id + "_GroupDiv";
+        this.groupDiv = OpenLayers.Util.createDiv(groupDivId, null, null, 
+                                                    null, "relative", null,
+                                                    "hidden");
+
+        var id = this.div.id + "_contentDiv";
+        this.contentDiv = OpenLayers.Util.createDiv(id, null, this.contentSize.clone(), 
+                                                    null, "relative");
+        this.contentDiv.className = this.contentDisplayClass;
+        this.groupDiv.appendChild(this.contentDiv);
+        this.div.appendChild(this.groupDiv);
+
+        if (closeBox) {
+            this.addCloseBox(closeBoxCallback);
+        } 
+
+        this.registerEvents();
+    },
+
+    /** 
+     * Method: destroy
+     * nullify references to prevent circular references and memory leaks
+     */
+    destroy: function() {
+
+        this.id = null;
+        this.lonlat = null;
+        this.size = null;
+        this.contentHTML = null;
+        
+        this.backgroundColor = null;
+        this.opacity = null;
+        this.border = null;
+        
+        if (this.closeOnMove && this.map) {
+            this.map.events.unregister("movestart", this, this.hide);
+        }
+
+        this.events.destroy();
+        this.events = null;
+        
+        if (this.closeDiv) {
+            OpenLayers.Event.stopObservingElement(this.closeDiv); 
+            this.groupDiv.removeChild(this.closeDiv);
+        }
+        this.closeDiv = null;
+        
+        this.div.removeChild(this.groupDiv);
+        this.groupDiv = null;
+
+        if (this.map != null) {
+            this.map.removePopup(this);
+        }
+        this.map = null;
+        this.div = null;
+        
+        this.autoSize = null;
+        this.minSize = null;
+        this.maxSize = null;
+        this.padding = null;
+        this.panMapIfOutOfView = null;
+    },
+
+    /** 
+    * Method: draw
+    * Constructs the elements that make up the popup.
+    *
+    * Parameters:
+    * px - {<OpenLayers.Pixel>} the position the popup in pixels.
+    * 
+    * Returns:
+    * {DOMElement} Reference to a div that contains the drawn popup
+    */
+    draw: function(px) {
+        if (px == null) {
+            if ((this.lonlat != null) && (this.map != null)) {
+                px = this.map.getLayerPxFromLonLat(this.lonlat);
+            }
+        }
+
+        // this assumes that this.map already exists, which is okay because 
+        // this.draw is only called once the popup has been added to the map.
+        if (this.closeOnMove) {
+            this.map.events.register("movestart", this, this.hide);
+        }
+        
+        //listen to movestart, moveend to disable overflow (FF bug)
+        if (!this.disableFirefoxOverflowHack && OpenLayers.BROWSER_NAME == 'firefox') {
+            this.map.events.register("movestart", this, function() {
+                var style = document.defaultView.getComputedStyle(
+                    this.contentDiv, null
+                );
+                var currentOverflow = style.getPropertyValue("overflow");
+                if (currentOverflow != "hidden") {
+                    this.contentDiv._oldOverflow = currentOverflow;
+                    this.contentDiv.style.overflow = "hidden";
+                }
+            });
+            this.map.events.register("moveend", this, function() {
+                var oldOverflow = this.contentDiv._oldOverflow;
+                if (oldOverflow) {
+                    this.contentDiv.style.overflow = oldOverflow;
+                    this.contentDiv._oldOverflow = null;
+                }
+            });
+        }
+
+        this.moveTo(px);
+        if (!this.autoSize && !this.size) {
+            this.setSize(this.contentSize);
+        }
+        this.setBackgroundColor();
+        this.setOpacity();
+        this.setBorder();
+        this.setContentHTML();
+        
+        if (this.panMapIfOutOfView) {
+            this.panIntoView();
+        }    
+
+        return this.div;
+    },
+
+    /** 
+     * Method: updatePosition
+     * if the popup has a lonlat and its map members set, 
+     * then have it move itself to its proper position
+     */
+    updatePosition: function() {
+        if ((this.lonlat) && (this.map)) {
+            var px = this.map.getLayerPxFromLonLat(this.lonlat);
+            if (px) {
+                this.moveTo(px);           
+            }    
+        }
+    },
+
+    /**
+     * Method: moveTo
+     * 
+     * Parameters:
+     * px - {<OpenLayers.Pixel>} the top and left position of the popup div. 
+     */
+    moveTo: function(px) {
+        if ((px != null) && (this.div != null)) {
+            this.div.style.left = px.x + "px";
+            this.div.style.top = px.y + "px";
+        }
+    },
+
+    /**
+     * Method: visible
+     *
+     * Returns:      
+     * {Boolean} Boolean indicating whether or not the popup is visible
+     */
+    visible: function() {
+        return OpenLayers.Element.visible(this.div);
+    },
+
+    /**
+     * Method: toggle
+     * Toggles visibility of the popup.
+     */
+    toggle: function() {
+        if (this.visible()) {
+            this.hide();
+        } else {
+            this.show();
+        }
+    },
+
+    /**
+     * Method: show
+     * Makes the popup visible.
+     */
+    show: function() {
+        this.div.style.display = '';
+
+        if (this.panMapIfOutOfView) {
+            this.panIntoView();
+        }    
+    },
+
+    /**
+     * Method: hide
+     * Makes the popup invisible.
+     */
+    hide: function() {
+        this.div.style.display = 'none';
+    },
+
+    /**
+     * Method: setSize
+     * Used to adjust the size of the popup. 
+     *
+     * Parameters:
+     * contentSize - {<OpenLayers.Size>} the new size for the popup's 
+     *     contents div (in pixels).
+     */
+    setSize:function(contentSize) { 
+        this.size = contentSize.clone(); 
+        
+        // if our contentDiv has a css 'padding' set on it by a stylesheet, we 
+        //  must add that to the desired "size". 
+        var contentDivPadding = this.getContentDivPadding();
+        var wPadding = contentDivPadding.left + contentDivPadding.right;
+        var hPadding = contentDivPadding.top + contentDivPadding.bottom;
+
+        // take into account the popup's 'padding' property
+        this.fixPadding();
+        wPadding += this.padding.left + this.padding.right;
+        hPadding += this.padding.top + this.padding.bottom;
+
+        // make extra space for the close div
+        if (this.closeDiv) {
+            var closeDivWidth = parseInt(this.closeDiv.style.width);
+            wPadding += closeDivWidth + contentDivPadding.right;
+        }
+
+        //increase size of the main popup div to take into account the 
+        // users's desired padding and close div.        
+        this.size.w += wPadding;
+        this.size.h += hPadding;
+
+        //now if our browser is IE, we need to actually make the contents 
+        // div itself bigger to take its own padding into effect. this makes 
+        // me want to shoot someone, but so it goes.
+        if (OpenLayers.BROWSER_NAME == "msie") {
+            this.contentSize.w += 
+                contentDivPadding.left + contentDivPadding.right;
+            this.contentSize.h += 
+                contentDivPadding.bottom + contentDivPadding.top;
+        }
+
+        if (this.div != null) {
+            this.div.style.width = this.size.w + "px";
+            this.div.style.height = this.size.h + "px";
+        }
+        if (this.contentDiv != null){
+            this.contentDiv.style.width = contentSize.w + "px";
+            this.contentDiv.style.height = contentSize.h + "px";
+        }
+    },  
+
+    /**
+     * APIMethod: updateSize
+     * Auto size the popup so that it precisely fits its contents (as 
+     *     determined by this.contentDiv.innerHTML). Popup size will, of
+     *     course, be limited by the available space on the current map
+     */
+    updateSize: function() {
+        
+        // determine actual render dimensions of the contents by putting its
+        // contents into a fake contentDiv (for the CSS) and then measuring it
+        var preparedHTML = "<div class='" + this.contentDisplayClass+ "'>" + 
+            this.contentDiv.innerHTML + 
+            "</div>";
+ 
+        var containerElement = (this.map) ? this.map.div : document.body;
+        var realSize = OpenLayers.Util.getRenderedDimensions(
+            preparedHTML, null, {
+                displayClass: this.displayClass,
+                containerElement: containerElement
+            }
+        );
+
+        // is the "real" size of the div is safe to display in our map?
+        var safeSize = this.getSafeContentSize(realSize);
+
+        var newSize = null;
+        if (safeSize.equals(realSize)) {
+            //real size of content is small enough to fit on the map, 
+            // so we use real size.
+            newSize = realSize;
+
+        } else {
+
+            // make a new 'size' object with the clipped dimensions 
+            // set or null if not clipped.
+            var fixedSize = {
+                w: (safeSize.w < realSize.w) ? safeSize.w : null,
+                h: (safeSize.h < realSize.h) ? safeSize.h : null
+            };
+        
+            if (fixedSize.w && fixedSize.h) {
+                //content is too big in both directions, so we will use 
+                // max popup size (safeSize), knowing well that it will 
+                // overflow both ways.                
+                newSize = safeSize;
+            } else {
+                //content is clipped in only one direction, so we need to 
+                // run getRenderedDimensions() again with a fixed dimension
+                var clippedSize = OpenLayers.Util.getRenderedDimensions(
+                    preparedHTML, fixedSize, {
+                        displayClass: this.contentDisplayClass,
+                        containerElement: containerElement
+                    }
+                );
+                
+                //if the clipped size is still the same as the safeSize, 
+                // that means that our content must be fixed in the 
+                // offending direction. If overflow is 'auto', this means 
+                // we are going to have a scrollbar for sure, so we must 
+                // adjust for that.
+                //
+                var currentOverflow = OpenLayers.Element.getStyle(
+                    this.contentDiv, "overflow"
+                );
+                if ( (currentOverflow != "hidden") && 
+                     (clippedSize.equals(safeSize)) ) {
+                    var scrollBar = OpenLayers.Util.getScrollbarWidth();
+                    if (fixedSize.w) {
+                        clippedSize.h += scrollBar;
+                    } else {
+                        clippedSize.w += scrollBar;
+                    }
+                }
+                
+                newSize = this.getSafeContentSize(clippedSize);
+            }
+        }                        
+        this.setSize(newSize);     
+    },    
+
+    /**
+     * Method: setBackgroundColor
+     * Sets the background color of the popup.
+     *
+     * Parameters:
+     * color - {String} the background color.  eg "#FFBBBB"
+     */
+    setBackgroundColor:function(color) { 
+        if (color != undefined) {
+            this.backgroundColor = color; 
+        }
+        
+        if (this.div != null) {
+            this.div.style.backgroundColor = this.backgroundColor;
+        }
+    },  
+    
+    /**
+     * Method: setOpacity
+     * Sets the opacity of the popup.
+     * 
+     * Parameters:
+     * opacity - {float} A value between 0.0 (transparent) and 1.0 (solid).   
+     */
+    setOpacity:function(opacity) { 
+        if (opacity != undefined) {
+            this.opacity = opacity; 
+        }
+        
+        if (this.div != null) {
+            // for Mozilla and Safari
+            this.div.style.opacity = this.opacity;
+
+            // for IE
+            this.div.style.filter = 'alpha(opacity=' + this.opacity*100 + ')';
+        }
+    },  
+    
+    /**
+     * Method: setBorder
+     * Sets the border style of the popup.
+     *
+     * Parameters:
+     * border - {String} The border style value. eg 2px 
+     */
+    setBorder:function(border) { 
+        if (border != undefined) {
+            this.border = border;
+        }
+        
+        if (this.div != null) {
+            this.div.style.border = this.border;
+        }
+    },      
+    
+    /**
+     * Method: setContentHTML
+     * Allows the user to set the HTML content of the popup.
+     *
+     * Parameters:
+     * contentHTML - {String} HTML for the div.
+     */
+    setContentHTML:function(contentHTML) {
+
+        if (contentHTML != null) {
+            this.contentHTML = contentHTML;
+        }
+       
+        if ((this.contentDiv != null) && 
+            (this.contentHTML != null) &&
+            (this.contentHTML != this.contentDiv.innerHTML)) {
+       
+            this.contentDiv.innerHTML = this.contentHTML;
+       
+            if (this.autoSize) {
+                
+                //if popup has images, listen for when they finish
+                // loading and resize accordingly
+                this.registerImageListeners();
+
+                //auto size the popup to its current contents
+                this.updateSize();
+            }
+        }    
+
+    },
+    
+    /**
+     * Method: registerImageListeners
+     * Called when an image contained by the popup loaded. this function
+     *     updates the popup size, then unregisters the image load listener.
+     */   
+    registerImageListeners: function() { 
+
+        // As the images load, this function will call updateSize() to 
+        // resize the popup to fit the content div (which presumably is now
+        // bigger than when the image was not loaded).
+        // 
+        // If the 'panMapIfOutOfView' property is set, we will pan the newly
+        // resized popup back into view.
+        // 
+        // Note that this function, when called, will have 'popup' and 
+        // 'img' properties in the context.
+        //
+        var onImgLoad = function() {
+            if (this.popup.id === null) { // this.popup has been destroyed!
+                return;
+            }
+            this.popup.updateSize();
+     
+            if ( this.popup.visible() && this.popup.panMapIfOutOfView ) {
+                this.popup.panIntoView();
+            }
+
+            OpenLayers.Event.stopObserving(
+                this.img, "load", this.img._onImageLoad
+            );
+    
+        };
+
+        //cycle through the images and if their size is 0x0, that means that 
+        // they haven't been loaded yet, so we attach the listener, which 
+        // will fire when the images finish loading and will resize the 
+        // popup accordingly to its new size.
+        var images = this.contentDiv.getElementsByTagName("img");
+        for (var i = 0, len = images.length; i < len; i++) {
+            var img = images[i];
+            if (img.width == 0 || img.height == 0) {
+
+                var context = {
+                    'popup': this,
+                    'img': img
+                };
+
+                //expando this function to the image itself before registering
+                // it. This way we can easily and properly unregister it.
+                img._onImgLoad = OpenLayers.Function.bind(onImgLoad, context);
+
+                OpenLayers.Event.observe(img, 'load', img._onImgLoad);
+            }    
+        } 
+    },
+
+    /**
+     * APIMethod: getSafeContentSize
+     * 
+     * Parameters:
+     * size - {<OpenLayers.Size>} Desired size to make the popup.
+     * 
+     * Returns:
+     * {<OpenLayers.Size>} A size to make the popup which is neither smaller
+     *     than the specified minimum size, nor bigger than the maximum 
+     *     size (which is calculated relative to the size of the viewport).
+     */
+    getSafeContentSize: function(size) {
+
+        var safeContentSize = size.clone();
+
+        // if our contentDiv has a css 'padding' set on it by a stylesheet, we 
+        //  must add that to the desired "size". 
+        var contentDivPadding = this.getContentDivPadding();
+        var wPadding = contentDivPadding.left + contentDivPadding.right;
+        var hPadding = contentDivPadding.top + contentDivPadding.bottom;
+
+        // take into account the popup's 'padding' property
+        this.fixPadding();
+        wPadding += this.padding.left + this.padding.right;
+        hPadding += this.padding.top + this.padding.bottom;
+
+        if (this.closeDiv) {
+            var closeDivWidth = parseInt(this.closeDiv.style.width);
+            wPadding += closeDivWidth + contentDivPadding.right;
+        }
+
+        // prevent the popup from being smaller than a specified minimal size
+        if (this.minSize) {
+            safeContentSize.w = Math.max(safeContentSize.w, 
+                (this.minSize.w - wPadding));
+            safeContentSize.h = Math.max(safeContentSize.h, 
+                (this.minSize.h - hPadding));
+        }
+
+        // prevent the popup from being bigger than a specified maximum size
+        if (this.maxSize) {
+            safeContentSize.w = Math.min(safeContentSize.w, 
+                (this.maxSize.w - wPadding));
+            safeContentSize.h = Math.min(safeContentSize.h, 
+                (this.maxSize.h - hPadding));
+        }
+        
+        //make sure the desired size to set doesn't result in a popup that 
+        // is bigger than the map's viewport.
+        //
+        if (this.map && this.map.size) {
+            
+            var extraX = 0, extraY = 0;
+            if (this.keepInMap && !this.panMapIfOutOfView) {
+                var px = this.map.getPixelFromLonLat(this.lonlat);
+                switch (this.relativePosition) {
+                    case "tr":
+                        extraX = px.x;
+                        extraY = this.map.size.h - px.y;
+                        break;
+                    case "tl":
+                        extraX = this.map.size.w - px.x;
+                        extraY = this.map.size.h - px.y;
+                        break;
+                    case "bl":
+                        extraX = this.map.size.w - px.x;
+                        extraY = px.y;
+                        break;
+                    case "br":
+                        extraX = px.x;
+                        extraY = px.y;
+                        break;
+                    default:    
+                        extraX = px.x;
+                        extraY = this.map.size.h - px.y;
+                        break;
+                }
+            }    
+          
+            var maxY = this.map.size.h - 
+                this.map.paddingForPopups.top - 
+                this.map.paddingForPopups.bottom - 
+                hPadding - extraY;
+            
+            var maxX = this.map.size.w - 
+                this.map.paddingForPopups.left - 
+                this.map.paddingForPopups.right - 
+                wPadding - extraX;
+            
+            safeContentSize.w = Math.min(safeContentSize.w, maxX);
+            safeContentSize.h = Math.min(safeContentSize.h, maxY);
+        }
+        
+        return safeContentSize;
+    },
+    
+    /**
+     * Method: getContentDivPadding
+     * Glorious, oh glorious hack in order to determine the css 'padding' of 
+     *     the contentDiv. IE/Opera return null here unless we actually add the 
+     *     popup's main 'div' element (which contains contentDiv) to the DOM. 
+     *     So we make it invisible and then add it to the document temporarily. 
+     *
+     *     Once we've taken the padding readings we need, we then remove it 
+     *     from the DOM (it will actually get added to the DOM in 
+     *     Map.js's addPopup)
+     *
+     * Returns:
+     * {<OpenLayers.Bounds>}
+     */
+    getContentDivPadding: function() {
+
+        //use cached value if we have it
+        var contentDivPadding = this._contentDivPadding;
+        if (!contentDivPadding) {
+
+            if (this.div.parentNode == null) {
+                //make the div invisible and add it to the page        
+                this.div.style.display = "none";
+                document.body.appendChild(this.div);
+            }
+                    
+            //read the padding settings from css, put them in an OL.Bounds        
+            contentDivPadding = new OpenLayers.Bounds(
+                OpenLayers.Element.getStyle(this.contentDiv, "padding-left"),
+                OpenLayers.Element.getStyle(this.contentDiv, "padding-bottom"),
+                OpenLayers.Element.getStyle(this.contentDiv, "padding-right"),
+                OpenLayers.Element.getStyle(this.contentDiv, "padding-top")
+            );
+    
+            //cache the value
+            this._contentDivPadding = contentDivPadding;
+
+            if (this.div.parentNode == document.body) {
+                //remove the div from the page and make it visible again
+                document.body.removeChild(this.div);
+                this.div.style.display = "";
+            }
+        }
+        return contentDivPadding;
+    },
+
+    /**
+     * Method: addCloseBox
+     * 
+     * Parameters:
+     * callback - {Function} The callback to be called when the close button
+     *     is clicked.
+     */
+    addCloseBox: function(callback) {
+
+        this.closeDiv = OpenLayers.Util.createDiv(
+            this.id + "_close", null, {w: 17, h: 17}
+        );
+        this.closeDiv.className = "olPopupCloseBox"; 
+        
+        // use the content div's css padding to determine if we should
+        //  padd the close div
+        var contentDivPadding = this.getContentDivPadding();
+         
+        this.closeDiv.style.right = contentDivPadding.right + "px";
+        this.closeDiv.style.top = contentDivPadding.top + "px";
+        this.groupDiv.appendChild(this.closeDiv);
+
+        var closePopup = callback || function(e) {
+            this.hide();
+            OpenLayers.Event.stop(e);
+        };
+        OpenLayers.Event.observe(this.closeDiv, "touchend", 
+                OpenLayers.Function.bindAsEventListener(closePopup, this));
+        OpenLayers.Event.observe(this.closeDiv, "click", 
+                OpenLayers.Function.bindAsEventListener(closePopup, this));
+    },
+
+    /**
+     * Method: panIntoView
+     * Pans the map such that the popup is totaly viewable (if necessary)
+     */
+    panIntoView: function() {
+        
+        var mapSize = this.map.getSize();
+    
+        //start with the top left corner of the popup, in px, 
+        // relative to the viewport
+        var origTL = this.map.getViewPortPxFromLayerPx( new OpenLayers.Pixel(
+            parseInt(this.div.style.left),
+            parseInt(this.div.style.top)
+        ));
+        var newTL = origTL.clone();
+    
+        //new left (compare to margins, using this.size to calculate right)
+        if (origTL.x < this.map.paddingForPopups.left) {
+            newTL.x = this.map.paddingForPopups.left;
+        } else 
+        if ( (origTL.x + this.size.w) > (mapSize.w - this.map.paddingForPopups.right)) {
+            newTL.x = mapSize.w - this.map.paddingForPopups.right - this.size.w;
+        }
+        
+        //new top (compare to margins, using this.size to calculate bottom)
+        if (origTL.y < this.map.paddingForPopups.top) {
+            newTL.y = this.map.paddingForPopups.top;
+        } else 
+        if ( (origTL.y + this.size.h) > (mapSize.h - this.map.paddingForPopups.bottom)) {
+            newTL.y = mapSize.h - this.map.paddingForPopups.bottom - this.size.h;
+        }
+        
+        var dx = origTL.x - newTL.x;
+        var dy = origTL.y - newTL.y;
+        
+        this.map.pan(dx, dy);
+    },
+
+    /** 
+     * Method: registerEvents
+     * Registers events on the popup.
+     *
+     * Do this in a separate function so that subclasses can 
+     *   choose to override it if they wish to deal differently
+     *   with mouse events
+     * 
+     *   Note in the following handler functions that some special
+     *    care is needed to deal correctly with mousing and popups. 
+     *   
+     *   Because the user might select the zoom-rectangle option and
+     *    then drag it over a popup, we need a safe way to allow the
+     *    mousemove and mouseup events to pass through the popup when
+     *    they are initiated from outside. The same procedure is needed for
+     *    touchmove and touchend events.
+     * 
+     *   Otherwise, we want to essentially kill the event propagation
+     *    for all other events, though we have to do so carefully, 
+     *    without disabling basic html functionality, like clicking on 
+     *    hyperlinks or drag-selecting text.
+     */
+     registerEvents:function() {
+        this.events = new OpenLayers.Events(this, this.div, null, true);
+
+        function onTouchstart(evt) {
+            OpenLayers.Event.stop(evt, true);
+        }
+        this.events.on({
+            "mousedown": this.onmousedown,
+            "mousemove": this.onmousemove,
+            "mouseup": this.onmouseup,
+            "click": this.onclick,
+            "mouseout": this.onmouseout,
+            "dblclick": this.ondblclick,
+            "touchstart": onTouchstart,
+            scope: this
+        });
+        
+     },
+
+    /** 
+     * Method: onmousedown 
+     * When mouse goes down within the popup, make a note of
+     *   it locally, and then do not propagate the mousedown 
+     *   (but do so safely so that user can select text inside)
+     * 
+     * Parameters:
+     * evt - {Event} 
+     */
+    onmousedown: function (evt) {
+        this.mousedown = true;
+        OpenLayers.Event.stop(evt, true);
+    },
+
+    /** 
+     * Method: onmousemove
+     * If the drag was started within the popup, then 
+     *   do not propagate the mousemove (but do so safely
+     *   so that user can select text inside)
+     * 
+     * Parameters:
+     * evt - {Event} 
+     */
+    onmousemove: function (evt) {
+        if (this.mousedown) {
+            OpenLayers.Event.stop(evt, true);
+        }
+    },
+
+    /** 
+     * Method: onmouseup
+     * When mouse comes up within the popup, after going down 
+     *   in it, reset the flag, and then (once again) do not 
+     *   propagate the event, but do so safely so that user can 
+     *   select text inside
+     * 
+     * Parameters:
+     * evt - {Event} 
+     */
+    onmouseup: function (evt) {
+        if (this.mousedown) {
+            this.mousedown = false;
+            OpenLayers.Event.stop(evt, true);
+        }
+    },
+
+    /**
+     * Method: onclick
+     * Ignore clicks, but allowing default browser handling
+     * 
+     * Parameters:
+     * evt - {Event} 
+     */
+    onclick: function (evt) {
+        OpenLayers.Event.stop(evt, true);
+    },
+
+    /** 
+     * Method: onmouseout
+     * When mouse goes out of the popup set the flag to false so that
+     *   if they let go and then drag back in, we won't be confused.
+     * 
+     * Parameters:
+     * evt - {Event} 
+     */
+    onmouseout: function (evt) {
+        this.mousedown = false;
+    },
+    
+    /** 
+     * Method: ondblclick
+     * Ignore double-clicks, but allowing default browser handling
+     * 
+     * Parameters:
+     * evt - {Event} 
+     */
+    ondblclick: function (evt) {
+        OpenLayers.Event.stop(evt, true);
+    },
+
+    CLASS_NAME: "OpenLayers.Popup"
+});
+
+OpenLayers.Popup.WIDTH = 200;
+OpenLayers.Popup.HEIGHT = 200;
+OpenLayers.Popup.COLOR = "white";
+OpenLayers.Popup.OPACITY = 1;
+OpenLayers.Popup.BORDER = "0px";
+/* ======================================================================
+    OpenLayers/Popup/Anchored.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+
+/**
+ * @requires OpenLayers/Popup.js
  */
 
 /**
- * Class: OpenLayers.Format.WKT
- * Class for reading and writing Well-Known Text.  Create a new instance
- * with the <OpenLayers.Format.WKT> constructor.
+ * Class: OpenLayers.Popup.Anchored
  * 
  * Inherits from:
- *  - <OpenLayers.Format>
+ *  - <OpenLayers.Popup>
  */
-OpenLayers.Format.WKT = OpenLayers.Class(OpenLayers.Format, {
+OpenLayers.Popup.Anchored = 
+  OpenLayers.Class(OpenLayers.Popup, {
+
+    /** 
+     * Property: relativePosition
+     * {String} Relative position of the popup ("br", "tr", "tl" or "bl").
+     */
+    relativePosition: null,
     
     /**
-     * Constructor: OpenLayers.Format.WKT
-     * Create a new parser for WKT
-     *
-     * Parameters:
-     * options - {Object} An optional object whose properties will be set on
-     *           this instance
-     *
-     * Returns:
-     * {<OpenLayers.Format.WKT>} A new WKT parser.
+     * APIProperty: keepInMap 
+     * {Boolean} If panMapIfOutOfView is false, and this property is true, 
+     *     contrain the popup such that it always fits in the available map
+     *     space. By default, this is set. If you are creating popups that are
+     *     near map edges and not allowing pannning, and especially if you have
+     *     a popup which has a fixedRelativePosition, setting this to false may
+     *     be a smart thing to do.
+     *   
+     *     For anchored popups, default is true, since subclasses will
+     *     usually want this functionality.
      */
-    initialize: function(options) {
-        this.regExes = {
-            'typeStr': /^\s*(\w+)\s*\(\s*(.*)\s*\)\s*$/,
-            'spaces': /\s+/,
-            'parenComma': /\)\s*,\s*\(/,
-            'doubleParenComma': /\)\s*\)\s*,\s*\(\s*\(/,  // can't use {2} here
-            'trimParens': /^\s*\(?(.*?)\)?\s*$/
-        };
-        OpenLayers.Format.prototype.initialize.apply(this, [options]);
+    keepInMap: true,
+
+    /**
+     * Property: anchor
+     * {Object} Object to which we'll anchor the popup. Must expose a 
+     *     'size' (<OpenLayers.Size>) and 'offset' (<OpenLayers.Pixel>).
+     */
+    anchor: null,
+
+    /** 
+    * Constructor: OpenLayers.Popup.Anchored
+    * 
+    * Parameters:
+    * id - {String}
+    * lonlat - {<OpenLayers.LonLat>}
+    * contentSize - {<OpenLayers.Size>}
+    * contentHTML - {String}
+    * anchor - {Object} Object which must expose a 'size' <OpenLayers.Size> 
+    *     and 'offset' <OpenLayers.Pixel> (generally an <OpenLayers.Icon>).
+    * closeBox - {Boolean}
+    * closeBoxCallback - {Function} Function to be called on closeBox click.
+    */
+    initialize:function(id, lonlat, contentSize, contentHTML, anchor, closeBox,
+                        closeBoxCallback) {
+        var newArguments = [
+            id, lonlat, contentSize, contentHTML, closeBox, closeBoxCallback
+        ];
+        OpenLayers.Popup.prototype.initialize.apply(this, newArguments);
+
+        this.anchor = (anchor != null) ? anchor 
+                                       : { size: new OpenLayers.Size(0,0),
+                                           offset: new OpenLayers.Pixel(0,0)};
     },
 
     /**
-     * Method: read
-     * Deserialize a WKT string and return a vector feature or an
-     * array of vector features.  Supports WKT for POINT, MULTIPOINT,
-     * LINESTRING, MULTILINESTRING, POLYGON, MULTIPOLYGON, and
-     * GEOMETRYCOLLECTION.
-     *
-     * Parameters:
-     * wkt - {String} A WKT string
-     *
-     * Returns:
-     * {<OpenLayers.Feature.Vector>|Array} A feature or array of features for
-     * GEOMETRYCOLLECTION WKT.
+     * APIMethod: destroy
      */
-    read: function(wkt) {
-        var features, type, str;
-        wkt = wkt.replace(/[\n\r]/g, " ");
-        var matches = this.regExes.typeStr.exec(wkt);
-        if(matches) {
-            type = matches[1].toLowerCase();
-            str = matches[2];
-            if(this.parse[type]) {
-                features = this.parse[type].apply(this, [str]);
-            }
-            if (this.internalProjection && this.externalProjection) {
-                if (features && 
-                    features.CLASS_NAME == "OpenLayers.Feature.Vector") {
-                    features.geometry.transform(this.externalProjection,
-                                                this.internalProjection);
-                } else if (features &&
-                           type != "geometrycollection" &&
-                           typeof features == "object") {
-                    for (var i=0, len=features.length; i<len; i++) {
-                        var component = features[i];
-                        component.geometry.transform(this.externalProjection,
-                                                     this.internalProjection);
-                    }
-                }
-            }
-        }    
-        return features;
+    destroy: function() {
+        this.anchor = null;
+        this.relativePosition = null;
+        
+        OpenLayers.Popup.prototype.destroy.apply(this, arguments);        
     },
 
     /**
-     * Method: write
-     * Serialize a feature or array of features into a WKT string.
-     *
-     * Parameters:
-     * features - {<OpenLayers.Feature.Vector>|Array} A feature or array of
-     *            features
-     *
-     * Returns:
-     * {String} The WKT string representation of the input geometries
+     * APIMethod: show
+     * Overridden from Popup since user might hide popup and then show() it 
+     *     in a new location (meaning we might want to update the relative
+     *     position on the show)
      */
-    write: function(features) {
-        var collection, geometry, type, data, isCollection;
-        if (features.constructor == Array) {
-            collection = features;
-            isCollection = true;
-        } else {
-            collection = [features];
-            isCollection = false;
-        }
-        var pieces = [];
-        if (isCollection) {
-            pieces.push('GEOMETRYCOLLECTION(');
-        }
-        for (var i=0, len=collection.length; i<len; ++i) {
-            if (isCollection && i>0) {
-                pieces.push(',');
-            }
-            geometry = collection[i].geometry;
-            pieces.push(this.extractGeometry(geometry));
-        }
-        if (isCollection) {
-            pieces.push(')');
-        }
-        return pieces.join('');
+    show: function() {
+        this.updatePosition();
+        OpenLayers.Popup.prototype.show.apply(this, arguments);
     },
 
     /**
-     * Method: extractGeometry
-     * Entry point to construct the WKT for a single Geometry object.
-     *
+     * Method: moveTo
+     * Since the popup is moving to a new px, it might need also to be moved
+     *     relative to where the marker is. We first calculate the new 
+     *     relativePosition, and then we calculate the new px where we will 
+     *     put the popup, based on the new relative position. 
+     * 
+     *     If the relativePosition has changed, we must also call 
+     *     updateRelativePosition() to make any visual changes to the popup 
+     *     which are associated with putting it in a new relativePosition.
+     * 
      * Parameters:
-     * geometry - {<OpenLayers.Geometry.Geometry>}
-     *
-     * Returns:
-     * {String} A WKT string of representing the geometry
+     * px - {<OpenLayers.Pixel>}
      */
-    extractGeometry: function(geometry) {
-        var type = geometry.CLASS_NAME.split('.')[2].toLowerCase();
-        if (!this.extract[type]) {
-            return null;
+    moveTo: function(px) {
+        var oldRelativePosition = this.relativePosition;
+        this.relativePosition = this.calculateRelativePosition(px);
+        
+        var newPx = this.calculateNewPx(px);
+        
+        var newArguments = new Array(newPx);        
+        OpenLayers.Popup.prototype.moveTo.apply(this, newArguments);
+        
+        //if this move has caused the popup to change its relative position, 
+        // we need to make the appropriate cosmetic changes.
+        if (this.relativePosition != oldRelativePosition) {
+            this.updateRelativePosition();
         }
-        if (this.internalProjection && this.externalProjection) {
-            geometry = geometry.clone();
-            geometry.transform(this.internalProjection, this.externalProjection);
-        }                       
-        var wktType = type == 'collection' ? 'GEOMETRYCOLLECTION' : type.toUpperCase();
-        var data = wktType + '(' + this.extract[type].apply(this, [geometry]) + ')';
-        return data;
     },
+
+    /**
+     * APIMethod: setSize
+     * 
+     * Parameters:
+     * contentSize - {<OpenLayers.Size>} the new size for the popup's 
+     *     contents div (in pixels).
+     */
+    setSize:function(contentSize) { 
+        OpenLayers.Popup.prototype.setSize.apply(this, arguments);
+
+        if ((this.lonlat) && (this.map)) {
+            var px = this.map.getLayerPxFromLonLat(this.lonlat);
+            this.moveTo(px);
+        }
+    },  
     
-    /**
-     * Object with properties corresponding to the geometry types.
-     * Property values are functions that do the actual data extraction.
+    /** 
+     * Method: calculateRelativePosition
+     * 
+     * Parameters:
+     * px - {<OpenLayers.Pixel>}
+     * 
+     * Returns:
+     * {String} The relative position ("br" "tr" "tl" "bl") at which the popup
+     *     should be placed.
      */
-    extract: {
-        /**
-         * Return a space delimited string of point coordinates.
-         * @param {OpenLayers.Geometry.Point} point
-         * @returns {String} A string of coordinates representing the point
-         */
-        'point': function(point) {
-            return point.x + ' ' + point.y;
-        },
-
-        /**
-         * Return a comma delimited string of point coordinates from a multipoint.
-         * @param {OpenLayers.Geometry.MultiPoint} multipoint
-         * @returns {String} A string of point coordinate strings representing
-         *                  the multipoint
-         */
-        'multipoint': function(multipoint) {
-            var array = [];
-            for(var i=0, len=multipoint.components.length; i<len; ++i) {
-                array.push('(' +
-                           this.extract.point.apply(this, [multipoint.components[i]]) +
-                           ')');
-            }
-            return array.join(',');
-        },
+    calculateRelativePosition:function(px) {
+        var lonlat = this.map.getLonLatFromLayerPx(px);        
         
-        /**
-         * Return a comma delimited string of point coordinates from a line.
-         * @param {OpenLayers.Geometry.LineString} linestring
-         * @returns {String} A string of point coordinate strings representing
-         *                  the linestring
-         */
-        'linestring': function(linestring) {
-            var array = [];
-            for(var i=0, len=linestring.components.length; i<len; ++i) {
-                array.push(this.extract.point.apply(this, [linestring.components[i]]));
-            }
-            return array.join(',');
-        },
-
-        /**
-         * Return a comma delimited string of linestring strings from a multilinestring.
-         * @param {OpenLayers.Geometry.MultiLineString} multilinestring
-         * @returns {String} A string of of linestring strings representing
-         *                  the multilinestring
-         */
-        'multilinestring': function(multilinestring) {
-            var array = [];
-            for(var i=0, len=multilinestring.components.length; i<len; ++i) {
-                array.push('(' +
-                           this.extract.linestring.apply(this, [multilinestring.components[i]]) +
-                           ')');
-            }
-            return array.join(',');
-        },
+        var extent = this.map.getExtent();
+        var quadrant = extent.determineQuadrant(lonlat);
         
-        /**
-         * Return a comma delimited string of linear ring arrays from a polygon.
-         * @param {OpenLayers.Geometry.Polygon} polygon
-         * @returns {String} An array of linear ring arrays representing the polygon
-         */
-        'polygon': function(polygon) {
-            var array = [];
-            for(var i=0, len=polygon.components.length; i<len; ++i) {
-                array.push('(' +
-                           this.extract.linestring.apply(this, [polygon.components[i]]) +
-                           ')');
-            }
-            return array.join(',');
-        },
+        return OpenLayers.Bounds.oppositeQuadrant(quadrant);
+    }, 
 
-        /**
-         * Return an array of polygon arrays from a multipolygon.
-         * @param {OpenLayers.Geometry.MultiPolygon} multipolygon
-         * @returns {String} An array of polygon arrays representing
-         *                  the multipolygon
-         */
-        'multipolygon': function(multipolygon) {
-            var array = [];
-            for(var i=0, len=multipolygon.components.length; i<len; ++i) {
-                array.push('(' +
-                           this.extract.polygon.apply(this, [multipolygon.components[i]]) +
-                           ')');
-            }
-            return array.join(',');
-        },
+    /**
+     * Method: updateRelativePosition
+     * The popup has been moved to a new relative location, so we may want to 
+     *     make some cosmetic adjustments to it. 
+     * 
+     *     Note that in the classic Anchored popup, there is nothing to do 
+     *     here, since the popup looks exactly the same in all four positions.
+     *     Subclasses such as Framed, however, will want to do something
+     *     special here.
+     */
+    updateRelativePosition: function() {
+        //to be overridden by subclasses
+    },
 
-        /**
-         * Return the WKT portion between 'GEOMETRYCOLLECTION(' and ')' for an <OpenLayers.Geometry.Collection>
-         * @param {OpenLayers.Geometry.Collection} collection
-         * @returns {String} internal WKT representation of the collection
-         */
-        'collection': function(collection) {
-            var array = [];
-            for(var i=0, len=collection.components.length; i<len; ++i) {
-                array.push(this.extractGeometry.apply(this, [collection.components[i]]));
-            }
-            return array.join(',');
+    /** 
+     * Method: calculateNewPx
+     * 
+     * Parameters:
+     * px - {<OpenLayers.Pixel>}
+     * 
+     * Returns:
+     * {<OpenLayers.Pixel>} The the new px position of the popup on the screen
+     *     relative to the passed-in px.
+     */
+    calculateNewPx:function(px) {
+        var newPx = px.offset(this.anchor.offset);
+        
+        //use contentSize if size is not already set
+        var size = this.size || this.contentSize;
+
+        var top = (this.relativePosition.charAt(0) == 't');
+        newPx.y += (top) ? -size.h : this.anchor.size.h;
+        
+        var left = (this.relativePosition.charAt(1) == 'l');
+        newPx.x += (left) ? -size.w : this.anchor.size.w;
+
+        return newPx;   
+    },
+
+    CLASS_NAME: "OpenLayers.Popup.Anchored"
+});
+/* ======================================================================
+    OpenLayers/Popup/Framed.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Popup/Anchored.js
+ */
+
+/**
+ * Class: OpenLayers.Popup.Framed
+ * 
+ * Inherits from:
+ *  - <OpenLayers.Popup.Anchored>
+ */
+OpenLayers.Popup.Framed =
+  OpenLayers.Class(OpenLayers.Popup.Anchored, {
+
+    /**
+     * Property: imageSrc
+     * {String} location of the image to be used as the popup frame
+     */
+    imageSrc: null,
+
+    /**
+     * Property: imageSize
+     * {<OpenLayers.Size>} Size (measured in pixels) of the image located
+     *     by the 'imageSrc' property.
+     */
+    imageSize: null,
+
+    /**
+     * APIProperty: isAlphaImage
+     * {Boolean} The image has some alpha and thus needs to use the alpha 
+     *     image hack. Note that setting this to true will have no noticeable
+     *     effect in FF or IE7 browsers, but will all but crush the ie6 
+     *     browser. 
+     *     Default is false.
+     */
+    isAlphaImage: false,
+
+    /**
+     * Property: positionBlocks
+     * {Object} Hash of different position blocks (Object/Hashs). Each block 
+     *     will be keyed by a two-character 'relativePosition' 
+     *     code string (ie "tl", "tr", "bl", "br"). Block properties are 
+     *     'offset', 'padding' (self-explanatory), and finally the 'blocks'
+     *     parameter, which is an array of the block objects. 
+     * 
+     *     Each block object must have 'size', 'anchor', and 'position' 
+     *     properties.
+     * 
+     *     Note that positionBlocks should never be modified at runtime.
+     */
+    positionBlocks: null,
+
+    /**
+     * Property: blocks
+     * {Array[Object]} Array of objects, each of which is one "block" of the 
+     *     popup. Each block has a 'div' and an 'image' property, both of 
+     *     which are DOMElements, and the latter of which is appended to the 
+     *     former. These are reused as the popup goes changing positions for
+     *     great economy and elegance.
+     */
+    blocks: null,
+
+    /** 
+     * APIProperty: fixedRelativePosition
+     * {Boolean} We want the framed popup to work dynamically placed relative
+     *     to its anchor but also in just one fixed position. A well designed
+     *     framed popup will have the pixels and logic to display itself in 
+     *     any of the four relative positions, but (understandably), this will
+     *     not be the case for all of them. By setting this property to 'true', 
+     *     framed popup will not recalculate for the best placement each time
+     *     it's open, but will always open the same way. 
+     *     Note that if this is set to true, it is generally advisable to also
+     *     set the 'panIntoView' property to true so that the popup can be 
+     *     scrolled into view (since it will often be offscreen on open)
+     *     Default is false.
+     */
+    fixedRelativePosition: false,
+
+    /** 
+     * Constructor: OpenLayers.Popup.Framed
+     * 
+     * Parameters:
+     * id - {String}
+     * lonlat - {<OpenLayers.LonLat>}
+     * contentSize - {<OpenLayers.Size>}
+     * contentHTML - {String}
+     * anchor - {Object} Object to which we'll anchor the popup. Must expose 
+     *     a 'size' (<OpenLayers.Size>) and 'offset' (<OpenLayers.Pixel>) 
+     *     (Note that this is generally an <OpenLayers.Icon>).
+     * closeBox - {Boolean}
+     * closeBoxCallback - {Function} Function to be called on closeBox click.
+     */
+    initialize:function(id, lonlat, contentSize, contentHTML, anchor, closeBox, 
+                        closeBoxCallback) {
+
+        OpenLayers.Popup.Anchored.prototype.initialize.apply(this, arguments);
+
+        if (this.fixedRelativePosition) {
+            //based on our decided relativePostion, set the current padding
+            // this keeps us from getting into trouble 
+            this.updateRelativePosition();
+            
+            //make calculateRelativePosition always return the specified
+            // fixed position.
+            this.calculateRelativePosition = function(px) {
+                return this.relativePosition;
+            };
         }
 
+        this.contentDiv.style.position = "absolute";
+        this.contentDiv.style.zIndex = 1;
+
+        if (closeBox) {
+            this.closeDiv.style.zIndex = 1;
+        }
+
+        this.groupDiv.style.position = "absolute";
+        this.groupDiv.style.top = "0px";
+        this.groupDiv.style.left = "0px";
+        this.groupDiv.style.height = "100%";
+        this.groupDiv.style.width = "100%";
+    },
+
+    /** 
+     * APIMethod: destroy
+     */
+    destroy: function() {
+        this.imageSrc = null;
+        this.imageSize = null;
+        this.isAlphaImage = null;
+
+        this.fixedRelativePosition = false;
+        this.positionBlocks = null;
+
+        //remove our blocks
+        for(var i = 0; i < this.blocks.length; i++) {
+            var block = this.blocks[i];
+
+            if (block.image) {
+                block.div.removeChild(block.image);
+            }
+            block.image = null;
+
+            if (block.div) {
+                this.groupDiv.removeChild(block.div);
+            }
+            block.div = null;
+        }
+        this.blocks = null;
+
+        OpenLayers.Popup.Anchored.prototype.destroy.apply(this, arguments);
     },
 
     /**
-     * Object with properties corresponding to the geometry types.
-     * Property values are functions that do the actual parsing.
+     * APIMethod: setBackgroundColor
      */
-    parse: {
-        /**
-         * Return point feature given a point WKT fragment.
-         * @param {String} str A WKT fragment representing the point
-         * @returns {OpenLayers.Feature.Vector} A point feature
-         * @private
-         */
-        'point': function(str) {
-            var coords = OpenLayers.String.trim(str).split(this.regExes.spaces);
-            return new OpenLayers.Feature.Vector(
-                new OpenLayers.Geometry.Point(coords[0], coords[1])
-            );
-        },
-
-        /**
-         * Return a multipoint feature given a multipoint WKT fragment.
-         * @param {String} str A WKT fragment representing the multipoint
-         * @returns {OpenLayers.Feature.Vector} A multipoint feature
-         * @private
-         */
-        'multipoint': function(str) {
-            var point;
-            var points = OpenLayers.String.trim(str).split(',');
-            var components = [];
-            for(var i=0, len=points.length; i<len; ++i) {
-                point = points[i].replace(this.regExes.trimParens, '$1');
-                components.push(this.parse.point.apply(this, [point]).geometry);
-            }
-            return new OpenLayers.Feature.Vector(
-                new OpenLayers.Geometry.MultiPoint(components)
-            );
-        },
-        
-        /**
-         * Return a linestring feature given a linestring WKT fragment.
-         * @param {String} str A WKT fragment representing the linestring
-         * @returns {OpenLayers.Feature.Vector} A linestring feature
-         * @private
-         */
-        'linestring': function(str) {
-            var points = OpenLayers.String.trim(str).split(',');
-            var components = [];
-            for(var i=0, len=points.length; i<len; ++i) {
-                components.push(this.parse.point.apply(this, [points[i]]).geometry);
-            }
-            return new OpenLayers.Feature.Vector(
-                new OpenLayers.Geometry.LineString(components)
-            );
-        },
-
-        /**
-         * Return a multilinestring feature given a multilinestring WKT fragment.
-         * @param {String} str A WKT fragment representing the multilinestring
-         * @returns {OpenLayers.Feature.Vector} A multilinestring feature
-         * @private
-         */
-        'multilinestring': function(str) {
-            var line;
-            var lines = OpenLayers.String.trim(str).split(this.regExes.parenComma);
-            var components = [];
-            for(var i=0, len=lines.length; i<len; ++i) {
-                line = lines[i].replace(this.regExes.trimParens, '$1');
-                components.push(this.parse.linestring.apply(this, [line]).geometry);
-            }
-            return new OpenLayers.Feature.Vector(
-                new OpenLayers.Geometry.MultiLineString(components)
-            );
-        },
-        
-        /**
-         * Return a polygon feature given a polygon WKT fragment.
-         * @param {String} str A WKT fragment representing the polygon
-         * @returns {OpenLayers.Feature.Vector} A polygon feature
-         * @private
-         */
-        'polygon': function(str) {
-            var ring, linestring, linearring;
-            var rings = OpenLayers.String.trim(str).split(this.regExes.parenComma);
-            var components = [];
-            for(var i=0, len=rings.length; i<len; ++i) {
-                ring = rings[i].replace(this.regExes.trimParens, '$1');
-                linestring = this.parse.linestring.apply(this, [ring]).geometry;
-                linearring = new OpenLayers.Geometry.LinearRing(linestring.components);
-                components.push(linearring);
-            }
-            return new OpenLayers.Feature.Vector(
-                new OpenLayers.Geometry.Polygon(components)
-            );
-        },
-
-        /**
-         * Return a multipolygon feature given a multipolygon WKT fragment.
-         * @param {String} str A WKT fragment representing the multipolygon
-         * @returns {OpenLayers.Feature.Vector} A multipolygon feature
-         * @private
-         */
-        'multipolygon': function(str) {
-            var polygon;
-            var polygons = OpenLayers.String.trim(str).split(this.regExes.doubleParenComma);
-            var components = [];
-            for(var i=0, len=polygons.length; i<len; ++i) {
-                polygon = polygons[i].replace(this.regExes.trimParens, '$1');
-                components.push(this.parse.polygon.apply(this, [polygon]).geometry);
-            }
-            return new OpenLayers.Feature.Vector(
-                new OpenLayers.Geometry.MultiPolygon(components)
-            );
-        },
-
-        /**
-         * Return an array of features given a geometrycollection WKT fragment.
-         * @param {String} str A WKT fragment representing the geometrycollection
-         * @returns {Array} An array of OpenLayers.Feature.Vector
-         * @private
-         */
-        'geometrycollection': function(str) {
-            // separate components of the collection with |
-            str = str.replace(/,\s*([A-Za-z])/g, '|$1');
-            var wktArray = OpenLayers.String.trim(str).split('|');
-            var components = [];
-            for(var i=0, len=wktArray.length; i<len; ++i) {
-                components.push(OpenLayers.Format.WKT.prototype.read.apply(this,[wktArray[i]]));
-            }
-            return components;
-        }
-
+    setBackgroundColor:function(color) {
+        //does nothing since the framed popup's entire scheme is based on a 
+        // an image -- changing the background color makes no sense. 
     },
 
-    CLASS_NAME: "OpenLayers.Format.WKT" 
-});     
+    /**
+     * APIMethod: setBorder
+     */
+    setBorder:function() {
+        //does nothing since the framed popup's entire scheme is based on a 
+        // an image -- changing the popup's border makes no sense. 
+    },
+
+    /**
+     * Method: setOpacity
+     * Sets the opacity of the popup.
+     * 
+     * Parameters:
+     * opacity - {float} A value between 0.0 (transparent) and 1.0 (solid).   
+     */
+    setOpacity:function(opacity) {
+        //does nothing since we suppose that we'll never apply an opacity
+        // to a framed popup
+    },
+
+    /**
+     * APIMethod: setSize
+     * Overridden here, because we need to update the blocks whenever the size
+     *     of the popup has changed.
+     * 
+     * Parameters:
+     * contentSize - {<OpenLayers.Size>} the new size for the popup's 
+     *     contents div (in pixels).
+     */
+    setSize:function(contentSize) { 
+        OpenLayers.Popup.Anchored.prototype.setSize.apply(this, arguments);
+
+        this.updateBlocks();
+    },
+
+    /**
+     * Method: updateRelativePosition
+     * When the relative position changes, we need to set the new padding 
+     *     BBOX on the popup, reposition the close div, and update the blocks.
+     */
+    updateRelativePosition: function() {
+
+        //update the padding
+        this.padding = this.positionBlocks[this.relativePosition].padding;
+
+        //update the position of our close box to new padding
+        if (this.closeDiv) {
+            // use the content div's css padding to determine if we should
+            //  padd the close div
+            var contentDivPadding = this.getContentDivPadding();
+
+            this.closeDiv.style.right = contentDivPadding.right + 
+                                        this.padding.right + "px";
+            this.closeDiv.style.top = contentDivPadding.top + 
+                                      this.padding.top + "px";
+        }
+
+        this.updateBlocks();
+    },
+
+    /** 
+     * Method: calculateNewPx
+     * Besides the standard offset as determined by the Anchored class, our 
+     *     Framed popups have a special 'offset' property for each of their 
+     *     positions, which is used to offset the popup relative to its anchor.
+     * 
+     * Parameters:
+     * px - {<OpenLayers.Pixel>}
+     * 
+     * Returns:
+     * {<OpenLayers.Pixel>} The the new px position of the popup on the screen
+     *     relative to the passed-in px.
+     */
+    calculateNewPx:function(px) {
+        var newPx = OpenLayers.Popup.Anchored.prototype.calculateNewPx.apply(
+            this, arguments
+        );
+
+        newPx = newPx.offset(this.positionBlocks[this.relativePosition].offset);
+
+        return newPx;
+    },
+
+    /**
+     * Method: createBlocks
+     */
+    createBlocks: function() {
+        this.blocks = [];
+
+        //since all positions contain the same number of blocks, we can 
+        // just pick the first position and use its blocks array to create
+        // our blocks array
+        var firstPosition = null;
+        for(var key in this.positionBlocks) {
+            firstPosition = key;
+            break;
+        }
+        
+        var position = this.positionBlocks[firstPosition];
+        for (var i = 0; i < position.blocks.length; i++) {
+
+            var block = {};
+            this.blocks.push(block);
+
+            var divId = this.id + '_FrameDecorationDiv_' + i;
+            block.div = OpenLayers.Util.createDiv(divId, 
+                null, null, null, "absolute", null, "hidden", null
+            );
+
+            var imgId = this.id + '_FrameDecorationImg_' + i;
+            var imageCreator = 
+                (this.isAlphaImage) ? OpenLayers.Util.createAlphaImageDiv
+                                    : OpenLayers.Util.createImage;
+
+            block.image = imageCreator(imgId, 
+                null, this.imageSize, this.imageSrc, 
+                "absolute", null, null, null
+            );
+
+            block.div.appendChild(block.image);
+            this.groupDiv.appendChild(block.div);
+        }
+    },
+
+    /**
+     * Method: updateBlocks
+     * Internal method, called on initialize and when the popup's relative
+     *     position has changed. This function takes care of re-positioning
+     *     the popup's blocks in their appropropriate places.
+     */
+    updateBlocks: function() {
+        if (!this.blocks) {
+            this.createBlocks();
+        }
+        
+        if (this.size && this.relativePosition) {
+            var position = this.positionBlocks[this.relativePosition];
+            for (var i = 0; i < position.blocks.length; i++) {
+    
+                var positionBlock = position.blocks[i];
+                var block = this.blocks[i];
+    
+                // adjust sizes
+                var l = positionBlock.anchor.left;
+                var b = positionBlock.anchor.bottom;
+                var r = positionBlock.anchor.right;
+                var t = positionBlock.anchor.top;
+    
+                //note that we use the isNaN() test here because if the 
+                // size object is initialized with a "auto" parameter, the 
+                // size constructor calls parseFloat() on the string, 
+                // which will turn it into NaN
+                //
+                var w = (isNaN(positionBlock.size.w)) ? this.size.w - (r + l) 
+                                                      : positionBlock.size.w;
+    
+                var h = (isNaN(positionBlock.size.h)) ? this.size.h - (b + t) 
+                                                      : positionBlock.size.h;
+    
+                block.div.style.width = (w < 0 ? 0 : w) + 'px';
+                block.div.style.height = (h < 0 ? 0 : h) + 'px';
+    
+                block.div.style.left = (l != null) ? l + 'px' : '';
+                block.div.style.bottom = (b != null) ? b + 'px' : '';
+                block.div.style.right = (r != null) ? r + 'px' : '';            
+                block.div.style.top = (t != null) ? t + 'px' : '';
+    
+                block.image.style.left = positionBlock.position.x + 'px';
+                block.image.style.top = positionBlock.position.y + 'px';
+            }
+    
+            this.contentDiv.style.left = this.padding.left + "px";
+            this.contentDiv.style.top = this.padding.top + "px";
+        }
+    },
+
+    CLASS_NAME: "OpenLayers.Popup.Framed"
+});
 /* ======================================================================
     OpenLayers/Filter/Logical.js
    ====================================================================== */
@@ -35318,7 +37485,7 @@ OpenLayers.Marker.defaultIcon = function() {
     
 
 /* ======================================================================
-    OpenLayers/Popup.js
+    OpenLayers/Format/WKT.js
    ====================================================================== */
 
 /* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
@@ -35327,1614 +37494,386 @@ OpenLayers.Marker.defaultIcon = function() {
  * full text of the license. */
 
 /**
- * @requires OpenLayers/BaseTypes/Class.js
- */
-
-
-/**
- * Class: OpenLayers.Popup
- * A popup is a small div that can opened and closed on the map.
- * Typically opened in response to clicking on a marker.  
- * See <OpenLayers.Marker>.  Popup's don't require their own
- * layer and are added the the map using the <OpenLayers.Map.addPopup>
- * method.
- *
- * Example:
- * (code)
- * popup = new OpenLayers.Popup("chicken", 
- *                    new OpenLayers.LonLat(5,40),
- *                    new OpenLayers.Size(200,200),
- *                    "example popup",
- *                    true);
- *       
- * map.addPopup(popup);
- * (end)
- */
-OpenLayers.Popup = OpenLayers.Class({
-
-    /** 
-     * Property: events  
-     * {<OpenLayers.Events>} custom event manager 
-     */
-    events: null,
-    
-    /** Property: id
-     * {String} the unique identifier assigned to this popup.
-     */
-    id: "",
-
-    /** 
-     * Property: lonlat 
-     * {<OpenLayers.LonLat>} the position of this popup on the map
-     */
-    lonlat: null,
-
-    /** 
-     * Property: div 
-     * {DOMElement} the div that contains this popup.
-     */
-    div: null,
-
-    /** 
-     * Property: contentSize 
-     * {<OpenLayers.Size>} the width and height of the content.
-     */
-    contentSize: null,    
-
-    /** 
-     * Property: size 
-     * {<OpenLayers.Size>} the width and height of the popup.
-     */
-    size: null,    
-
-    /** 
-     * Property: contentHTML 
-     * {String} An HTML string for this popup to display.
-     */
-    contentHTML: null,
-    
-    /** 
-     * Property: backgroundColor 
-     * {String} the background color used by the popup.
-     */
-    backgroundColor: "",
-    
-    /** 
-     * Property: opacity 
-     * {float} the opacity of this popup (between 0.0 and 1.0)
-     */
-    opacity: "",
-
-    /** 
-     * Property: border 
-     * {String} the border size of the popup.  (eg 2px)
-     */
-    border: "",
-    
-    /** 
-     * Property: contentDiv 
-     * {DOMElement} a reference to the element that holds the content of
-     *              the div.
-     */
-    contentDiv: null,
-    
-    /** 
-     * Property: groupDiv 
-     * {DOMElement} First and only child of 'div'. The group Div contains the
-     *     'contentDiv' and the 'closeDiv'.
-     */
-    groupDiv: null,
-
-    /** 
-     * Property: closeDiv
-     * {DOMElement} the optional closer image
-     */
-    closeDiv: null,
-
-    /** 
-     * APIProperty: autoSize
-     * {Boolean} Resize the popup to auto-fit the contents.
-     *     Default is false.
-     */
-    autoSize: false,
-
-    /**
-     * APIProperty: minSize
-     * {<OpenLayers.Size>} Minimum size allowed for the popup's contents.
-     */
-    minSize: null,
-
-    /**
-     * APIProperty: maxSize
-     * {<OpenLayers.Size>} Maximum size allowed for the popup's contents.
-     */
-    maxSize: null,
-
-    /** 
-     * Property: displayClass
-     * {String} The CSS class of the popup.
-     */
-    displayClass: "olPopup",
-
-    /** 
-     * Property: contentDisplayClass
-     * {String} The CSS class of the popup content div.
-     */
-    contentDisplayClass: "olPopupContent",
-
-    /** 
-     * Property: padding 
-     * {int or <OpenLayers.Bounds>} An extra opportunity to specify internal 
-     *     padding of the content div inside the popup. This was originally
-     *     confused with the css padding as specified in style.css's 
-     *     'olPopupContent' class. We would like to get rid of this altogether,
-     *     except that it does come in handy for the framed and anchoredbubble
-     *     popups, who need to maintain yet another barrier between their 
-     *     content and the outer border of the popup itself. 
-     * 
-     *     Note that in order to not break API, we must continue to support 
-     *     this property being set as an integer. Really, though, we'd like to 
-     *     have this specified as a Bounds object so that user can specify
-     *     distinct left, top, right, bottom paddings. With the 3.0 release
-     *     we can make this only a bounds.
-     */
-    padding: 0,
-
-    /** 
-     * Property: disableFirefoxOverflowHack
-     * {Boolean} The hack for overflow in Firefox causes all elements 
-     *     to be re-drawn, which causes Flash elements to be 
-     *     re-initialized, which is troublesome.
-     *     With this property the hack can be disabled.
-     */
-    disableFirefoxOverflowHack: false,
-
-    /**
-     * Method: fixPadding
-     * To be removed in 3.0, this function merely helps us to deal with the 
-     *     case where the user may have set an integer value for padding, 
-     *     instead of an <OpenLayers.Bounds> object.
-     */
-    fixPadding: function() {
-        if (typeof this.padding == "number") {
-            this.padding = new OpenLayers.Bounds(
-                this.padding, this.padding, this.padding, this.padding
-            );
-        }
-    },
-
-    /**
-     * APIProperty: panMapIfOutOfView
-     * {Boolean} When drawn, pan map such that the entire popup is visible in
-     *     the current viewport (if necessary).
-     *     Default is false.
-     */
-    panMapIfOutOfView: false,
-    
-    /**
-     * APIProperty: keepInMap 
-     * {Boolean} If panMapIfOutOfView is false, and this property is true, 
-     *     contrain the popup such that it always fits in the available map
-     *     space. By default, this is not set on the base class. If you are
-     *     creating popups that are near map edges and not allowing pannning,
-     *     and especially if you have a popup which has a
-     *     fixedRelativePosition, setting this to false may be a smart thing to
-     *     do. Subclasses may want to override this setting.
-     *   
-     *     Default is false.
-     */
-    keepInMap: false,
-
-    /**
-     * APIProperty: closeOnMove
-     * {Boolean} When map pans, close the popup.
-     *     Default is false.
-     */
-    closeOnMove: false,
-    
-    /** 
-     * Property: map 
-     * {<OpenLayers.Map>} this gets set in Map.js when the popup is added to the map
-     */
-    map: null,
-
-    /** 
-    * Constructor: OpenLayers.Popup
-    * Create a popup.
-    * 
-    * Parameters: 
-    * id - {String} a unqiue identifier for this popup.  If null is passed
-    *               an identifier will be automatically generated. 
-    * lonlat - {<OpenLayers.LonLat>}  The position on the map the popup will
-    *                                 be shown.
-    * contentSize - {<OpenLayers.Size>} The size of the content.
-    * contentHTML - {String}          An HTML string to display inside the   
-    *                                 popup.
-    * closeBox - {Boolean}            Whether to display a close box inside
-    *                                 the popup.
-    * closeBoxCallback - {Function}   Function to be called on closeBox click.
-    */
-    initialize:function(id, lonlat, contentSize, contentHTML, closeBox, closeBoxCallback) {
-        if (id == null) {
-            id = OpenLayers.Util.createUniqueID(this.CLASS_NAME + "_");
-        }
-
-        this.id = id;
-        this.lonlat = lonlat;
-
-        this.contentSize = (contentSize != null) ? contentSize 
-                                  : new OpenLayers.Size(
-                                                   OpenLayers.Popup.WIDTH,
-                                                   OpenLayers.Popup.HEIGHT);
-        if (contentHTML != null) { 
-             this.contentHTML = contentHTML;
-        }
-        this.backgroundColor = OpenLayers.Popup.COLOR;
-        this.opacity = OpenLayers.Popup.OPACITY;
-        this.border = OpenLayers.Popup.BORDER;
-
-        this.div = OpenLayers.Util.createDiv(this.id, null, null, 
-                                             null, null, null, "hidden");
-        this.div.className = this.displayClass;
-        
-        var groupDivId = this.id + "_GroupDiv";
-        this.groupDiv = OpenLayers.Util.createDiv(groupDivId, null, null, 
-                                                    null, "relative", null,
-                                                    "hidden");
-
-        var id = this.div.id + "_contentDiv";
-        this.contentDiv = OpenLayers.Util.createDiv(id, null, this.contentSize.clone(), 
-                                                    null, "relative");
-        this.contentDiv.className = this.contentDisplayClass;
-        this.groupDiv.appendChild(this.contentDiv);
-        this.div.appendChild(this.groupDiv);
-
-        if (closeBox) {
-            this.addCloseBox(closeBoxCallback);
-        } 
-
-        this.registerEvents();
-    },
-
-    /** 
-     * Method: destroy
-     * nullify references to prevent circular references and memory leaks
-     */
-    destroy: function() {
-
-        this.id = null;
-        this.lonlat = null;
-        this.size = null;
-        this.contentHTML = null;
-        
-        this.backgroundColor = null;
-        this.opacity = null;
-        this.border = null;
-        
-        if (this.closeOnMove && this.map) {
-            this.map.events.unregister("movestart", this, this.hide);
-        }
-
-        this.events.destroy();
-        this.events = null;
-        
-        if (this.closeDiv) {
-            OpenLayers.Event.stopObservingElement(this.closeDiv); 
-            this.groupDiv.removeChild(this.closeDiv);
-        }
-        this.closeDiv = null;
-        
-        this.div.removeChild(this.groupDiv);
-        this.groupDiv = null;
-
-        if (this.map != null) {
-            this.map.removePopup(this);
-        }
-        this.map = null;
-        this.div = null;
-        
-        this.autoSize = null;
-        this.minSize = null;
-        this.maxSize = null;
-        this.padding = null;
-        this.panMapIfOutOfView = null;
-    },
-
-    /** 
-    * Method: draw
-    * Constructs the elements that make up the popup.
-    *
-    * Parameters:
-    * px - {<OpenLayers.Pixel>} the position the popup in pixels.
-    * 
-    * Returns:
-    * {DOMElement} Reference to a div that contains the drawn popup
-    */
-    draw: function(px) {
-        if (px == null) {
-            if ((this.lonlat != null) && (this.map != null)) {
-                px = this.map.getLayerPxFromLonLat(this.lonlat);
-            }
-        }
-
-        // this assumes that this.map already exists, which is okay because 
-        // this.draw is only called once the popup has been added to the map.
-        if (this.closeOnMove) {
-            this.map.events.register("movestart", this, this.hide);
-        }
-        
-        //listen to movestart, moveend to disable overflow (FF bug)
-        if (!this.disableFirefoxOverflowHack && OpenLayers.BROWSER_NAME == 'firefox') {
-            this.map.events.register("movestart", this, function() {
-                var style = document.defaultView.getComputedStyle(
-                    this.contentDiv, null
-                );
-                var currentOverflow = style.getPropertyValue("overflow");
-                if (currentOverflow != "hidden") {
-                    this.contentDiv._oldOverflow = currentOverflow;
-                    this.contentDiv.style.overflow = "hidden";
-                }
-            });
-            this.map.events.register("moveend", this, function() {
-                var oldOverflow = this.contentDiv._oldOverflow;
-                if (oldOverflow) {
-                    this.contentDiv.style.overflow = oldOverflow;
-                    this.contentDiv._oldOverflow = null;
-                }
-            });
-        }
-
-        this.moveTo(px);
-        if (!this.autoSize && !this.size) {
-            this.setSize(this.contentSize);
-        }
-        this.setBackgroundColor();
-        this.setOpacity();
-        this.setBorder();
-        this.setContentHTML();
-        
-        if (this.panMapIfOutOfView) {
-            this.panIntoView();
-        }    
-
-        return this.div;
-    },
-
-    /** 
-     * Method: updatePosition
-     * if the popup has a lonlat and its map members set, 
-     * then have it move itself to its proper position
-     */
-    updatePosition: function() {
-        if ((this.lonlat) && (this.map)) {
-            var px = this.map.getLayerPxFromLonLat(this.lonlat);
-            if (px) {
-                this.moveTo(px);           
-            }    
-        }
-    },
-
-    /**
-     * Method: moveTo
-     * 
-     * Parameters:
-     * px - {<OpenLayers.Pixel>} the top and left position of the popup div. 
-     */
-    moveTo: function(px) {
-        if ((px != null) && (this.div != null)) {
-            this.div.style.left = px.x + "px";
-            this.div.style.top = px.y + "px";
-        }
-    },
-
-    /**
-     * Method: visible
-     *
-     * Returns:      
-     * {Boolean} Boolean indicating whether or not the popup is visible
-     */
-    visible: function() {
-        return OpenLayers.Element.visible(this.div);
-    },
-
-    /**
-     * Method: toggle
-     * Toggles visibility of the popup.
-     */
-    toggle: function() {
-        if (this.visible()) {
-            this.hide();
-        } else {
-            this.show();
-        }
-    },
-
-    /**
-     * Method: show
-     * Makes the popup visible.
-     */
-    show: function() {
-        this.div.style.display = '';
-
-        if (this.panMapIfOutOfView) {
-            this.panIntoView();
-        }    
-    },
-
-    /**
-     * Method: hide
-     * Makes the popup invisible.
-     */
-    hide: function() {
-        this.div.style.display = 'none';
-    },
-
-    /**
-     * Method: setSize
-     * Used to adjust the size of the popup. 
-     *
-     * Parameters:
-     * contentSize - {<OpenLayers.Size>} the new size for the popup's 
-     *     contents div (in pixels).
-     */
-    setSize:function(contentSize) { 
-        this.size = contentSize.clone(); 
-        
-        // if our contentDiv has a css 'padding' set on it by a stylesheet, we 
-        //  must add that to the desired "size". 
-        var contentDivPadding = this.getContentDivPadding();
-        var wPadding = contentDivPadding.left + contentDivPadding.right;
-        var hPadding = contentDivPadding.top + contentDivPadding.bottom;
-
-        // take into account the popup's 'padding' property
-        this.fixPadding();
-        wPadding += this.padding.left + this.padding.right;
-        hPadding += this.padding.top + this.padding.bottom;
-
-        // make extra space for the close div
-        if (this.closeDiv) {
-            var closeDivWidth = parseInt(this.closeDiv.style.width);
-            wPadding += closeDivWidth + contentDivPadding.right;
-        }
-
-        //increase size of the main popup div to take into account the 
-        // users's desired padding and close div.        
-        this.size.w += wPadding;
-        this.size.h += hPadding;
-
-        //now if our browser is IE, we need to actually make the contents 
-        // div itself bigger to take its own padding into effect. this makes 
-        // me want to shoot someone, but so it goes.
-        if (OpenLayers.BROWSER_NAME == "msie") {
-            this.contentSize.w += 
-                contentDivPadding.left + contentDivPadding.right;
-            this.contentSize.h += 
-                contentDivPadding.bottom + contentDivPadding.top;
-        }
-
-        if (this.div != null) {
-            this.div.style.width = this.size.w + "px";
-            this.div.style.height = this.size.h + "px";
-        }
-        if (this.contentDiv != null){
-            this.contentDiv.style.width = contentSize.w + "px";
-            this.contentDiv.style.height = contentSize.h + "px";
-        }
-    },  
-
-    /**
-     * APIMethod: updateSize
-     * Auto size the popup so that it precisely fits its contents (as 
-     *     determined by this.contentDiv.innerHTML). Popup size will, of
-     *     course, be limited by the available space on the current map
-     */
-    updateSize: function() {
-        
-        // determine actual render dimensions of the contents by putting its
-        // contents into a fake contentDiv (for the CSS) and then measuring it
-        var preparedHTML = "<div class='" + this.contentDisplayClass+ "'>" + 
-            this.contentDiv.innerHTML + 
-            "</div>";
- 
-        var containerElement = (this.map) ? this.map.div : document.body;
-        var realSize = OpenLayers.Util.getRenderedDimensions(
-            preparedHTML, null, {
-                displayClass: this.displayClass,
-                containerElement: containerElement
-            }
-        );
-
-        // is the "real" size of the div is safe to display in our map?
-        var safeSize = this.getSafeContentSize(realSize);
-
-        var newSize = null;
-        if (safeSize.equals(realSize)) {
-            //real size of content is small enough to fit on the map, 
-            // so we use real size.
-            newSize = realSize;
-
-        } else {
-
-            // make a new 'size' object with the clipped dimensions 
-            // set or null if not clipped.
-            var fixedSize = {
-                w: (safeSize.w < realSize.w) ? safeSize.w : null,
-                h: (safeSize.h < realSize.h) ? safeSize.h : null
-            };
-        
-            if (fixedSize.w && fixedSize.h) {
-                //content is too big in both directions, so we will use 
-                // max popup size (safeSize), knowing well that it will 
-                // overflow both ways.                
-                newSize = safeSize;
-            } else {
-                //content is clipped in only one direction, so we need to 
-                // run getRenderedDimensions() again with a fixed dimension
-                var clippedSize = OpenLayers.Util.getRenderedDimensions(
-                    preparedHTML, fixedSize, {
-                        displayClass: this.contentDisplayClass,
-                        containerElement: containerElement
-                    }
-                );
-                
-                //if the clipped size is still the same as the safeSize, 
-                // that means that our content must be fixed in the 
-                // offending direction. If overflow is 'auto', this means 
-                // we are going to have a scrollbar for sure, so we must 
-                // adjust for that.
-                //
-                var currentOverflow = OpenLayers.Element.getStyle(
-                    this.contentDiv, "overflow"
-                );
-                if ( (currentOverflow != "hidden") && 
-                     (clippedSize.equals(safeSize)) ) {
-                    var scrollBar = OpenLayers.Util.getScrollbarWidth();
-                    if (fixedSize.w) {
-                        clippedSize.h += scrollBar;
-                    } else {
-                        clippedSize.w += scrollBar;
-                    }
-                }
-                
-                newSize = this.getSafeContentSize(clippedSize);
-            }
-        }                        
-        this.setSize(newSize);     
-    },    
-
-    /**
-     * Method: setBackgroundColor
-     * Sets the background color of the popup.
-     *
-     * Parameters:
-     * color - {String} the background color.  eg "#FFBBBB"
-     */
-    setBackgroundColor:function(color) { 
-        if (color != undefined) {
-            this.backgroundColor = color; 
-        }
-        
-        if (this.div != null) {
-            this.div.style.backgroundColor = this.backgroundColor;
-        }
-    },  
-    
-    /**
-     * Method: setOpacity
-     * Sets the opacity of the popup.
-     * 
-     * Parameters:
-     * opacity - {float} A value between 0.0 (transparent) and 1.0 (solid).   
-     */
-    setOpacity:function(opacity) { 
-        if (opacity != undefined) {
-            this.opacity = opacity; 
-        }
-        
-        if (this.div != null) {
-            // for Mozilla and Safari
-            this.div.style.opacity = this.opacity;
-
-            // for IE
-            this.div.style.filter = 'alpha(opacity=' + this.opacity*100 + ')';
-        }
-    },  
-    
-    /**
-     * Method: setBorder
-     * Sets the border style of the popup.
-     *
-     * Parameters:
-     * border - {String} The border style value. eg 2px 
-     */
-    setBorder:function(border) { 
-        if (border != undefined) {
-            this.border = border;
-        }
-        
-        if (this.div != null) {
-            this.div.style.border = this.border;
-        }
-    },      
-    
-    /**
-     * Method: setContentHTML
-     * Allows the user to set the HTML content of the popup.
-     *
-     * Parameters:
-     * contentHTML - {String} HTML for the div.
-     */
-    setContentHTML:function(contentHTML) {
-
-        if (contentHTML != null) {
-            this.contentHTML = contentHTML;
-        }
-       
-        if ((this.contentDiv != null) && 
-            (this.contentHTML != null) &&
-            (this.contentHTML != this.contentDiv.innerHTML)) {
-       
-            this.contentDiv.innerHTML = this.contentHTML;
-       
-            if (this.autoSize) {
-                
-                //if popup has images, listen for when they finish
-                // loading and resize accordingly
-                this.registerImageListeners();
-
-                //auto size the popup to its current contents
-                this.updateSize();
-            }
-        }    
-
-    },
-    
-    /**
-     * Method: registerImageListeners
-     * Called when an image contained by the popup loaded. this function
-     *     updates the popup size, then unregisters the image load listener.
-     */   
-    registerImageListeners: function() { 
-
-        // As the images load, this function will call updateSize() to 
-        // resize the popup to fit the content div (which presumably is now
-        // bigger than when the image was not loaded).
-        // 
-        // If the 'panMapIfOutOfView' property is set, we will pan the newly
-        // resized popup back into view.
-        // 
-        // Note that this function, when called, will have 'popup' and 
-        // 'img' properties in the context.
-        //
-        var onImgLoad = function() {
-            if (this.popup.id === null) { // this.popup has been destroyed!
-                return;
-            }
-            this.popup.updateSize();
-     
-            if ( this.popup.visible() && this.popup.panMapIfOutOfView ) {
-                this.popup.panIntoView();
-            }
-
-            OpenLayers.Event.stopObserving(
-                this.img, "load", this.img._onImageLoad
-            );
-    
-        };
-
-        //cycle through the images and if their size is 0x0, that means that 
-        // they haven't been loaded yet, so we attach the listener, which 
-        // will fire when the images finish loading and will resize the 
-        // popup accordingly to its new size.
-        var images = this.contentDiv.getElementsByTagName("img");
-        for (var i = 0, len = images.length; i < len; i++) {
-            var img = images[i];
-            if (img.width == 0 || img.height == 0) {
-
-                var context = {
-                    'popup': this,
-                    'img': img
-                };
-
-                //expando this function to the image itself before registering
-                // it. This way we can easily and properly unregister it.
-                img._onImgLoad = OpenLayers.Function.bind(onImgLoad, context);
-
-                OpenLayers.Event.observe(img, 'load', img._onImgLoad);
-            }    
-        } 
-    },
-
-    /**
-     * APIMethod: getSafeContentSize
-     * 
-     * Parameters:
-     * size - {<OpenLayers.Size>} Desired size to make the popup.
-     * 
-     * Returns:
-     * {<OpenLayers.Size>} A size to make the popup which is neither smaller
-     *     than the specified minimum size, nor bigger than the maximum 
-     *     size (which is calculated relative to the size of the viewport).
-     */
-    getSafeContentSize: function(size) {
-
-        var safeContentSize = size.clone();
-
-        // if our contentDiv has a css 'padding' set on it by a stylesheet, we 
-        //  must add that to the desired "size". 
-        var contentDivPadding = this.getContentDivPadding();
-        var wPadding = contentDivPadding.left + contentDivPadding.right;
-        var hPadding = contentDivPadding.top + contentDivPadding.bottom;
-
-        // take into account the popup's 'padding' property
-        this.fixPadding();
-        wPadding += this.padding.left + this.padding.right;
-        hPadding += this.padding.top + this.padding.bottom;
-
-        if (this.closeDiv) {
-            var closeDivWidth = parseInt(this.closeDiv.style.width);
-            wPadding += closeDivWidth + contentDivPadding.right;
-        }
-
-        // prevent the popup from being smaller than a specified minimal size
-        if (this.minSize) {
-            safeContentSize.w = Math.max(safeContentSize.w, 
-                (this.minSize.w - wPadding));
-            safeContentSize.h = Math.max(safeContentSize.h, 
-                (this.minSize.h - hPadding));
-        }
-
-        // prevent the popup from being bigger than a specified maximum size
-        if (this.maxSize) {
-            safeContentSize.w = Math.min(safeContentSize.w, 
-                (this.maxSize.w - wPadding));
-            safeContentSize.h = Math.min(safeContentSize.h, 
-                (this.maxSize.h - hPadding));
-        }
-        
-        //make sure the desired size to set doesn't result in a popup that 
-        // is bigger than the map's viewport.
-        //
-        if (this.map && this.map.size) {
-            
-            var extraX = 0, extraY = 0;
-            if (this.keepInMap && !this.panMapIfOutOfView) {
-                var px = this.map.getPixelFromLonLat(this.lonlat);
-                switch (this.relativePosition) {
-                    case "tr":
-                        extraX = px.x;
-                        extraY = this.map.size.h - px.y;
-                        break;
-                    case "tl":
-                        extraX = this.map.size.w - px.x;
-                        extraY = this.map.size.h - px.y;
-                        break;
-                    case "bl":
-                        extraX = this.map.size.w - px.x;
-                        extraY = px.y;
-                        break;
-                    case "br":
-                        extraX = px.x;
-                        extraY = px.y;
-                        break;
-                    default:    
-                        extraX = px.x;
-                        extraY = this.map.size.h - px.y;
-                        break;
-                }
-            }    
-          
-            var maxY = this.map.size.h - 
-                this.map.paddingForPopups.top - 
-                this.map.paddingForPopups.bottom - 
-                hPadding - extraY;
-            
-            var maxX = this.map.size.w - 
-                this.map.paddingForPopups.left - 
-                this.map.paddingForPopups.right - 
-                wPadding - extraX;
-            
-            safeContentSize.w = Math.min(safeContentSize.w, maxX);
-            safeContentSize.h = Math.min(safeContentSize.h, maxY);
-        }
-        
-        return safeContentSize;
-    },
-    
-    /**
-     * Method: getContentDivPadding
-     * Glorious, oh glorious hack in order to determine the css 'padding' of 
-     *     the contentDiv. IE/Opera return null here unless we actually add the 
-     *     popup's main 'div' element (which contains contentDiv) to the DOM. 
-     *     So we make it invisible and then add it to the document temporarily. 
-     *
-     *     Once we've taken the padding readings we need, we then remove it 
-     *     from the DOM (it will actually get added to the DOM in 
-     *     Map.js's addPopup)
-     *
-     * Returns:
-     * {<OpenLayers.Bounds>}
-     */
-    getContentDivPadding: function() {
-
-        //use cached value if we have it
-        var contentDivPadding = this._contentDivPadding;
-        if (!contentDivPadding) {
-
-            if (this.div.parentNode == null) {
-                //make the div invisible and add it to the page        
-                this.div.style.display = "none";
-                document.body.appendChild(this.div);
-            }
-                    
-            //read the padding settings from css, put them in an OL.Bounds        
-            contentDivPadding = new OpenLayers.Bounds(
-                OpenLayers.Element.getStyle(this.contentDiv, "padding-left"),
-                OpenLayers.Element.getStyle(this.contentDiv, "padding-bottom"),
-                OpenLayers.Element.getStyle(this.contentDiv, "padding-right"),
-                OpenLayers.Element.getStyle(this.contentDiv, "padding-top")
-            );
-    
-            //cache the value
-            this._contentDivPadding = contentDivPadding;
-
-            if (this.div.parentNode == document.body) {
-                //remove the div from the page and make it visible again
-                document.body.removeChild(this.div);
-                this.div.style.display = "";
-            }
-        }
-        return contentDivPadding;
-    },
-
-    /**
-     * Method: addCloseBox
-     * 
-     * Parameters:
-     * callback - {Function} The callback to be called when the close button
-     *     is clicked.
-     */
-    addCloseBox: function(callback) {
-
-        this.closeDiv = OpenLayers.Util.createDiv(
-            this.id + "_close", null, {w: 17, h: 17}
-        );
-        this.closeDiv.className = "olPopupCloseBox"; 
-        
-        // use the content div's css padding to determine if we should
-        //  padd the close div
-        var contentDivPadding = this.getContentDivPadding();
-         
-        this.closeDiv.style.right = contentDivPadding.right + "px";
-        this.closeDiv.style.top = contentDivPadding.top + "px";
-        this.groupDiv.appendChild(this.closeDiv);
-
-        var closePopup = callback || function(e) {
-            this.hide();
-            OpenLayers.Event.stop(e);
-        };
-        OpenLayers.Event.observe(this.closeDiv, "touchend", 
-                OpenLayers.Function.bindAsEventListener(closePopup, this));
-        OpenLayers.Event.observe(this.closeDiv, "click", 
-                OpenLayers.Function.bindAsEventListener(closePopup, this));
-    },
-
-    /**
-     * Method: panIntoView
-     * Pans the map such that the popup is totaly viewable (if necessary)
-     */
-    panIntoView: function() {
-        
-        var mapSize = this.map.getSize();
-    
-        //start with the top left corner of the popup, in px, 
-        // relative to the viewport
-        var origTL = this.map.getViewPortPxFromLayerPx( new OpenLayers.Pixel(
-            parseInt(this.div.style.left),
-            parseInt(this.div.style.top)
-        ));
-        var newTL = origTL.clone();
-    
-        //new left (compare to margins, using this.size to calculate right)
-        if (origTL.x < this.map.paddingForPopups.left) {
-            newTL.x = this.map.paddingForPopups.left;
-        } else 
-        if ( (origTL.x + this.size.w) > (mapSize.w - this.map.paddingForPopups.right)) {
-            newTL.x = mapSize.w - this.map.paddingForPopups.right - this.size.w;
-        }
-        
-        //new top (compare to margins, using this.size to calculate bottom)
-        if (origTL.y < this.map.paddingForPopups.top) {
-            newTL.y = this.map.paddingForPopups.top;
-        } else 
-        if ( (origTL.y + this.size.h) > (mapSize.h - this.map.paddingForPopups.bottom)) {
-            newTL.y = mapSize.h - this.map.paddingForPopups.bottom - this.size.h;
-        }
-        
-        var dx = origTL.x - newTL.x;
-        var dy = origTL.y - newTL.y;
-        
-        this.map.pan(dx, dy);
-    },
-
-    /** 
-     * Method: registerEvents
-     * Registers events on the popup.
-     *
-     * Do this in a separate function so that subclasses can 
-     *   choose to override it if they wish to deal differently
-     *   with mouse events
-     * 
-     *   Note in the following handler functions that some special
-     *    care is needed to deal correctly with mousing and popups. 
-     *   
-     *   Because the user might select the zoom-rectangle option and
-     *    then drag it over a popup, we need a safe way to allow the
-     *    mousemove and mouseup events to pass through the popup when
-     *    they are initiated from outside. The same procedure is needed for
-     *    touchmove and touchend events.
-     * 
-     *   Otherwise, we want to essentially kill the event propagation
-     *    for all other events, though we have to do so carefully, 
-     *    without disabling basic html functionality, like clicking on 
-     *    hyperlinks or drag-selecting text.
-     */
-     registerEvents:function() {
-        this.events = new OpenLayers.Events(this, this.div, null, true);
-
-        function onTouchstart(evt) {
-            OpenLayers.Event.stop(evt, true);
-        }
-        this.events.on({
-            "mousedown": this.onmousedown,
-            "mousemove": this.onmousemove,
-            "mouseup": this.onmouseup,
-            "click": this.onclick,
-            "mouseout": this.onmouseout,
-            "dblclick": this.ondblclick,
-            "touchstart": onTouchstart,
-            scope: this
-        });
-        
-     },
-
-    /** 
-     * Method: onmousedown 
-     * When mouse goes down within the popup, make a note of
-     *   it locally, and then do not propagate the mousedown 
-     *   (but do so safely so that user can select text inside)
-     * 
-     * Parameters:
-     * evt - {Event} 
-     */
-    onmousedown: function (evt) {
-        this.mousedown = true;
-        OpenLayers.Event.stop(evt, true);
-    },
-
-    /** 
-     * Method: onmousemove
-     * If the drag was started within the popup, then 
-     *   do not propagate the mousemove (but do so safely
-     *   so that user can select text inside)
-     * 
-     * Parameters:
-     * evt - {Event} 
-     */
-    onmousemove: function (evt) {
-        if (this.mousedown) {
-            OpenLayers.Event.stop(evt, true);
-        }
-    },
-
-    /** 
-     * Method: onmouseup
-     * When mouse comes up within the popup, after going down 
-     *   in it, reset the flag, and then (once again) do not 
-     *   propagate the event, but do so safely so that user can 
-     *   select text inside
-     * 
-     * Parameters:
-     * evt - {Event} 
-     */
-    onmouseup: function (evt) {
-        if (this.mousedown) {
-            this.mousedown = false;
-            OpenLayers.Event.stop(evt, true);
-        }
-    },
-
-    /**
-     * Method: onclick
-     * Ignore clicks, but allowing default browser handling
-     * 
-     * Parameters:
-     * evt - {Event} 
-     */
-    onclick: function (evt) {
-        OpenLayers.Event.stop(evt, true);
-    },
-
-    /** 
-     * Method: onmouseout
-     * When mouse goes out of the popup set the flag to false so that
-     *   if they let go and then drag back in, we won't be confused.
-     * 
-     * Parameters:
-     * evt - {Event} 
-     */
-    onmouseout: function (evt) {
-        this.mousedown = false;
-    },
-    
-    /** 
-     * Method: ondblclick
-     * Ignore double-clicks, but allowing default browser handling
-     * 
-     * Parameters:
-     * evt - {Event} 
-     */
-    ondblclick: function (evt) {
-        OpenLayers.Event.stop(evt, true);
-    },
-
-    CLASS_NAME: "OpenLayers.Popup"
-});
-
-OpenLayers.Popup.WIDTH = 200;
-OpenLayers.Popup.HEIGHT = 200;
-OpenLayers.Popup.COLOR = "white";
-OpenLayers.Popup.OPACITY = 1;
-OpenLayers.Popup.BORDER = "0px";
-/* ======================================================================
-    OpenLayers/Popup/Anchored.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-
-/**
- * @requires OpenLayers/Popup.js
+ * @requires OpenLayers/Format.js
+ * @requires OpenLayers/Feature/Vector.js
  */
 
 /**
- * Class: OpenLayers.Popup.Anchored
+ * Class: OpenLayers.Format.WKT
+ * Class for reading and writing Well-Known Text.  Create a new instance
+ * with the <OpenLayers.Format.WKT> constructor.
  * 
  * Inherits from:
- *  - <OpenLayers.Popup>
+ *  - <OpenLayers.Format>
  */
-OpenLayers.Popup.Anchored = 
-  OpenLayers.Class(OpenLayers.Popup, {
-
-    /** 
-     * Property: relativePosition
-     * {String} Relative position of the popup ("br", "tr", "tl" or "bl").
-     */
-    relativePosition: null,
+OpenLayers.Format.WKT = OpenLayers.Class(OpenLayers.Format, {
     
     /**
-     * APIProperty: keepInMap 
-     * {Boolean} If panMapIfOutOfView is false, and this property is true, 
-     *     contrain the popup such that it always fits in the available map
-     *     space. By default, this is set. If you are creating popups that are
-     *     near map edges and not allowing pannning, and especially if you have
-     *     a popup which has a fixedRelativePosition, setting this to false may
-     *     be a smart thing to do.
-     *   
-     *     For anchored popups, default is true, since subclasses will
-     *     usually want this functionality.
-     */
-    keepInMap: true,
-
-    /**
-     * Property: anchor
-     * {Object} Object to which we'll anchor the popup. Must expose a 
-     *     'size' (<OpenLayers.Size>) and 'offset' (<OpenLayers.Pixel>).
-     */
-    anchor: null,
-
-    /** 
-    * Constructor: OpenLayers.Popup.Anchored
-    * 
-    * Parameters:
-    * id - {String}
-    * lonlat - {<OpenLayers.LonLat>}
-    * contentSize - {<OpenLayers.Size>}
-    * contentHTML - {String}
-    * anchor - {Object} Object which must expose a 'size' <OpenLayers.Size> 
-    *     and 'offset' <OpenLayers.Pixel> (generally an <OpenLayers.Icon>).
-    * closeBox - {Boolean}
-    * closeBoxCallback - {Function} Function to be called on closeBox click.
-    */
-    initialize:function(id, lonlat, contentSize, contentHTML, anchor, closeBox,
-                        closeBoxCallback) {
-        var newArguments = [
-            id, lonlat, contentSize, contentHTML, closeBox, closeBoxCallback
-        ];
-        OpenLayers.Popup.prototype.initialize.apply(this, newArguments);
-
-        this.anchor = (anchor != null) ? anchor 
-                                       : { size: new OpenLayers.Size(0,0),
-                                           offset: new OpenLayers.Pixel(0,0)};
-    },
-
-    /**
-     * APIMethod: destroy
-     */
-    destroy: function() {
-        this.anchor = null;
-        this.relativePosition = null;
-        
-        OpenLayers.Popup.prototype.destroy.apply(this, arguments);        
-    },
-
-    /**
-     * APIMethod: show
-     * Overridden from Popup since user might hide popup and then show() it 
-     *     in a new location (meaning we might want to update the relative
-     *     position on the show)
-     */
-    show: function() {
-        this.updatePosition();
-        OpenLayers.Popup.prototype.show.apply(this, arguments);
-    },
-
-    /**
-     * Method: moveTo
-     * Since the popup is moving to a new px, it might need also to be moved
-     *     relative to where the marker is. We first calculate the new 
-     *     relativePosition, and then we calculate the new px where we will 
-     *     put the popup, based on the new relative position. 
-     * 
-     *     If the relativePosition has changed, we must also call 
-     *     updateRelativePosition() to make any visual changes to the popup 
-     *     which are associated with putting it in a new relativePosition.
-     * 
+     * Constructor: OpenLayers.Format.WKT
+     * Create a new parser for WKT
+     *
      * Parameters:
-     * px - {<OpenLayers.Pixel>}
+     * options - {Object} An optional object whose properties will be set on
+     *           this instance
+     *
+     * Returns:
+     * {<OpenLayers.Format.WKT>} A new WKT parser.
      */
-    moveTo: function(px) {
-        var oldRelativePosition = this.relativePosition;
-        this.relativePosition = this.calculateRelativePosition(px);
-        
-        var newPx = this.calculateNewPx(px);
-        
-        var newArguments = new Array(newPx);        
-        OpenLayers.Popup.prototype.moveTo.apply(this, newArguments);
-        
-        //if this move has caused the popup to change its relative position, 
-        // we need to make the appropriate cosmetic changes.
-        if (this.relativePosition != oldRelativePosition) {
-            this.updateRelativePosition();
-        }
+    initialize: function(options) {
+        this.regExes = {
+            'typeStr': /^\s*(\w+)\s*\(\s*(.*)\s*\)\s*$/,
+            'spaces': /\s+/,
+            'parenComma': /\)\s*,\s*\(/,
+            'doubleParenComma': /\)\s*\)\s*,\s*\(\s*\(/,  // can't use {2} here
+            'trimParens': /^\s*\(?(.*?)\)?\s*$/
+        };
+        OpenLayers.Format.prototype.initialize.apply(this, [options]);
     },
 
     /**
-     * APIMethod: setSize
-     * 
+     * Method: read
+     * Deserialize a WKT string and return a vector feature or an
+     * array of vector features.  Supports WKT for POINT, MULTIPOINT,
+     * LINESTRING, MULTILINESTRING, POLYGON, MULTIPOLYGON, and
+     * GEOMETRYCOLLECTION.
+     *
      * Parameters:
-     * contentSize - {<OpenLayers.Size>} the new size for the popup's 
-     *     contents div (in pixels).
+     * wkt - {String} A WKT string
+     *
+     * Returns:
+     * {<OpenLayers.Feature.Vector>|Array} A feature or array of features for
+     * GEOMETRYCOLLECTION WKT.
      */
-    setSize:function(contentSize) { 
-        OpenLayers.Popup.prototype.setSize.apply(this, arguments);
+    read: function(wkt) {
+        var features, type, str;
+        wkt = wkt.replace(/[\n\r]/g, " ");
+        var matches = this.regExes.typeStr.exec(wkt);
+        if(matches) {
+            type = matches[1].toLowerCase();
+            str = matches[2];
+            if(this.parse[type]) {
+                features = this.parse[type].apply(this, [str]);
+            }
+            if (this.internalProjection && this.externalProjection) {
+                if (features && 
+                    features.CLASS_NAME == "OpenLayers.Feature.Vector") {
+                    features.geometry.transform(this.externalProjection,
+                                                this.internalProjection);
+                } else if (features &&
+                           type != "geometrycollection" &&
+                           typeof features == "object") {
+                    for (var i=0, len=features.length; i<len; i++) {
+                        var component = features[i];
+                        component.geometry.transform(this.externalProjection,
+                                                     this.internalProjection);
+                    }
+                }
+            }
+        }    
+        return features;
+    },
 
-        if ((this.lonlat) && (this.map)) {
-            var px = this.map.getLayerPxFromLonLat(this.lonlat);
-            this.moveTo(px);
+    /**
+     * Method: write
+     * Serialize a feature or array of features into a WKT string.
+     *
+     * Parameters:
+     * features - {<OpenLayers.Feature.Vector>|Array} A feature or array of
+     *            features
+     *
+     * Returns:
+     * {String} The WKT string representation of the input geometries
+     */
+    write: function(features) {
+        var collection, geometry, type, data, isCollection;
+        if (features.constructor == Array) {
+            collection = features;
+            isCollection = true;
+        } else {
+            collection = [features];
+            isCollection = false;
         }
-    },  
+        var pieces = [];
+        if (isCollection) {
+            pieces.push('GEOMETRYCOLLECTION(');
+        }
+        for (var i=0, len=collection.length; i<len; ++i) {
+            if (isCollection && i>0) {
+                pieces.push(',');
+            }
+            geometry = collection[i].geometry;
+            pieces.push(this.extractGeometry(geometry));
+        }
+        if (isCollection) {
+            pieces.push(')');
+        }
+        return pieces.join('');
+    },
+
+    /**
+     * Method: extractGeometry
+     * Entry point to construct the WKT for a single Geometry object.
+     *
+     * Parameters:
+     * geometry - {<OpenLayers.Geometry.Geometry>}
+     *
+     * Returns:
+     * {String} A WKT string of representing the geometry
+     */
+    extractGeometry: function(geometry) {
+        var type = geometry.CLASS_NAME.split('.')[2].toLowerCase();
+        if (!this.extract[type]) {
+            return null;
+        }
+        if (this.internalProjection && this.externalProjection) {
+            geometry = geometry.clone();
+            geometry.transform(this.internalProjection, this.externalProjection);
+        }                       
+        var wktType = type == 'collection' ? 'GEOMETRYCOLLECTION' : type.toUpperCase();
+        var data = wktType + '(' + this.extract[type].apply(this, [geometry]) + ')';
+        return data;
+    },
     
-    /** 
-     * Method: calculateRelativePosition
-     * 
-     * Parameters:
-     * px - {<OpenLayers.Pixel>}
-     * 
-     * Returns:
-     * {String} The relative position ("br" "tr" "tl" "bl") at which the popup
-     *     should be placed.
-     */
-    calculateRelativePosition:function(px) {
-        var lonlat = this.map.getLonLatFromLayerPx(px);        
-        
-        var extent = this.map.getExtent();
-        var quadrant = extent.determineQuadrant(lonlat);
-        
-        return OpenLayers.Bounds.oppositeQuadrant(quadrant);
-    }, 
-
     /**
-     * Method: updateRelativePosition
-     * The popup has been moved to a new relative location, so we may want to 
-     *     make some cosmetic adjustments to it. 
-     * 
-     *     Note that in the classic Anchored popup, there is nothing to do 
-     *     here, since the popup looks exactly the same in all four positions.
-     *     Subclasses such as Framed, however, will want to do something
-     *     special here.
+     * Object with properties corresponding to the geometry types.
+     * Property values are functions that do the actual data extraction.
      */
-    updateRelativePosition: function() {
-        //to be overridden by subclasses
-    },
+    extract: {
+        /**
+         * Return a space delimited string of point coordinates.
+         * @param {OpenLayers.Geometry.Point} point
+         * @returns {String} A string of coordinates representing the point
+         */
+        'point': function(point) {
+            return point.x + ' ' + point.y;
+        },
 
-    /** 
-     * Method: calculateNewPx
-     * 
-     * Parameters:
-     * px - {<OpenLayers.Pixel>}
-     * 
-     * Returns:
-     * {<OpenLayers.Pixel>} The the new px position of the popup on the screen
-     *     relative to the passed-in px.
-     */
-    calculateNewPx:function(px) {
-        var newPx = px.offset(this.anchor.offset);
-        
-        //use contentSize if size is not already set
-        var size = this.size || this.contentSize;
-
-        var top = (this.relativePosition.charAt(0) == 't');
-        newPx.y += (top) ? -size.h : this.anchor.size.h;
-        
-        var left = (this.relativePosition.charAt(1) == 'l');
-        newPx.x += (left) ? -size.w : this.anchor.size.w;
-
-        return newPx;   
-    },
-
-    CLASS_NAME: "OpenLayers.Popup.Anchored"
-});
-/* ======================================================================
-    OpenLayers/Popup/Framed.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/Popup/Anchored.js
- */
-
-/**
- * Class: OpenLayers.Popup.Framed
- * 
- * Inherits from:
- *  - <OpenLayers.Popup.Anchored>
- */
-OpenLayers.Popup.Framed =
-  OpenLayers.Class(OpenLayers.Popup.Anchored, {
-
-    /**
-     * Property: imageSrc
-     * {String} location of the image to be used as the popup frame
-     */
-    imageSrc: null,
-
-    /**
-     * Property: imageSize
-     * {<OpenLayers.Size>} Size (measured in pixels) of the image located
-     *     by the 'imageSrc' property.
-     */
-    imageSize: null,
-
-    /**
-     * APIProperty: isAlphaImage
-     * {Boolean} The image has some alpha and thus needs to use the alpha 
-     *     image hack. Note that setting this to true will have no noticeable
-     *     effect in FF or IE7 browsers, but will all but crush the ie6 
-     *     browser. 
-     *     Default is false.
-     */
-    isAlphaImage: false,
-
-    /**
-     * Property: positionBlocks
-     * {Object} Hash of different position blocks (Object/Hashs). Each block 
-     *     will be keyed by a two-character 'relativePosition' 
-     *     code string (ie "tl", "tr", "bl", "br"). Block properties are 
-     *     'offset', 'padding' (self-explanatory), and finally the 'blocks'
-     *     parameter, which is an array of the block objects. 
-     * 
-     *     Each block object must have 'size', 'anchor', and 'position' 
-     *     properties.
-     * 
-     *     Note that positionBlocks should never be modified at runtime.
-     */
-    positionBlocks: null,
-
-    /**
-     * Property: blocks
-     * {Array[Object]} Array of objects, each of which is one "block" of the 
-     *     popup. Each block has a 'div' and an 'image' property, both of 
-     *     which are DOMElements, and the latter of which is appended to the 
-     *     former. These are reused as the popup goes changing positions for
-     *     great economy and elegance.
-     */
-    blocks: null,
-
-    /** 
-     * APIProperty: fixedRelativePosition
-     * {Boolean} We want the framed popup to work dynamically placed relative
-     *     to its anchor but also in just one fixed position. A well designed
-     *     framed popup will have the pixels and logic to display itself in 
-     *     any of the four relative positions, but (understandably), this will
-     *     not be the case for all of them. By setting this property to 'true', 
-     *     framed popup will not recalculate for the best placement each time
-     *     it's open, but will always open the same way. 
-     *     Note that if this is set to true, it is generally advisable to also
-     *     set the 'panIntoView' property to true so that the popup can be 
-     *     scrolled into view (since it will often be offscreen on open)
-     *     Default is false.
-     */
-    fixedRelativePosition: false,
-
-    /** 
-     * Constructor: OpenLayers.Popup.Framed
-     * 
-     * Parameters:
-     * id - {String}
-     * lonlat - {<OpenLayers.LonLat>}
-     * contentSize - {<OpenLayers.Size>}
-     * contentHTML - {String}
-     * anchor - {Object} Object to which we'll anchor the popup. Must expose 
-     *     a 'size' (<OpenLayers.Size>) and 'offset' (<OpenLayers.Pixel>) 
-     *     (Note that this is generally an <OpenLayers.Icon>).
-     * closeBox - {Boolean}
-     * closeBoxCallback - {Function} Function to be called on closeBox click.
-     */
-    initialize:function(id, lonlat, contentSize, contentHTML, anchor, closeBox, 
-                        closeBoxCallback) {
-
-        OpenLayers.Popup.Anchored.prototype.initialize.apply(this, arguments);
-
-        if (this.fixedRelativePosition) {
-            //based on our decided relativePostion, set the current padding
-            // this keeps us from getting into trouble 
-            this.updateRelativePosition();
-            
-            //make calculateRelativePosition always return the specified
-            // fixed position.
-            this.calculateRelativePosition = function(px) {
-                return this.relativePosition;
-            };
-        }
-
-        this.contentDiv.style.position = "absolute";
-        this.contentDiv.style.zIndex = 1;
-
-        if (closeBox) {
-            this.closeDiv.style.zIndex = 1;
-        }
-
-        this.groupDiv.style.position = "absolute";
-        this.groupDiv.style.top = "0px";
-        this.groupDiv.style.left = "0px";
-        this.groupDiv.style.height = "100%";
-        this.groupDiv.style.width = "100%";
-    },
-
-    /** 
-     * APIMethod: destroy
-     */
-    destroy: function() {
-        this.imageSrc = null;
-        this.imageSize = null;
-        this.isAlphaImage = null;
-
-        this.fixedRelativePosition = false;
-        this.positionBlocks = null;
-
-        //remove our blocks
-        for(var i = 0; i < this.blocks.length; i++) {
-            var block = this.blocks[i];
-
-            if (block.image) {
-                block.div.removeChild(block.image);
+        /**
+         * Return a comma delimited string of point coordinates from a multipoint.
+         * @param {OpenLayers.Geometry.MultiPoint} multipoint
+         * @returns {String} A string of point coordinate strings representing
+         *                  the multipoint
+         */
+        'multipoint': function(multipoint) {
+            var array = [];
+            for(var i=0, len=multipoint.components.length; i<len; ++i) {
+                array.push('(' +
+                           this.extract.point.apply(this, [multipoint.components[i]]) +
+                           ')');
             }
-            block.image = null;
-
-            if (block.div) {
-                this.groupDiv.removeChild(block.div);
-            }
-            block.div = null;
-        }
-        this.blocks = null;
-
-        OpenLayers.Popup.Anchored.prototype.destroy.apply(this, arguments);
-    },
-
-    /**
-     * APIMethod: setBackgroundColor
-     */
-    setBackgroundColor:function(color) {
-        //does nothing since the framed popup's entire scheme is based on a 
-        // an image -- changing the background color makes no sense. 
-    },
-
-    /**
-     * APIMethod: setBorder
-     */
-    setBorder:function() {
-        //does nothing since the framed popup's entire scheme is based on a 
-        // an image -- changing the popup's border makes no sense. 
-    },
-
-    /**
-     * Method: setOpacity
-     * Sets the opacity of the popup.
-     * 
-     * Parameters:
-     * opacity - {float} A value between 0.0 (transparent) and 1.0 (solid).   
-     */
-    setOpacity:function(opacity) {
-        //does nothing since we suppose that we'll never apply an opacity
-        // to a framed popup
-    },
-
-    /**
-     * APIMethod: setSize
-     * Overridden here, because we need to update the blocks whenever the size
-     *     of the popup has changed.
-     * 
-     * Parameters:
-     * contentSize - {<OpenLayers.Size>} the new size for the popup's 
-     *     contents div (in pixels).
-     */
-    setSize:function(contentSize) { 
-        OpenLayers.Popup.Anchored.prototype.setSize.apply(this, arguments);
-
-        this.updateBlocks();
-    },
-
-    /**
-     * Method: updateRelativePosition
-     * When the relative position changes, we need to set the new padding 
-     *     BBOX on the popup, reposition the close div, and update the blocks.
-     */
-    updateRelativePosition: function() {
-
-        //update the padding
-        this.padding = this.positionBlocks[this.relativePosition].padding;
-
-        //update the position of our close box to new padding
-        if (this.closeDiv) {
-            // use the content div's css padding to determine if we should
-            //  padd the close div
-            var contentDivPadding = this.getContentDivPadding();
-
-            this.closeDiv.style.right = contentDivPadding.right + 
-                                        this.padding.right + "px";
-            this.closeDiv.style.top = contentDivPadding.top + 
-                                      this.padding.top + "px";
-        }
-
-        this.updateBlocks();
-    },
-
-    /** 
-     * Method: calculateNewPx
-     * Besides the standard offset as determined by the Anchored class, our 
-     *     Framed popups have a special 'offset' property for each of their 
-     *     positions, which is used to offset the popup relative to its anchor.
-     * 
-     * Parameters:
-     * px - {<OpenLayers.Pixel>}
-     * 
-     * Returns:
-     * {<OpenLayers.Pixel>} The the new px position of the popup on the screen
-     *     relative to the passed-in px.
-     */
-    calculateNewPx:function(px) {
-        var newPx = OpenLayers.Popup.Anchored.prototype.calculateNewPx.apply(
-            this, arguments
-        );
-
-        newPx = newPx.offset(this.positionBlocks[this.relativePosition].offset);
-
-        return newPx;
-    },
-
-    /**
-     * Method: createBlocks
-     */
-    createBlocks: function() {
-        this.blocks = [];
-
-        //since all positions contain the same number of blocks, we can 
-        // just pick the first position and use its blocks array to create
-        // our blocks array
-        var firstPosition = null;
-        for(var key in this.positionBlocks) {
-            firstPosition = key;
-            break;
-        }
+            return array.join(',');
+        },
         
-        var position = this.positionBlocks[firstPosition];
-        for (var i = 0; i < position.blocks.length; i++) {
+        /**
+         * Return a comma delimited string of point coordinates from a line.
+         * @param {OpenLayers.Geometry.LineString} linestring
+         * @returns {String} A string of point coordinate strings representing
+         *                  the linestring
+         */
+        'linestring': function(linestring) {
+            var array = [];
+            for(var i=0, len=linestring.components.length; i<len; ++i) {
+                array.push(this.extract.point.apply(this, [linestring.components[i]]));
+            }
+            return array.join(',');
+        },
 
-            var block = {};
-            this.blocks.push(block);
+        /**
+         * Return a comma delimited string of linestring strings from a multilinestring.
+         * @param {OpenLayers.Geometry.MultiLineString} multilinestring
+         * @returns {String} A string of of linestring strings representing
+         *                  the multilinestring
+         */
+        'multilinestring': function(multilinestring) {
+            var array = [];
+            for(var i=0, len=multilinestring.components.length; i<len; ++i) {
+                array.push('(' +
+                           this.extract.linestring.apply(this, [multilinestring.components[i]]) +
+                           ')');
+            }
+            return array.join(',');
+        },
+        
+        /**
+         * Return a comma delimited string of linear ring arrays from a polygon.
+         * @param {OpenLayers.Geometry.Polygon} polygon
+         * @returns {String} An array of linear ring arrays representing the polygon
+         */
+        'polygon': function(polygon) {
+            var array = [];
+            for(var i=0, len=polygon.components.length; i<len; ++i) {
+                array.push('(' +
+                           this.extract.linestring.apply(this, [polygon.components[i]]) +
+                           ')');
+            }
+            return array.join(',');
+        },
 
-            var divId = this.id + '_FrameDecorationDiv_' + i;
-            block.div = OpenLayers.Util.createDiv(divId, 
-                null, null, null, "absolute", null, "hidden", null
+        /**
+         * Return an array of polygon arrays from a multipolygon.
+         * @param {OpenLayers.Geometry.MultiPolygon} multipolygon
+         * @returns {String} An array of polygon arrays representing
+         *                  the multipolygon
+         */
+        'multipolygon': function(multipolygon) {
+            var array = [];
+            for(var i=0, len=multipolygon.components.length; i<len; ++i) {
+                array.push('(' +
+                           this.extract.polygon.apply(this, [multipolygon.components[i]]) +
+                           ')');
+            }
+            return array.join(',');
+        },
+
+        /**
+         * Return the WKT portion between 'GEOMETRYCOLLECTION(' and ')' for an <OpenLayers.Geometry.Collection>
+         * @param {OpenLayers.Geometry.Collection} collection
+         * @returns {String} internal WKT representation of the collection
+         */
+        'collection': function(collection) {
+            var array = [];
+            for(var i=0, len=collection.components.length; i<len; ++i) {
+                array.push(this.extractGeometry.apply(this, [collection.components[i]]));
+            }
+            return array.join(',');
+        }
+
+    },
+
+    /**
+     * Object with properties corresponding to the geometry types.
+     * Property values are functions that do the actual parsing.
+     */
+    parse: {
+        /**
+         * Return point feature given a point WKT fragment.
+         * @param {String} str A WKT fragment representing the point
+         * @returns {OpenLayers.Feature.Vector} A point feature
+         * @private
+         */
+        'point': function(str) {
+            var coords = OpenLayers.String.trim(str).split(this.regExes.spaces);
+            return new OpenLayers.Feature.Vector(
+                new OpenLayers.Geometry.Point(coords[0], coords[1])
             );
+        },
 
-            var imgId = this.id + '_FrameDecorationImg_' + i;
-            var imageCreator = 
-                (this.isAlphaImage) ? OpenLayers.Util.createAlphaImageDiv
-                                    : OpenLayers.Util.createImage;
-
-            block.image = imageCreator(imgId, 
-                null, this.imageSize, this.imageSrc, 
-                "absolute", null, null, null
-            );
-
-            block.div.appendChild(block.image);
-            this.groupDiv.appendChild(block.div);
-        }
-    },
-
-    /**
-     * Method: updateBlocks
-     * Internal method, called on initialize and when the popup's relative
-     *     position has changed. This function takes care of re-positioning
-     *     the popup's blocks in their appropropriate places.
-     */
-    updateBlocks: function() {
-        if (!this.blocks) {
-            this.createBlocks();
-        }
-        
-        if (this.size && this.relativePosition) {
-            var position = this.positionBlocks[this.relativePosition];
-            for (var i = 0; i < position.blocks.length; i++) {
-    
-                var positionBlock = position.blocks[i];
-                var block = this.blocks[i];
-    
-                // adjust sizes
-                var l = positionBlock.anchor.left;
-                var b = positionBlock.anchor.bottom;
-                var r = positionBlock.anchor.right;
-                var t = positionBlock.anchor.top;
-    
-                //note that we use the isNaN() test here because if the 
-                // size object is initialized with a "auto" parameter, the 
-                // size constructor calls parseFloat() on the string, 
-                // which will turn it into NaN
-                //
-                var w = (isNaN(positionBlock.size.w)) ? this.size.w - (r + l) 
-                                                      : positionBlock.size.w;
-    
-                var h = (isNaN(positionBlock.size.h)) ? this.size.h - (b + t) 
-                                                      : positionBlock.size.h;
-    
-                block.div.style.width = (w < 0 ? 0 : w) + 'px';
-                block.div.style.height = (h < 0 ? 0 : h) + 'px';
-    
-                block.div.style.left = (l != null) ? l + 'px' : '';
-                block.div.style.bottom = (b != null) ? b + 'px' : '';
-                block.div.style.right = (r != null) ? r + 'px' : '';            
-                block.div.style.top = (t != null) ? t + 'px' : '';
-    
-                block.image.style.left = positionBlock.position.x + 'px';
-                block.image.style.top = positionBlock.position.y + 'px';
+        /**
+         * Return a multipoint feature given a multipoint WKT fragment.
+         * @param {String} str A WKT fragment representing the multipoint
+         * @returns {OpenLayers.Feature.Vector} A multipoint feature
+         * @private
+         */
+        'multipoint': function(str) {
+            var point;
+            var points = OpenLayers.String.trim(str).split(',');
+            var components = [];
+            for(var i=0, len=points.length; i<len; ++i) {
+                point = points[i].replace(this.regExes.trimParens, '$1');
+                components.push(this.parse.point.apply(this, [point]).geometry);
             }
-    
-            this.contentDiv.style.left = this.padding.left + "px";
-            this.contentDiv.style.top = this.padding.top + "px";
+            return new OpenLayers.Feature.Vector(
+                new OpenLayers.Geometry.MultiPoint(components)
+            );
+        },
+        
+        /**
+         * Return a linestring feature given a linestring WKT fragment.
+         * @param {String} str A WKT fragment representing the linestring
+         * @returns {OpenLayers.Feature.Vector} A linestring feature
+         * @private
+         */
+        'linestring': function(str) {
+            var points = OpenLayers.String.trim(str).split(',');
+            var components = [];
+            for(var i=0, len=points.length; i<len; ++i) {
+                components.push(this.parse.point.apply(this, [points[i]]).geometry);
+            }
+            return new OpenLayers.Feature.Vector(
+                new OpenLayers.Geometry.LineString(components)
+            );
+        },
+
+        /**
+         * Return a multilinestring feature given a multilinestring WKT fragment.
+         * @param {String} str A WKT fragment representing the multilinestring
+         * @returns {OpenLayers.Feature.Vector} A multilinestring feature
+         * @private
+         */
+        'multilinestring': function(str) {
+            var line;
+            var lines = OpenLayers.String.trim(str).split(this.regExes.parenComma);
+            var components = [];
+            for(var i=0, len=lines.length; i<len; ++i) {
+                line = lines[i].replace(this.regExes.trimParens, '$1');
+                components.push(this.parse.linestring.apply(this, [line]).geometry);
+            }
+            return new OpenLayers.Feature.Vector(
+                new OpenLayers.Geometry.MultiLineString(components)
+            );
+        },
+        
+        /**
+         * Return a polygon feature given a polygon WKT fragment.
+         * @param {String} str A WKT fragment representing the polygon
+         * @returns {OpenLayers.Feature.Vector} A polygon feature
+         * @private
+         */
+        'polygon': function(str) {
+            var ring, linestring, linearring;
+            var rings = OpenLayers.String.trim(str).split(this.regExes.parenComma);
+            var components = [];
+            for(var i=0, len=rings.length; i<len; ++i) {
+                ring = rings[i].replace(this.regExes.trimParens, '$1');
+                linestring = this.parse.linestring.apply(this, [ring]).geometry;
+                linearring = new OpenLayers.Geometry.LinearRing(linestring.components);
+                components.push(linearring);
+            }
+            return new OpenLayers.Feature.Vector(
+                new OpenLayers.Geometry.Polygon(components)
+            );
+        },
+
+        /**
+         * Return a multipolygon feature given a multipolygon WKT fragment.
+         * @param {String} str A WKT fragment representing the multipolygon
+         * @returns {OpenLayers.Feature.Vector} A multipolygon feature
+         * @private
+         */
+        'multipolygon': function(str) {
+            var polygon;
+            var polygons = OpenLayers.String.trim(str).split(this.regExes.doubleParenComma);
+            var components = [];
+            for(var i=0, len=polygons.length; i<len; ++i) {
+                polygon = polygons[i].replace(this.regExes.trimParens, '$1');
+                components.push(this.parse.polygon.apply(this, [polygon]).geometry);
+            }
+            return new OpenLayers.Feature.Vector(
+                new OpenLayers.Geometry.MultiPolygon(components)
+            );
+        },
+
+        /**
+         * Return an array of features given a geometrycollection WKT fragment.
+         * @param {String} str A WKT fragment representing the geometrycollection
+         * @returns {Array} An array of OpenLayers.Feature.Vector
+         * @private
+         */
+        'geometrycollection': function(str) {
+            // separate components of the collection with |
+            str = str.replace(/,\s*([A-Za-z])/g, '|$1');
+            var wktArray = OpenLayers.String.trim(str).split('|');
+            var components = [];
+            for(var i=0, len=wktArray.length; i<len; ++i) {
+                components.push(OpenLayers.Format.WKT.prototype.read.apply(this,[wktArray[i]]));
+            }
+            return components;
         }
+
     },
 
-    CLASS_NAME: "OpenLayers.Popup.Framed"
-});
+    CLASS_NAME: "OpenLayers.Format.WKT" 
+});     
 /* ======================================================================
     OpenLayers/Format/GeoJSON.js
    ====================================================================== */
@@ -38584,6 +39523,394 @@ OpenLayers.Request = {
      */
     OpenLayers.Request.XMLHttpRequest = cXMLHttpRequest;
 })();
+/* ======================================================================
+    OpenLayers/Format/WMSCapabilities/v1_1.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Format/WMSCapabilities/v1.js
+ */
+
+/**
+ * Class: OpenLayers.Format.WMSCapabilities.v1_1
+ * Abstract class not to be instantiated directly.
+ * 
+ * Inherits from:
+ *  - <OpenLayers.Format.WMSCapabilities.v1>
+ */
+OpenLayers.Format.WMSCapabilities.v1_1 = OpenLayers.Class(
+    OpenLayers.Format.WMSCapabilities.v1, {
+    
+    /**
+     * Property: readers
+     * Contains public functions, grouped by namespace prefix, that will
+     *     be applied when a namespaced node is found matching the function
+     *     name.  The function will be applied in the scope of this parser
+     *     with two arguments: the node being read and a context object passed
+     *     from the parent.
+     */
+    readers: {
+        "wms": OpenLayers.Util.applyDefaults({
+            "WMT_MS_Capabilities": function(node, obj) {
+                this.readChildNodes(node, obj);
+            },
+            "Keyword": function(node, obj) {
+                if (obj.keywords) {
+                    obj.keywords.push(this.getChildValue(node));
+                }
+            },
+            "DescribeLayer": function(node, obj) {
+                obj.describelayer = {formats: []};
+                this.readChildNodes(node, obj.describelayer);
+            },
+            "GetLegendGraphic": function(node, obj) {
+                obj.getlegendgraphic = {formats: []};
+                this.readChildNodes(node, obj.getlegendgraphic);
+            },
+            "GetStyles": function(node, obj) {
+                obj.getstyles = {formats: []};
+                this.readChildNodes(node, obj.getstyles);
+            },
+            "PutStyles": function(node, obj) {
+                obj.putstyles = {formats: []};
+                this.readChildNodes(node, obj.putstyles);
+            },
+            "UserDefinedSymbolization": function(node, obj) {
+                var userSymbols = {
+                    supportSLD: parseInt(node.getAttribute("SupportSLD")) == 1,
+                    userLayer: parseInt(node.getAttribute("UserLayer")) == 1,
+                    userStyle: parseInt(node.getAttribute("UserStyle")) == 1,
+                    remoteWFS: parseInt(node.getAttribute("RemoteWFS")) == 1
+                };
+                obj.userSymbols = userSymbols;
+            },
+            "LatLonBoundingBox": function(node, obj) {
+                obj.llbbox = [
+                    parseFloat(node.getAttribute("minx")),
+                    parseFloat(node.getAttribute("miny")),
+                    parseFloat(node.getAttribute("maxx")),
+                    parseFloat(node.getAttribute("maxy"))
+                ];
+            },
+            "BoundingBox": function(node, obj) {
+                var bbox = OpenLayers.Format.WMSCapabilities.v1.prototype.readers["wms"].BoundingBox.apply(this, [node, obj]);
+                bbox.srs  = node.getAttribute("SRS");
+                obj.bbox[bbox.srs] = bbox;
+            },
+            "ScaleHint": function(node, obj) {
+                var min = node.getAttribute("min");
+                var max = node.getAttribute("max");
+                var rad2 = Math.pow(2, 0.5);
+                var ipm = OpenLayers.INCHES_PER_UNIT["m"];
+                obj.maxScale = parseFloat(
+                    ((min / rad2) * ipm * 
+                        OpenLayers.DOTS_PER_INCH).toPrecision(13)
+                );
+                obj.minScale = parseFloat(
+                    ((max / rad2) * ipm * 
+                        OpenLayers.DOTS_PER_INCH).toPrecision(13)
+                );
+            },
+            "Dimension": function(node, obj) {
+                var name = node.getAttribute("name").toLowerCase();
+                var dim = {
+                    name: name,
+                    units: node.getAttribute("units"),
+                    unitsymbol: node.getAttribute("unitSymbol")
+                };
+                obj.dimensions[dim.name] = dim;
+            },
+            "Extent": function(node, obj) {
+                var name = node.getAttribute("name").toLowerCase();
+                if (name in obj["dimensions"]) {
+                    var extent = obj.dimensions[name];
+                    extent.nearestVal = 
+                        node.getAttribute("nearestValue") === "1";
+                    extent.multipleVal = 
+                        node.getAttribute("multipleValues") === "1";
+                    extent.current = node.getAttribute("current") === "1";
+                    extent["default"] = node.getAttribute("default") || "";
+                    var values = this.getChildValue(node);
+                    extent.values = values.split(",");
+                }
+                }
+        }, OpenLayers.Format.WMSCapabilities.v1.prototype.readers["wms"])
+    },
+
+    CLASS_NAME: "OpenLayers.Format.WMSCapabilities.v1_1" 
+
+});
+/* ======================================================================
+    OpenLayers/Filter/Comparison.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Filter.js
+ */
+
+/**
+ * Class: OpenLayers.Filter.Comparison
+ * This class represents a comparison filter.
+ * 
+ * Inherits from:
+ * - <OpenLayers.Filter>
+ */
+OpenLayers.Filter.Comparison = OpenLayers.Class(OpenLayers.Filter, {
+
+    /**
+     * APIProperty: type
+     * {String} type: type of the comparison. This is one of
+     * - OpenLayers.Filter.Comparison.EQUAL_TO                 = "==";
+     * - OpenLayers.Filter.Comparison.NOT_EQUAL_TO             = "!=";
+     * - OpenLayers.Filter.Comparison.LESS_THAN                = "<";
+     * - OpenLayers.Filter.Comparison.GREATER_THAN             = ">";
+     * - OpenLayers.Filter.Comparison.LESS_THAN_OR_EQUAL_TO    = "<=";
+     * - OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO = ">=";
+     * - OpenLayers.Filter.Comparison.BETWEEN                  = "..";
+     * - OpenLayers.Filter.Comparison.LIKE                     = "~"; 
+     */
+    type: null,
+    
+    /**
+     * APIProperty: property
+     * {String}
+     * name of the context property to compare
+     */
+    property: null,
+    
+    /**
+     * APIProperty: value
+     * {Number} or {String}
+     * comparison value for binary comparisons. In the case of a String, this
+     * can be a combination of text and propertyNames in the form
+     * "literal ${propertyName}"
+     */
+    value: null,
+    
+    /**
+     * Property: matchCase
+     * {Boolean} Force case sensitive searches for EQUAL_TO and NOT_EQUAL_TO
+     *     comparisons.  The Filter Encoding 1.1 specification added a matchCase
+     *     attribute to ogc:PropertyIsEqualTo and ogc:PropertyIsNotEqualTo
+     *     elements.  This property will be serialized with those elements only
+     *     if using the v1.1.0 filter format. However, when evaluating filters
+     *     here, the matchCase property will always be respected (for EQUAL_TO
+     *     and NOT_EQUAL_TO).  Default is true. 
+     */
+    matchCase: true,
+    
+    /**
+     * APIProperty: lowerBoundary
+     * {Number} or {String}
+     * lower boundary for between comparisons. In the case of a String, this
+     * can be a combination of text and propertyNames in the form
+     * "literal ${propertyName}"
+     */
+    lowerBoundary: null,
+    
+    /**
+     * APIProperty: upperBoundary
+     * {Number} or {String}
+     * upper boundary for between comparisons. In the case of a String, this
+     * can be a combination of text and propertyNames in the form
+     * "literal ${propertyName}"
+     */
+    upperBoundary: null,
+
+    /** 
+     * Constructor: OpenLayers.Filter.Comparison
+     * Creates a comparison rule.
+     *
+     * Parameters:
+     * options - {Object} An optional object with properties to set on the
+     *           rule
+     * 
+     * Returns:
+     * {<OpenLayers.Filter.Comparison>}
+     */
+    initialize: function(options) {
+        OpenLayers.Filter.prototype.initialize.apply(this, [options]);
+        // since matchCase on PropertyIsLike is not schema compliant, we only
+        // want to use this if explicitly asked for
+        if (this.type === OpenLayers.Filter.Comparison.LIKE 
+            && options.matchCase === undefined) {
+                this.matchCase = null;
+        }
+    },
+
+    /**
+     * APIMethod: evaluate
+     * Evaluates this filter in a specific context.
+     * 
+     * Parameters:
+     * context - {Object} Context to use in evaluating the filter.  If a vector
+     *     feature is provided, the feature.attributes will be used as context.
+     * 
+     * Returns:
+     * {Boolean} The filter applies.
+     */
+    evaluate: function(context) {
+        if (context instanceof OpenLayers.Feature.Vector) {
+            context = context.attributes;
+        }
+        var result = false;
+        var got = context[this.property];
+        var exp;
+        switch(this.type) {
+            case OpenLayers.Filter.Comparison.EQUAL_TO:
+                exp = this.value;
+                if(!this.matchCase &&
+                   typeof got == "string" && typeof exp == "string") {
+                    result = (got.toUpperCase() == exp.toUpperCase());
+                } else {
+                    result = (got == exp);
+                }
+                break;
+            case OpenLayers.Filter.Comparison.NOT_EQUAL_TO:
+                exp = this.value;
+                if(!this.matchCase &&
+                   typeof got == "string" && typeof exp == "string") {
+                    result = (got.toUpperCase() != exp.toUpperCase());
+                } else {
+                    result = (got != exp);
+                }
+                break;
+            case OpenLayers.Filter.Comparison.LESS_THAN:
+                result = got < this.value;
+                break;
+            case OpenLayers.Filter.Comparison.GREATER_THAN:
+                result = got > this.value;
+                break;
+            case OpenLayers.Filter.Comparison.LESS_THAN_OR_EQUAL_TO:
+                result = got <= this.value;
+                break;
+            case OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO:
+                result = got >= this.value;
+                break;
+            case OpenLayers.Filter.Comparison.BETWEEN:
+                result = (got >= this.lowerBoundary) &&
+                    (got <= this.upperBoundary);
+                break;
+            case OpenLayers.Filter.Comparison.LIKE:
+                var regexp = new RegExp(this.value, "gi");
+                result = regexp.test(got);
+                break;
+        }
+        return result;
+    },
+    
+    /**
+     * APIMethod: value2regex
+     * Converts the value of this rule into a regular expression string,
+     * according to the wildcard characters specified. This method has to
+     * be called after instantiation of this class, if the value is not a
+     * regular expression already.
+     * 
+     * Parameters:
+     * wildCard   - {Char} wildcard character in the above value, default
+     *              is "*"
+     * singleChar - {Char} single-character wildcard in the above value
+     *              default is "."
+     * escapeChar - {Char} escape character in the above value, default is
+     *              "!"
+     * 
+     * Returns:
+     * {String} regular expression string
+     */
+    value2regex: function(wildCard, singleChar, escapeChar) {
+        if (wildCard == ".") {
+            throw new Error("'.' is an unsupported wildCard character for " +
+                            "OpenLayers.Filter.Comparison");
+        }
+        
+
+        // set UMN MapServer defaults for unspecified parameters
+        wildCard = wildCard ? wildCard : "*";
+        singleChar = singleChar ? singleChar : ".";
+        escapeChar = escapeChar ? escapeChar : "!";
+        
+        this.value = this.value.replace(
+                new RegExp("\\"+escapeChar+"(.|$)", "g"), "\\$1");
+        this.value = this.value.replace(
+                new RegExp("\\"+singleChar, "g"), ".");
+        this.value = this.value.replace(
+                new RegExp("\\"+wildCard, "g"), ".*");
+        this.value = this.value.replace(
+                new RegExp("\\\\.\\*", "g"), "\\"+wildCard);
+        this.value = this.value.replace(
+                new RegExp("\\\\\\.", "g"), "\\"+singleChar);
+        
+        return this.value;
+    },
+    
+    /**
+     * Method: regex2value
+     * Convert the value of this rule from a regular expression string into an
+     *     ogc literal string using a wildCard of *, a singleChar of ., and an
+     *     escape of !.  Leaves the <value> property unmodified.
+     * 
+     * Returns:
+     * {String} A string value.
+     */
+    regex2value: function() {
+        
+        var value = this.value;
+        
+        // replace ! with !!
+        value = value.replace(/!/g, "!!");
+
+        // replace \. with !. (watching out for \\.)
+        value = value.replace(/(\\)?\\\./g, function($0, $1) {
+            return $1 ? $0 : "!.";
+        });
+        
+        // replace \* with #* (watching out for \\*)
+        value = value.replace(/(\\)?\\\*/g, function($0, $1) {
+            return $1 ? $0 : "!*";
+        });
+        
+        // replace \\ with \
+        value = value.replace(/\\\\/g, "\\");
+
+        // convert .* to * (the sequence #.* is not allowed)
+        value = value.replace(/\.\*/g, "*");
+        
+        return value;
+    },
+    
+    /**
+     * APIMethod: clone
+     * Clones this filter.
+     * 
+     * Returns:
+     * {<OpenLayers.Filter.Comparison>} Clone of this filter.
+     */
+    clone: function() {
+        return OpenLayers.Util.extend(new OpenLayers.Filter.Comparison(), this);
+    },
+    
+    CLASS_NAME: "OpenLayers.Filter.Comparison"
+});
+
+
+OpenLayers.Filter.Comparison.EQUAL_TO                 = "==";
+OpenLayers.Filter.Comparison.NOT_EQUAL_TO             = "!=";
+OpenLayers.Filter.Comparison.LESS_THAN                = "<";
+OpenLayers.Filter.Comparison.GREATER_THAN             = ">";
+OpenLayers.Filter.Comparison.LESS_THAN_OR_EQUAL_TO    = "<=";
+OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO = ">=";
+OpenLayers.Filter.Comparison.BETWEEN                  = "..";
+OpenLayers.Filter.Comparison.LIKE                     = "~";
 /* ======================================================================
     OpenLayers/Control/DrawFeature.js
    ====================================================================== */
@@ -40285,6 +41612,441 @@ OpenLayers.Handler.Hover = OpenLayers.Class(OpenLayers.Handler, {
 
     CLASS_NAME: "OpenLayers.Handler.Hover"
 });
+/* ======================================================================
+    OpenLayers/Control/Panel.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Control.js
+ * @requires OpenLayers/Events/buttonclick.js
+ */
+
+/**
+ * Class: OpenLayers.Control.Panel
+ * The Panel control is a container for other controls. With it toolbars
+ * may be composed.
+ *
+ * Inherits from:
+ *  - <OpenLayers.Control>
+ */
+OpenLayers.Control.Panel = OpenLayers.Class(OpenLayers.Control, {
+    /**
+     * Property: controls
+     * {Array(<OpenLayers.Control>)}
+     */
+    controls: null,    
+    
+    /**
+     * APIProperty: autoActivate
+     * {Boolean} Activate the control when it is added to a map.  Default is
+     *     true.
+     */
+    autoActivate: true,
+
+    /** 
+     * APIProperty: defaultControl
+     * {<OpenLayers.Control>} The control which is activated when the control is
+     * activated (turned on), which also happens at instantiation.
+     * If <saveState> is true, <defaultControl> will be nullified after the
+     * first activation of the panel.
+     */
+    defaultControl: null,
+    
+    /**
+     * APIProperty: saveState
+     * {Boolean} If set to true, the active state of this panel's controls will
+     * be stored on panel deactivation, and restored on reactivation. Default
+     * is false.
+     */
+    saveState: false,
+      
+    /**
+     * APIProperty: allowDepress
+     * {Boolean} If is true the <OpenLayers.Control.TYPE_TOOL> controls can 
+     *     be deactivated by clicking the icon that represents them.  Default 
+     *     is false.
+     */
+    allowDepress: false,
+    
+    /**
+     * Property: activeState
+     * {Object} stores the active state of this panel's controls.
+     */
+    activeState: null,
+
+    /**
+     * Constructor: OpenLayers.Control.Panel
+     * Create a new control panel.
+     *
+     * Each control in the panel is represented by an icon. When clicking 
+     *     on an icon, the <activateControl> method is called.
+     *
+     * Specific properties for controls on a panel:
+     * type - {Number} One of <OpenLayers.Control.TYPE_TOOL>,
+     *     <OpenLayers.Control.TYPE_TOGGLE>, <OpenLayers.Control.TYPE_BUTTON>.
+     *     If not provided, <OpenLayers.Control.TYPE_TOOL> is assumed.
+     * title - {string} Text displayed when mouse is over the icon that 
+     *     represents the control.     
+     *
+     * The <OpenLayers.Control.type> of a control determines the behavior when
+     * clicking its icon:
+     * <OpenLayers.Control.TYPE_TOOL> - The control is activated and other
+     *     controls of this type in the same panel are deactivated. This is
+     *     the default type.
+     * <OpenLayers.Control.TYPE_TOGGLE> - The active state of the control is
+     *     toggled.
+     * <OpenLayers.Control.TYPE_BUTTON> - The
+     *     <OpenLayers.Control.Button.trigger> method of the control is called,
+     *     but its active state is not changed.
+     *
+     * If a control is <OpenLayers.Control.active>, it will be drawn with the
+     * olControl[Name]ItemActive class, otherwise with the
+     * olControl[Name]ItemInactive class.
+     *
+     * Parameters:
+     * options - {Object} An optional object whose properties will be used
+     *     to extend the control.
+     */
+    initialize: function(options) {
+        OpenLayers.Control.prototype.initialize.apply(this, [options]);
+        this.controls = [];
+        this.activeState = {};
+    },
+
+    /**
+     * APIMethod: destroy
+     */
+    destroy: function() {
+        if (this.map) {
+            this.map.events.unregister("buttonclick", this, this.onButtonClick);
+        }
+        OpenLayers.Control.prototype.destroy.apply(this, arguments);
+        for (var ctl, i = this.controls.length - 1; i >= 0; i--) {
+            ctl = this.controls[i];
+            if (ctl.events) {
+                ctl.events.un({
+                    activate: this.iconOn,
+                    deactivate: this.iconOff
+                });
+            }
+            ctl.panel_div = null;
+        }
+        this.activeState = null;
+    },
+
+    /**
+     * APIMethod: activate
+     */
+    activate: function() {
+        if (OpenLayers.Control.prototype.activate.apply(this, arguments)) {
+            var control;
+            for (var i=0, len=this.controls.length; i<len; i++) {
+                control = this.controls[i];
+                if (control === this.defaultControl ||
+                            (this.saveState && this.activeState[control.id])) {
+                    control.activate();
+                }
+            }    
+            if (this.saveState === true) {
+                this.defaultControl = null;
+            }
+            this.redraw();
+            return true;
+        } else {
+            return false;
+        }
+    },
+    
+    /**
+     * APIMethod: deactivate
+     */
+    deactivate: function() {
+        if (OpenLayers.Control.prototype.deactivate.apply(this, arguments)) {
+            var control;
+            for (var i=0, len=this.controls.length; i<len; i++) {
+                control = this.controls[i];
+                this.activeState[control.id] = control.deactivate();
+            }    
+            this.redraw();
+            return true;
+        } else {
+            return false;
+        }
+    },
+    
+    /**
+     * Method: draw
+     *
+     * Returns:
+     * {DOMElement}
+     */    
+    draw: function() {
+        OpenLayers.Control.prototype.draw.apply(this, arguments);
+        if (this.outsideViewport) {
+            this.events.attachToElement(this.div);
+            this.events.register("buttonclick", this, this.onButtonClick);
+        } else {
+            this.map.events.register("buttonclick", this, this.onButtonClick);
+        }
+        this.addControlsToMap(this.controls);
+        return this.div;
+    },
+
+    /**
+     * Method: redraw
+     */
+    redraw: function() {
+        for (var l=this.div.childNodes.length, i=l-1; i>=0; i--) {
+            this.div.removeChild(this.div.childNodes[i]);
+        }
+        this.div.innerHTML = "";
+        if (this.active) {
+            for (var i=0, len=this.controls.length; i<len; i++) {
+                this.div.appendChild(this.controls[i].panel_div);
+            }
+        }
+    },
+    
+    /**
+     * APIMethod: activateControl
+     * This method is called when the user click on the icon representing a 
+     *     control in the panel.
+     *
+     * Parameters:
+     * control - {<OpenLayers.Control>}
+     */
+    activateControl: function (control) {
+        if (!this.active) { return false; }
+        if (control.type == OpenLayers.Control.TYPE_BUTTON) {
+            control.trigger();
+            return;
+        }
+        if (control.type == OpenLayers.Control.TYPE_TOGGLE) {
+            if (control.active) {
+                control.deactivate();
+            } else {
+                control.activate();
+            }
+            return;
+        }
+        if (this.allowDepress && control.active) {
+            control.deactivate();
+        } else {
+            var c;
+            for (var i=0, len=this.controls.length; i<len; i++) {
+                c = this.controls[i];
+                if (c != control &&
+                   (c.type === OpenLayers.Control.TYPE_TOOL || c.type == null)) {
+                    c.deactivate();
+                }
+            }
+            control.activate();
+        }
+    },
+
+    /**
+     * APIMethod: addControls
+     * To build a toolbar, you add a set of controls to it. addControls
+     * lets you add a single control or a list of controls to the 
+     * Control Panel.
+     *
+     * Parameters:
+     * controls - {<OpenLayers.Control>} Controls to add in the panel.
+     */    
+    addControls: function(controls) {
+        if (!(OpenLayers.Util.isArray(controls))) {
+            controls = [controls];
+        }
+        this.controls = this.controls.concat(controls);
+
+        for (var i=0, len=controls.length; i<len; i++) {
+            var control = controls[i],
+                element = this.createControlMarkup(control);
+            OpenLayers.Element.addClass(element, 
+                                        control.displayClass + "ItemInactive");
+            OpenLayers.Element.addClass(element, "olButton");
+            if (control.title != ""  && !element.title) {
+                element.title = control.title;
+            }
+            control.panel_div = element;
+        }
+
+        if (this.map) { // map.addControl() has already been called on the panel
+            this.addControlsToMap(controls);
+            this.redraw();
+        }
+    },
+
+    /**
+     * APIMethod: createControlMarkup
+     * This function just creates a div for the control. If specific HTML
+     * markup is needed this function can be overridden in specific classes,
+     * or at panel instantiation time:
+     *
+     * Example:
+     * (code)
+     * var panel = new OpenLayers.Control.Panel({
+     *     defaultControl: control,
+     *     // ovverride createControlMarkup to create actual buttons
+     *     // including texts wrapped into span elements.
+     *     createControlMarkup: function(control) {
+     *         var button = document.createElement('button'),
+     *             span = document.createElement('span');
+     *         if (control.text) {
+     *             span.innerHTML = control.text;
+     *         }
+     *         return button;
+     *     }
+     *  });
+     * (end)
+     *
+     * Parameters:
+     * control - {<OpenLayers.Control>} The control to create the HTML
+     *     markup for.
+     *
+     * Returns:
+     * {DOMElement} The markup.
+     */
+    createControlMarkup: function(control) {
+        return document.createElement("div");
+    },
+   
+    /**
+     * Method: addControlsToMap
+     * Only for internal use in draw() and addControls() methods.
+     *
+     * Parameters:
+     * controls - {Array(<OpenLayers.Control>)} Controls to add into map.
+     */         
+    addControlsToMap: function (controls) {
+        var control;
+        for (var i=0, len=controls.length; i<len; i++) {
+            control = controls[i];
+            if (control.autoActivate === true) {
+                control.autoActivate = false;
+                this.map.addControl(control);
+                control.autoActivate = true;
+            } else {
+                this.map.addControl(control);
+                control.deactivate();
+            }
+            control.events.on({
+                activate: this.iconOn,
+                deactivate: this.iconOff
+            });
+        }  
+    },
+
+    /**
+     * Method: iconOn
+     * Internal use, for use only with "controls[i].events.on/un".
+     */
+     iconOn: function() {
+        var d = this.panel_div; // "this" refers to a control on panel!
+        var re = new RegExp("\\b(" + this.displayClass + "Item)Inactive\\b");
+        d.className = d.className.replace(re, "$1Active");
+    },
+
+    /**
+     * Method: iconOff
+     * Internal use, for use only with "controls[i].events.on/un".
+     */
+     iconOff: function() {
+        var d = this.panel_div; // "this" refers to a control on panel!
+        var re = new RegExp("\\b(" + this.displayClass + "Item)Active\\b");
+        d.className = d.className.replace(re, "$1Inactive");
+    },
+    
+    /**
+     * Method: onButtonClick
+     *
+     * Parameters:
+     * evt - {Event}
+     */
+    onButtonClick: function (evt) {
+        var controls = this.controls,
+            button = evt.buttonElement;
+        for (var i=controls.length-1; i>=0; --i) {
+            if (controls[i].panel_div === button) {
+                this.activateControl(controls[i]);
+                break;
+            }
+        }
+    },
+
+    /**
+     * APIMethod: getControlsBy
+     * Get a list of controls with properties matching the given criteria.
+     *
+     * Parameters:
+     * property - {String} A control property to be matched.
+     * match - {String | Object} A string to match.  Can also be a regular
+     *     expression literal or object.  In addition, it can be any object
+     *     with a method named test.  For reqular expressions or other, if
+     *     match.test(control[property]) evaluates to true, the control will be
+     *     included in the array returned.  If no controls are found, an empty
+     *     array is returned.
+     *
+     * Returns:
+     * {Array(<OpenLayers.Control>)} A list of controls matching the given criteria.
+     *     An empty array is returned if no matches are found.
+     */
+    getControlsBy: function(property, match) {
+        var test = (typeof match.test == "function");
+        var found = OpenLayers.Array.filter(this.controls, function(item) {
+            return item[property] == match || (test && match.test(item[property]));
+        });
+        return found;
+    },
+
+    /**
+     * APIMethod: getControlsByName
+     * Get a list of contorls with names matching the given name.
+     *
+     * Parameters:
+     * match - {String | Object} A control name.  The name can also be a regular
+     *     expression literal or object.  In addition, it can be any object
+     *     with a method named test.  For reqular expressions or other, if
+     *     name.test(control.name) evaluates to true, the control will be included
+     *     in the list of controls returned.  If no controls are found, an empty
+     *     array is returned.
+     *
+     * Returns:
+     * {Array(<OpenLayers.Control>)} A list of controls matching the given name.
+     *     An empty array is returned if no matches are found.
+     */
+    getControlsByName: function(match) {
+        return this.getControlsBy("name", match);
+    },
+
+    /**
+     * APIMethod: getControlsByClass
+     * Get a list of controls of a given type (CLASS_NAME).
+     *
+     * Parameters:
+     * match - {String | Object} A control class name.  The type can also be a
+     *     regular expression literal or object.  In addition, it can be any
+     *     object with a method named test.  For reqular expressions or other,
+     *     if type.test(control.CLASS_NAME) evaluates to true, the control will
+     *     be included in the list of controls returned.  If no controls are
+     *     found, an empty array is returned.
+     *
+     * Returns:
+     * {Array(<OpenLayers.Control>)} A list of controls matching the given type.
+     *     An empty array is returned if no matches are found.
+     */
+    getControlsByClass: function(match) {
+        return this.getControlsBy("CLASS_NAME", match);
+    },
+
+    CLASS_NAME: "OpenLayers.Control.Panel"
+});
+
 /* ======================================================================
     OpenLayers/Control/NavToolbar.js
    ====================================================================== */
@@ -45241,272 +47003,6 @@ OpenLayers.Control.UTFGrid = OpenLayers.Class(OpenLayers.Control, {
     CLASS_NAME: "OpenLayers.Control.UTFGrid"
 });
 /* ======================================================================
-    OpenLayers/Filter/Comparison.js
-   ====================================================================== */
-
-/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
- * full list of contributors). Published under the 2-clause BSD license.
- * See license.txt in the OpenLayers distribution or repository for the
- * full text of the license. */
-
-/**
- * @requires OpenLayers/Filter.js
- */
-
-/**
- * Class: OpenLayers.Filter.Comparison
- * This class represents a comparison filter.
- * 
- * Inherits from:
- * - <OpenLayers.Filter>
- */
-OpenLayers.Filter.Comparison = OpenLayers.Class(OpenLayers.Filter, {
-
-    /**
-     * APIProperty: type
-     * {String} type: type of the comparison. This is one of
-     * - OpenLayers.Filter.Comparison.EQUAL_TO                 = "==";
-     * - OpenLayers.Filter.Comparison.NOT_EQUAL_TO             = "!=";
-     * - OpenLayers.Filter.Comparison.LESS_THAN                = "<";
-     * - OpenLayers.Filter.Comparison.GREATER_THAN             = ">";
-     * - OpenLayers.Filter.Comparison.LESS_THAN_OR_EQUAL_TO    = "<=";
-     * - OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO = ">=";
-     * - OpenLayers.Filter.Comparison.BETWEEN                  = "..";
-     * - OpenLayers.Filter.Comparison.LIKE                     = "~"; 
-     */
-    type: null,
-    
-    /**
-     * APIProperty: property
-     * {String}
-     * name of the context property to compare
-     */
-    property: null,
-    
-    /**
-     * APIProperty: value
-     * {Number} or {String}
-     * comparison value for binary comparisons. In the case of a String, this
-     * can be a combination of text and propertyNames in the form
-     * "literal ${propertyName}"
-     */
-    value: null,
-    
-    /**
-     * Property: matchCase
-     * {Boolean} Force case sensitive searches for EQUAL_TO and NOT_EQUAL_TO
-     *     comparisons.  The Filter Encoding 1.1 specification added a matchCase
-     *     attribute to ogc:PropertyIsEqualTo and ogc:PropertyIsNotEqualTo
-     *     elements.  This property will be serialized with those elements only
-     *     if using the v1.1.0 filter format. However, when evaluating filters
-     *     here, the matchCase property will always be respected (for EQUAL_TO
-     *     and NOT_EQUAL_TO).  Default is true. 
-     */
-    matchCase: true,
-    
-    /**
-     * APIProperty: lowerBoundary
-     * {Number} or {String}
-     * lower boundary for between comparisons. In the case of a String, this
-     * can be a combination of text and propertyNames in the form
-     * "literal ${propertyName}"
-     */
-    lowerBoundary: null,
-    
-    /**
-     * APIProperty: upperBoundary
-     * {Number} or {String}
-     * upper boundary for between comparisons. In the case of a String, this
-     * can be a combination of text and propertyNames in the form
-     * "literal ${propertyName}"
-     */
-    upperBoundary: null,
-
-    /** 
-     * Constructor: OpenLayers.Filter.Comparison
-     * Creates a comparison rule.
-     *
-     * Parameters:
-     * options - {Object} An optional object with properties to set on the
-     *           rule
-     * 
-     * Returns:
-     * {<OpenLayers.Filter.Comparison>}
-     */
-    initialize: function(options) {
-        OpenLayers.Filter.prototype.initialize.apply(this, [options]);
-        // since matchCase on PropertyIsLike is not schema compliant, we only
-        // want to use this if explicitly asked for
-        if (this.type === OpenLayers.Filter.Comparison.LIKE 
-            && options.matchCase === undefined) {
-                this.matchCase = null;
-        }
-    },
-
-    /**
-     * APIMethod: evaluate
-     * Evaluates this filter in a specific context.
-     * 
-     * Parameters:
-     * context - {Object} Context to use in evaluating the filter.  If a vector
-     *     feature is provided, the feature.attributes will be used as context.
-     * 
-     * Returns:
-     * {Boolean} The filter applies.
-     */
-    evaluate: function(context) {
-        if (context instanceof OpenLayers.Feature.Vector) {
-            context = context.attributes;
-        }
-        var result = false;
-        var got = context[this.property];
-        var exp;
-        switch(this.type) {
-            case OpenLayers.Filter.Comparison.EQUAL_TO:
-                exp = this.value;
-                if(!this.matchCase &&
-                   typeof got == "string" && typeof exp == "string") {
-                    result = (got.toUpperCase() == exp.toUpperCase());
-                } else {
-                    result = (got == exp);
-                }
-                break;
-            case OpenLayers.Filter.Comparison.NOT_EQUAL_TO:
-                exp = this.value;
-                if(!this.matchCase &&
-                   typeof got == "string" && typeof exp == "string") {
-                    result = (got.toUpperCase() != exp.toUpperCase());
-                } else {
-                    result = (got != exp);
-                }
-                break;
-            case OpenLayers.Filter.Comparison.LESS_THAN:
-                result = got < this.value;
-                break;
-            case OpenLayers.Filter.Comparison.GREATER_THAN:
-                result = got > this.value;
-                break;
-            case OpenLayers.Filter.Comparison.LESS_THAN_OR_EQUAL_TO:
-                result = got <= this.value;
-                break;
-            case OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO:
-                result = got >= this.value;
-                break;
-            case OpenLayers.Filter.Comparison.BETWEEN:
-                result = (got >= this.lowerBoundary) &&
-                    (got <= this.upperBoundary);
-                break;
-            case OpenLayers.Filter.Comparison.LIKE:
-                var regexp = new RegExp(this.value, "gi");
-                result = regexp.test(got);
-                break;
-        }
-        return result;
-    },
-    
-    /**
-     * APIMethod: value2regex
-     * Converts the value of this rule into a regular expression string,
-     * according to the wildcard characters specified. This method has to
-     * be called after instantiation of this class, if the value is not a
-     * regular expression already.
-     * 
-     * Parameters:
-     * wildCard   - {Char} wildcard character in the above value, default
-     *              is "*"
-     * singleChar - {Char} single-character wildcard in the above value
-     *              default is "."
-     * escapeChar - {Char} escape character in the above value, default is
-     *              "!"
-     * 
-     * Returns:
-     * {String} regular expression string
-     */
-    value2regex: function(wildCard, singleChar, escapeChar) {
-        if (wildCard == ".") {
-            throw new Error("'.' is an unsupported wildCard character for " +
-                            "OpenLayers.Filter.Comparison");
-        }
-        
-
-        // set UMN MapServer defaults for unspecified parameters
-        wildCard = wildCard ? wildCard : "*";
-        singleChar = singleChar ? singleChar : ".";
-        escapeChar = escapeChar ? escapeChar : "!";
-        
-        this.value = this.value.replace(
-                new RegExp("\\"+escapeChar+"(.|$)", "g"), "\\$1");
-        this.value = this.value.replace(
-                new RegExp("\\"+singleChar, "g"), ".");
-        this.value = this.value.replace(
-                new RegExp("\\"+wildCard, "g"), ".*");
-        this.value = this.value.replace(
-                new RegExp("\\\\.\\*", "g"), "\\"+wildCard);
-        this.value = this.value.replace(
-                new RegExp("\\\\\\.", "g"), "\\"+singleChar);
-        
-        return this.value;
-    },
-    
-    /**
-     * Method: regex2value
-     * Convert the value of this rule from a regular expression string into an
-     *     ogc literal string using a wildCard of *, a singleChar of ., and an
-     *     escape of !.  Leaves the <value> property unmodified.
-     * 
-     * Returns:
-     * {String} A string value.
-     */
-    regex2value: function() {
-        
-        var value = this.value;
-        
-        // replace ! with !!
-        value = value.replace(/!/g, "!!");
-
-        // replace \. with !. (watching out for \\.)
-        value = value.replace(/(\\)?\\\./g, function($0, $1) {
-            return $1 ? $0 : "!.";
-        });
-        
-        // replace \* with #* (watching out for \\*)
-        value = value.replace(/(\\)?\\\*/g, function($0, $1) {
-            return $1 ? $0 : "!*";
-        });
-        
-        // replace \\ with \
-        value = value.replace(/\\\\/g, "\\");
-
-        // convert .* to * (the sequence #.* is not allowed)
-        value = value.replace(/\.\*/g, "*");
-        
-        return value;
-    },
-    
-    /**
-     * APIMethod: clone
-     * Clones this filter.
-     * 
-     * Returns:
-     * {<OpenLayers.Filter.Comparison>} Clone of this filter.
-     */
-    clone: function() {
-        return OpenLayers.Util.extend(new OpenLayers.Filter.Comparison(), this);
-    },
-    
-    CLASS_NAME: "OpenLayers.Filter.Comparison"
-});
-
-
-OpenLayers.Filter.Comparison.EQUAL_TO                 = "==";
-OpenLayers.Filter.Comparison.NOT_EQUAL_TO             = "!=";
-OpenLayers.Filter.Comparison.LESS_THAN                = "<";
-OpenLayers.Filter.Comparison.GREATER_THAN             = ">";
-OpenLayers.Filter.Comparison.LESS_THAN_OR_EQUAL_TO    = "<=";
-OpenLayers.Filter.Comparison.GREATER_THAN_OR_EQUAL_TO = ">=";
-OpenLayers.Filter.Comparison.BETWEEN                  = "..";
-OpenLayers.Filter.Comparison.LIKE                     = "~";
-/* ======================================================================
     OpenLayers/Control/LayerSwitcher.js
    ====================================================================== */
 
@@ -46057,6 +47553,63 @@ OpenLayers.Control.LayerSwitcher =
     },
     
     CLASS_NAME: "OpenLayers.Control.LayerSwitcher"
+});
+/* ======================================================================
+    OpenLayers/Format/WMSCapabilities/v1_1_1.js
+   ====================================================================== */
+
+/* Copyright (c) 2006-2012 by OpenLayers Contributors (see authors.txt for 
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * @requires OpenLayers/Format/WMSCapabilities/v1_1.js
+ */
+
+/**
+ * Class: OpenLayers.Format.WMSCapabilities/v1_1_1
+ * Read WMS Capabilities version 1.1.1.
+ * 
+ * Inherits from:
+ *  - <OpenLayers.Format.WMSCapabilities.v1_1>
+ */
+OpenLayers.Format.WMSCapabilities.v1_1_1 = OpenLayers.Class(
+    OpenLayers.Format.WMSCapabilities.v1_1, {
+    
+    /**
+     * Property: version
+     * {String} The specific parser version.
+     */
+    version: "1.1.1",
+    
+    /**
+     * Constructor: OpenLayers.Format.WMSCapabilities.v1_1_1
+     * Create a new parser for WMS capabilities version 1.1.1.
+     *
+     * Parameters:
+     * options - {Object} An optional object whose properties will be set on
+     *     this instance.
+     */
+
+    /**
+     * Property: readers
+     * Contains public functions, grouped by namespace prefix, that will
+     *     be applied when a namespaced node is found matching the function
+     *     name.  The function will be applied in the scope of this parser
+     *     with two arguments: the node being read and a context object passed
+     *     from the parent.
+     */
+    readers: {
+        "wms": OpenLayers.Util.applyDefaults({
+            "SRS": function(node, obj) {
+                obj.srs[this.getChildValue(node)] = true;
+            }
+        }, OpenLayers.Format.WMSCapabilities.v1_1.prototype.readers["wms"])
+    },
+
+    CLASS_NAME: "OpenLayers.Format.WMSCapabilities.v1_1_1" 
+
 });
 /* ======================================================================
     OpenLayers/Control/ArgParser.js
