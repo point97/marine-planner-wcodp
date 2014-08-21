@@ -204,8 +204,18 @@ app.loadState = function(state) {
         if (layer) {
             //activate layer (/planner/#<layer-name>)
             app.viewModel.layerIndex[layer.id].activateLayer();
+            
             //set open theme
-            layer.themes()[0].setOpenTheme()
+            var theme = layer.themes()[0];
+            if (theme) {
+                layer.themes()[0].setOpenTheme();    
+            } else {
+                layer.parent.themes()[0].setOpenTheme();
+            }
+            // layer.themes()[0].setOpenTheme();
+            
+            // switch to active tab
+            setTimeout( function() { $('#activeTab').tab('show'); }, 200 );
         }
         return;
     }
