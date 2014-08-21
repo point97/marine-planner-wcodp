@@ -8,45 +8,53 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Adding field 'Layer.filterable'
+        db.add_column(u'data_manager_layer', 'filterable',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
         # Adding field 'Layer.geoportal_id'
-        db.add_column('data_manager_layer', 'geoportal_id',
+        db.add_column(u'data_manager_layer', 'geoportal_id',
                       self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True),
                       keep_default=False)
 
 
     def backwards(self, orm):
+        # Deleting field 'Layer.filterable'
+        db.delete_column(u'data_manager_layer', 'filterable')
+
         # Deleting field 'Layer.geoportal_id'
-        db.delete_column('data_manager_layer', 'geoportal_id')
+        db.delete_column(u'data_manager_layer', 'geoportal_id')
 
 
     models = {
-        'data_manager.attributeinfo': {
+        u'data_manager.attributeinfo': {
             'Meta': {'object_name': 'AttributeInfo'},
             'display_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'field_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'order': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
             'precision': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'})
         },
-        'data_manager.dataneed': {
+        u'data_manager.dataneed': {
             'Meta': {'object_name': 'DataNeed'},
             'archived': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'contact': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'contact_email': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'expected_date': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'notes': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'source': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'status': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'themes': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['data_manager.Theme']", 'null': 'True', 'blank': 'True'})
+            'themes': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['data_manager.Theme']", 'null': 'True', 'blank': 'True'})
         },
-        'data_manager.layer': {
+        u'data_manager.layer': {
             'Meta': {'object_name': 'Layer'},
             'arcgis_layers': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'attribute_event': ('django.db.models.fields.CharField', [], {'default': "'click'", 'max_length': '35'}),
-            'attribute_fields': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['data_manager.AttributeInfo']", 'null': 'True', 'blank': 'True'}),
+            'attribute_fields': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['data_manager.AttributeInfo']", 'null': 'True', 'blank': 'True'}),
             'attribute_title': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'bookmark': ('django.db.models.fields.CharField', [], {'max_length': '755', 'null': 'True', 'blank': 'True'}),
             'compress_display': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -55,8 +63,9 @@ class Migration(SchemaMigration):
             'data_overview': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'data_source': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'filterable': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'geoportal_id': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_sublayer': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'kml': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'layer_type': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
@@ -64,7 +73,7 @@ class Migration(SchemaMigration):
             'legend_subtitle': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'legend_title': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'lookup_field': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'lookup_table': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['data_manager.LookupInfo']", 'null': 'True', 'blank': 'True'}),
+            'lookup_table': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['data_manager.LookupInfo']", 'null': 'True', 'blank': 'True'}),
             'map_tiles': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'metadata': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '244'}),
@@ -74,9 +83,9 @@ class Migration(SchemaMigration):
             'shareable_url': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'slug_name': ('django.db.models.fields.CharField', [], {'max_length': '244', 'null': 'True', 'blank': 'True'}),
             'source': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'sublayers': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'sublayers_rel_+'", 'null': 'True', 'to': "orm['data_manager.Layer']"}),
+            'sublayers': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'sublayers_rel_+'", 'null': 'True', 'to': u"orm['data_manager.Layer']"}),
             'summarize_to_grid': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'themes': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['data_manager.Theme']", 'null': 'True', 'blank': 'True'}),
+            'themes': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['data_manager.Theme']", 'null': 'True', 'blank': 'True'}),
             'url': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'utfjsonp': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'utfurl': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
@@ -85,16 +94,16 @@ class Migration(SchemaMigration):
             'vector_graphic': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'wms_slug': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'})
         },
-        'data_manager.lookupinfo': {
+        u'data_manager.lookupinfo': {
             'Meta': {'object_name': 'LookupInfo'},
             'color': ('django.db.models.fields.CharField', [], {'max_length': '7', 'null': 'True', 'blank': 'True'}),
             'dashstyle': ('django.db.models.fields.CharField', [], {'default': "'solid'", 'max_length': '11'}),
             'fill': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'graphic': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'value': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'})
         },
-        'data_manager.theme': {
+        u'data_manager.theme': {
             'Meta': {'object_name': 'Theme'},
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'display_name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
@@ -105,23 +114,23 @@ class Migration(SchemaMigration):
             'feature_link': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'header_attrib': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'header_image': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'overview': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'thumbnail': ('django.db.models.fields.URLField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'})
         },
-        'data_manager.toc': {
+        u'data_manager.toc': {
             'Meta': {'object_name': 'TOC'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'themes': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['data_manager.TOCTheme']", 'null': 'True', 'blank': 'True'})
+            'themes': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['data_manager.TOCTheme']", 'null': 'True', 'blank': 'True'})
         },
-        'data_manager.toctheme': {
+        u'data_manager.toctheme': {
             'Meta': {'object_name': 'TOCTheme'},
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'display_name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'layers': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['data_manager.Layer']", 'null': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'layers': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['data_manager.Layer']", 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         }
     }
