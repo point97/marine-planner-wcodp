@@ -9,7 +9,6 @@ from models import *
 
 
 #@cache_page(60 * 60 * 24, key_prefix="data_manager_get_json")
-@jsonp
 def get_json(request, project=None):
     from mp_settings.models import *
     try:
@@ -42,6 +41,7 @@ def get_json(request, project=None):
 '''
 Responds with a json object containing a list of those layers containing a Geoportal UUID 
 '''
+@jsonp
 def geoportal_ids(request): 
     geoportal_layers = Layer.objects.exclude(geoportal_id__isnull=True).exclude(geoportal_id__exact='')
     json = { "geoportal_layers": [] }
@@ -51,7 +51,7 @@ def geoportal_ids(request):
             "slug": layer.slug,
             "uuid": layer.geoportal_id
         })
-    return HttpResponse(simplejson.dumps(json))
+    return HttpResponse(simplejson.dumps(json), content_type='application/json')
 
 
 def create_layer(request):
