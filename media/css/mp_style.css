@@ -908,6 +908,7 @@ img + h3 {
 }
 
 #basemaps .btn i {
+	display: inline-block;
     width: 20px;
 }
 

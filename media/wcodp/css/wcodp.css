@@ -250,9 +250,9 @@
 	background: rgba(233, 253, 255, .95);
 }
 
-.wcodp #basemaps a span {
-	position: absolute;
-	left: 35px;
+.wcodp #basemaps a span:first-of-type {
+	/*position: absolute;
+	left: 35px;*/
 }
 
 .wcodp .SimpleLayerSwitcher {
