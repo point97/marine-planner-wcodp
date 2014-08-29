@@ -52,7 +52,7 @@ function bookmarkModel(options) {
     // get the url from a bookmark
     self.getBookmarkUrl = function() {
         var host = window.location.href.split('#')[0];
-        host = 'http://portal.midatlanticocean.org/visualize/';
+        // host = 'http://portal.midatlanticocean.org/visualize/';
         return host + "#" + self.getBookmarkHash();
         //return host + "#" + self.state;
     };
@@ -133,6 +133,16 @@ function bookmarksModel(options) {
             return '';
         }
     };
+
+    self.showShrinkOption = ko.observable();
+    if (app.MPSettings && app.MPSettings.bitly_registered_domain && app.MPSettings.bitly_username && app.MPSettings.bitly_api_key ) {
+        self.bitlyRegisteredDomain = app.MPSettings.bitly_registered_domain;
+        self.bitlyUsername = app.MPSettings.bitly_username;
+        self.bitlyAPIKey = app.MPSettings.bitly_api_key;
+        self.showShrinkOption(true);
+    } else {
+        self.showShrinkOption(false);
+    }
 
     self.shrinkBookmarkURL = ko.observable();
     self.shrinkBookmarkURL.subscribe( function() {
