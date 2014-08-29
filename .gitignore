@@ -58,3 +58,5 @@ mp/logs/main_debug.log
 /media/assets/openlayers/lib/*
 /media/assets/openlayers/archive/*
 
+
+mp/data_manager/fixtures/wcodp-md_initial_data_old.json
