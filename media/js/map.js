@@ -623,7 +623,8 @@ app.createPointFilterLayer = function(layer) {
         strategies:[
             new OpenLayers.Strategy.Fixed(),
             new OpenLayers.Strategy.AttributeCluster({
-                attribute:'event_type'
+                attribute:'event_type',
+                distance: 35
             })
         ],
         protocol: new OpenLayers.Protocol.HTTP({
@@ -639,6 +640,7 @@ app.createPointFilterLayer = function(layer) {
                 pointRadius: "${radius}",
                 fillColor: "${getColor}",
                 fillOpacity: 0.8,
+                fontSize: 10,
                 strokeColor: "${getStrokeColor}",
                 strokeWidth: 2,
                 strokeOpacity: 0.8,
@@ -648,18 +650,81 @@ app.createPointFilterLayer = function(layer) {
                 // Rules go here.
                 context: {
                     radius: function(feature) {
-                        return Math.min(feature.attributes.count, 12) + 5;
+
+                        // return Math.min(feature.attributes.count, 12) + 5;
+                        return Math.round((Math.log(feature.attributes.count)*3)) + 5;
+                        // return (feature.attributes.count == 1 ? 6 : 12);
+                        // var count = feature.attributes.count;
+                        // var rad = 12;
+                        // if(count <=1){
+                        //     rad-=6
+                        // }
+                        // else if(count >1 && count <10){
+                        //     rad+=0
+                        // }
+                        // else if(count >=10 && count < 50){
+                        //     rad+=5
+                        // }
+                        // else if(count >=50 && count < 100){
+                        //     rad+=10
+                        // }
+                        // else if(count >=100 && count < 500){
+                        //     rad+=15
+                        // }
+                        // else if(count >=500 && count < 1000){
+                        //     rad+=20
+                        // }
+                        // else if(count >=1000 && count < 5000){
+                        //     rad+=25
+                        // }else{
+                        //     rad+=30
+                        // }
+
+                        // return rad;
                     },
                     clusterCount: function (feature) {
-                        return feature.attributes.count > 1 ? feature.attributes.count: "";
+                        //return "";
+                        return feature.attributes.count > 1 ? feature.attributes.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
                     },
                     getColor: function(feature) {
                         var type = feature.cluster[0].attributes.event_type;
-                        return type === "Site Cleanup" ? "#ffcc66" : "#ccc";
+
+                        // var count = feature.attributes.count;
+                        // if (type === "Site Cleanup"){
+                        //     var colour = "#ffcc66";
+                        //     if(count <=1){
+                        //         colour = "#ffffff"
+                        //     }else if(count >1 && count < 10){
+                        //         colour = "#ffe8e5"
+                        //     }
+                        //     else if(count >=10 && count < 50){
+                        //         colour = "#ffd1cc"
+                        //     }
+                        //     else if(count >=50 && count < 100){
+                        //         colour = "#ffa399"
+                        //     }
+                        //     else if(count >=100 && count < 500){
+                        //         colour = "#ff7666"
+                        //     }
+                        //     else if(count >=500 && count < 1000){
+                        //         colour = "#ff4833"
+                        //     }
+                        //     else if(count >=1000 && count < 5000){
+                        //         colour = "#ff1a00"
+                        //     }
+                        //     else{
+                        //         colour = "#ff0000"
+                        //     }
+                        //     return colour;
+                        // }else{
+                        //     return "#ccc";
+                        // }
+                        return type === "Site Cleanup" ? "#BABA27" : "#ccc";
+                        //return type === "Site Cleanup" ? "#ffcc66" : "#ccc";
                     },
                     getStrokeColor: function(feature) {
                         var type = feature.cluster[0].attributes.event_type;
-                        return type === "Site Cleanup" ? "#cc6633" : "#333";
+                        return type === "Site Cleanup" ? "#9A9A07" : "#333";
                     }
                 }
             }),
