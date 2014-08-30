@@ -42,6 +42,9 @@ app.viewModel.loadLayers = function(data) {
                             theme: theme
                         };
                     }
+                    if (subLayer.filterable) {
+						self.filterTab.filterLayers.push(subLayer);
+					}
 				});  
                 layer.subLayers.sort( function(a,b) { return a.name.toUpperCase().localeCompare(b.name.toUpperCase()); } );
 			} 
