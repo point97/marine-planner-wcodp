@@ -1,42 +1,47 @@
-# Create your views here.
+import warnings
+
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.utils import simplejson
 from django.views.decorators.cache import cache_page
+
 from general.decorators import jsonp
 from models import *
+from mp_settings.models import MarinePlannerSettings
 
 
-#@cache_page(60 * 60 * 24, key_prefix="data_manager_get_json")
 def get_json(request, project=None):
-    from mp_settings.models import *
     try:
         if project:
             activeSettings = MarinePlannerSettings.objects.get(slug_name=project)
         else:
             activeSettings = MarinePlannerSettings.objects.get(active=True)
-        #if activeSettings.table_of_contents is not None:
+    except MarinePlannerSettings.DoesNotExist:
+        warnings.warn("No marine planner settings objects configured.")
+        activeSettings = MarinePlannerSettings.objects.none()
+        
+    if activeSettings.table_of_contents:
         layer_list = []
         for theme in activeSettings.table_of_contents.themes.all():
             for layer in theme.layers.all().order_by('name'):
                 layer_list.append(layer.toDict)
         json = {
-            "state": { "activeLayers": [] },
+            "state": {"activeLayers": []},
             "layers": layer_list,
             "themes": [theme.toDict for theme in activeSettings.table_of_contents.themes.all().order_by('display_name')],
             "success": True
         }
         return HttpResponse(simplejson.dumps(json))
-    except:
-        pass
+
     json = {
-        "state": { "activeLayers": [] },
+        "state": {"activeLayers": []},
         "layers": [layer.toDict for layer in Layer.objects.filter(is_sublayer=False).exclude(layer_type='placeholder').order_by('name')],
         "themes": [theme.toDict for theme in Theme.objects.all().order_by('display_name')],
         "success": True
     }
     return HttpResponse(simplejson.dumps(json), content_type='application/json')
+
 
 '''
 Responds with a json object containing a list of those layers containing a Geoportal UUID 
