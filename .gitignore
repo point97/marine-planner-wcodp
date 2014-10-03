@@ -60,3 +60,5 @@ mp/logs/main_debug.log
 
 
 mp/data_manager/fixtures/wcodp-md_initial_data_old.json
+.externalToolBuilders
+.settings
