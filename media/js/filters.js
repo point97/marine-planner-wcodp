@@ -1,7 +1,7 @@
 function filteringModel() {
 	var self = this;
-
-	self.startDate = ko.observable(new Date(2002, 3, 2));
+	
+	self.startDate = ko.observable();
 	self.toDate = ko.observable(false);
 	self.eventTypes = ko.observableArray();
 
