@@ -327,3 +327,7 @@
 	background: rgba(217, 237, 255, .85);
 	color: #332e1f;
 }
+
+.ui-datepicker {
+    z-index: 999 !important;
+}
