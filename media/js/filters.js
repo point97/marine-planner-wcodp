@@ -2,7 +2,7 @@ function filteringModel() {
 	var self = this;
 	
 	self.startDate = ko.observable();
-	self.toDate = ko.observable(false);
+	self.toDate = ko.observable();
 	self.eventTypes = ko.observableArray();
 
     // list of filter layermodels
@@ -19,6 +19,9 @@ function filteringModel() {
     self.filterButtonIsActive = ko.observable(true);
 
     self.showFilterInfo = function() {
+        if (self.showFilterInfoButtonIsActive()) {
+            $('#filter-info-modal').modal();
+        }
     }
     self.showFilterInfoButtonIsActive = ko.observable(false);
     self.filterInfoItems = ko.observableArray();

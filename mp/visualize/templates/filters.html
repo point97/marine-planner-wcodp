@@ -46,10 +46,20 @@
                             </select>
                         </div>
 
-
                         <span class="pull-right">
-                            <a id="filter-button" class="btn btn-default" data-bind="click: updateFilter, css: { 'enabled': filterButtonIsActive(), 'disabled': !filterButtonIsActive() }" style="outline: none; float: right; margin-right: -3px; margin-left: 6px;">Update Filter <i class="icon-large icon-filter"></i></a>
-                            <a class="btn btn-default" data-toggle="modal" data-target="#filter-info-modal" data-bind="click: showFilterInfo, css: { 'enabled': showFilterInfoButtonIsActive(), 'disabled': !showFilterInfoButtonIsActive() }" style="outline: none; float: right;">Debris Type Filter Info <i class="icon-large icon-info-sign"></i></a>
+                            <a id="filter-button" 
+                               class="btn btn-default" 
+                               data-bind="click: updateFilter, css: { 'enabled': filterButtonIsActive(), 'disabled': !filterButtonIsActive() }" 
+                               style="outline: none; float: right; margin-right: -3px; margin-left: 6px;">Update Filter
+                                   <i class="icon-large icon-filter"></i>
+                               </a>
+                            <a class="btn btn-default" 
+                               data-bind="click: showFilterInfo, 
+                                          css: {'enabled': showFilterInfoButtonIsActive(), 
+                                                'disabled': !showFilterInfoButtonIsActive()}"
+                                style="outline: none; float: right;">Debris Type Filter Info
+                                    <i class="icon-large icon-info-sign"></i>
+                            </a>
                         </span>
                     </form>
                 </div>
