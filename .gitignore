@@ -62,3 +62,5 @@ mp/logs/main_debug.log
 mp/data_manager/fixtures/wcodp-md_initial_data_old.json
 .externalToolBuilders
 .settings
+
+mp/data_manager/fixtures/wcodp-md-staging-datadump-2014-10-07.json
