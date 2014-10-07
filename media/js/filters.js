@@ -8,8 +8,6 @@ function filteringModel() {
     // list of filter layermodels
     self.filterLayers = ko.observableArray();
 
-    self.inclusiveFilterLayer = false;
-
     self.filters = ko.observableArray();
     app.filterTypeAheadSource = function() {
         var filter_stuff = app.viewModel.filterTab.filters();
