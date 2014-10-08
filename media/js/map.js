@@ -621,77 +621,14 @@ app.createPointFilterLayer = function(layer) {
         // Rules go here.
         context: {
             radius: function(feature) {
-
-                // return Math.min(feature.attributes.count, 12) + 5;
                 return Math.round((Math.log(feature.attributes.count) * 3)) + 5;
-                // return (feature.attributes.count == 1 ? 6 : 12);
-                // var count = feature.attributes.count;
-                // var rad = 12;
-                // if(count <=1){
-                //     rad-=6
-                // }
-                // else if(count >1 && count <10){
-                //     rad+=0
-                // }
-                // else if(count >=10 && count < 50){
-                //     rad+=5
-                // }
-                // else if(count >=50 && count < 100){
-                //     rad+=10
-                // }
-                // else if(count >=100 && count < 500){
-                //     rad+=15
-                // }
-                // else if(count >=500 && count < 1000){
-                //     rad+=20
-                // }
-                // else if(count >=1000 && count < 5000){
-                //     rad+=25
-                // }else{
-                //     rad+=30
-                // }
-
-                // return rad;
             },
             clusterCount: function(feature) {
-                //return "";
                 return feature.attributes.count > 1 ? feature.attributes.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
             },
             getColor: function(feature) {
                 var type = feature.cluster[0].attributes.event_type;
-
-                // var count = feature.attributes.count;
-                // if (type === "Site Cleanup"){
-                //     var colour = "#ffcc66";
-                //     if(count <=1){
-                //         colour = "#ffffff"
-                //     }else if(count >1 && count < 10){
-                //         colour = "#ffe8e5"
-                //     }
-                //     else if(count >=10 && count < 50){
-                //         colour = "#ffd1cc"
-                //     }
-                //     else if(count >=50 && count < 100){
-                //         colour = "#ffa399"
-                //     }
-                //     else if(count >=100 && count < 500){
-                //         colour = "#ff7666"
-                //     }
-                //     else if(count >=500 && count < 1000){
-                //         colour = "#ff4833"
-                //     }
-                //     else if(count >=1000 && count < 5000){
-                //         colour = "#ff1a00"
-                //     }
-                //     else{
-                //         colour = "#ff0000"
-                //     }
-                //     return colour;
-                // }else{
-                //     return "#ccc";
-                // }
                 return type === "Site Cleanup" ? "#BABA27" : "#ccc";
-                //return type === "Site Cleanup" ? "#ffcc66" : "#ccc";
             },
             getStrokeColor: function(feature) {
                 var type = feature.cluster[0].attributes.event_type;
@@ -730,12 +667,9 @@ app.createPointFilterLayer = function(layer) {
             })
         ],
         protocol: new OpenLayers.Protocol.HTTP({
-            // url: "/events/get_geojson",
             url: url,
             format: new OpenLayers.Format.GeoJSON(),
-            params: {
-                // 'filter': JSON.stringify(app.viewModel.queryFilter())
-            }
+            params: {}
         }),
         styleMap: styleMap
     });
