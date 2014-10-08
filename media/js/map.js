@@ -718,6 +718,8 @@ app.createPointFilterLayer = function(layer) {
                 html += '<li>(And ' + (sortedSites.length - i) + ' more)</li>';
             }
             html += '</ul>';
+            
+            html += '<a href="http://debris.westcoastoceans.org/events" target="_blank">Jump to the Marine Debris Database</a>';
 
             var popup = new OpenLayers.Popup.FramedCloud("popup" + feature.id,
                 OpenLayers.LonLat.fromString(feature.geometry.toShortString()),
