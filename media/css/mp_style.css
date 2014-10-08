@@ -940,6 +940,7 @@ img + h3 {
   display: none;
   overflow: hidden;
   width: 140px;
+  z-index: 1020 !important;
 }
 
 .SimpleLayerSwitcher a.basey {
