@@ -770,10 +770,66 @@ app.addGridSummaryLayerToMap = function(layer) {
 };
 
 app.addVectorLayerToMap = function(layer) {
-    layer.layer = app.createPointFilterLayer(layer);
-    
+
+    if (layer.type === 'Vector' && layer.summarize_to_grid) {
+        layer.layer = app.addGridSummaryLayerToMap(layer);
+        return;
+    }
+
+    if (layer.type === 'Vector' && layer.filterable) {
+        layer.layer = app.createPointFilterLayer(layer);
+        return;
+    }
+
+    var url = layer.url,
+        proj = layer.proj || 'EPSG:3857';
+    var styleMap = new OpenLayers.StyleMap({
+        fillColor: layer.color,
+        fillOpacity: layer.fillOpacity,
+        strokeColor: layer.color,
+        strokeOpacity: layer.defaultOpacity,
+        pointRadius: 2,
+        externalGraphic: layer.graphic,
+        graphicWidth: 15,
+        graphicHeight: 15,
+        graphicOpacity: layer.defaultOpacity
     });
+    if (layer.proxy_url) {
+        url = '/proxy/layer/' + layer.id;
+    }
+
+    if (layer.lookupField) {
+        var mylookup = {};
+        $.each(layer.lookupDetails, function(index, details) {
+            var fillOp = 0.5;
+
+            mylookup[details.value] = {
+                strokeColor: details.color,
+                strokeDashstyle: details.dashstyle,
+                fill: details.fill,
+                fillColor: details.color,
+                fillOpacity: fillOp,
+                externalGraphic: details.graphic
+            };
+        });
+        styleMap.addUniqueValueRules("default", layer.lookupField, mylookup);
+    }
+    layer.layer = new OpenLayers.Layer.Vector(
+        layer.name, {
+            projection: new OpenLayers.Projection(proj), // 3857
+            displayInLayerSwitcher: false,
+            strategies: [new OpenLayers.Strategy.Fixed()],
+            protocol: new OpenLayers.Protocol.HTTP({
+                url: url,
+                format: new OpenLayers.Format.GeoJSON()
+            }),
+            styleMap: styleMap,
+            layerModel: layer
+        }
+    );
+
 };
+
 
 app.addUtfLayerToMap = function(layer) {
     var opts = {
