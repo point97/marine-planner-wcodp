@@ -616,131 +616,66 @@ app.createPointFilterLayer = function(layer) {
             url += '?filter=' + layer.filter;
         }
     }
-    // url = "/proxy/layer/259?filter=[{%22type%22:%22field%22,%22value%22:%22Cigarette_butts%22}]"
-    return new OpenLayers.Layer.Vector("Events", {
+
+    var defaultStyleRules = {
+        // Rules go here.
+        context: {
+            radius: function(feature) {
+                return Math.round((Math.log(feature.attributes.count) * 3)) + 5;
+            },
+            clusterCount: function(feature) {
+                return feature.attributes.count > 1 ? feature.attributes.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
+            },
+            getColor: function(feature) {
+                var type = feature.cluster[0].attributes.event_type;
+                return type === "Site Cleanup" ? "#BABA27" : "#ccc";
+            },
+            getStrokeColor: function(feature) {
+                var type = feature.cluster[0].attributes.event_type;
+                return type === "Site Cleanup" ? "#9A9A07" : "#333";
+            }
+        }
+    };
+    var defaultStyleData = {
+        pointRadius: "${radius}",
+        fillColor: "${getColor}",
+        fillOpacity: 0.8,
+        fontSize: 10,
+        strokeColor: "${getStrokeColor}",
+        strokeWidth: 2,
+        strokeOpacity: 0.8,
+        label: "${clusterCount}",
+        fontColor: "#333"
+    };
+    var defaultStyle = new OpenLayers.Style(defaultStyleData, defaultStyleRules);
+    var styleMap = new OpenLayers.StyleMap({
+        "default": defaultStyle,
+        "select": {
+            fillColor: "#8aeeef",
+            strokeColor: "#32a8a9"
+        }
+    })
+
+    var newLayer = new OpenLayers.Layer.Vector("Events", {
         renderers: OpenLayers.Layer.Vector.prototype.renderers,
         projection: "EPSG:4326",
-        strategies:[
+        strategies: [
             new OpenLayers.Strategy.Fixed(),
             new OpenLayers.Strategy.AttributeCluster({
-                attribute:'event_type',
+                attribute: 'event_type',
                 distance: 35
             })
         ],
         protocol: new OpenLayers.Protocol.HTTP({
-            // url: "/events/get_geojson",
             url: url,
             format: new OpenLayers.Format.GeoJSON(),
-            params: {
-                // 'filter': JSON.stringify(app.viewModel.queryFilter())
-            }
+            params: {}
         }),
-        styleMap: new OpenLayers.StyleMap({
-            "default": new OpenLayers.Style({
-                pointRadius: "${radius}",
-                fillColor: "${getColor}",
-                fillOpacity: 0.8,
-                fontSize: 10,
-                strokeColor: "${getStrokeColor}",
-                strokeWidth: 2,
-                strokeOpacity: 0.8,
-                label: "${clusterCount}",
-                fontColor: "#333"
-            },{ 
-                // Rules go here.
-                context: {
-                    radius: function(feature) {
-
-                        // return Math.min(feature.attributes.count, 12) + 5;
-                        return Math.round((Math.log(feature.attributes.count)*3)) + 5;
-                        // return (feature.attributes.count == 1 ? 6 : 12);
-                        // var count = feature.attributes.count;
-                        // var rad = 12;
-                        // if(count <=1){
-                        //     rad-=6
-                        // }
-                        // else if(count >1 && count <10){
-                        //     rad+=0
-                        // }
-                        // else if(count >=10 && count < 50){
-                        //     rad+=5
-                        // }
-                        // else if(count >=50 && count < 100){
-                        //     rad+=10
-                        // }
-                        // else if(count >=100 && count < 500){
-                        //     rad+=15
-                        // }
-                        // else if(count >=500 && count < 1000){
-                        //     rad+=20
-                        // }
-                        // else if(count >=1000 && count < 5000){
-                        //     rad+=25
-                        // }else{
-                        //     rad+=30
-                        // }
-
-                        // return rad;
-                    },
-                    clusterCount: function (feature) {
-                        //return "";
-                        return feature.attributes.count > 1 ? feature.attributes.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
-                    },
-                    getColor: function(feature) {
-                        var type = feature.cluster[0].attributes.event_type;
-
-                        // var count = feature.attributes.count;
-                        // if (type === "Site Cleanup"){
-                        //     var colour = "#ffcc66";
-                        //     if(count <=1){
-                        //         colour = "#ffffff"
-                        //     }else if(count >1 && count < 10){
-                        //         colour = "#ffe8e5"
-                        //     }
-                        //     else if(count >=10 && count < 50){
-                        //         colour = "#ffd1cc"
-                        //     }
-                        //     else if(count >=50 && count < 100){
-                        //         colour = "#ffa399"
-                        //     }
-                        //     else if(count >=100 && count < 500){
-                        //         colour = "#ff7666"
-                        //     }
-                        //     else if(count >=500 && count < 1000){
-                        //         colour = "#ff4833"
-                        //     }
-                        //     else if(count >=1000 && count < 5000){
-                        //         colour = "#ff1a00"
-                        //     }
-                        //     else{
-                        //         colour = "#ff0000"
-                        //     }
-                        //     return colour;
-                        // }else{
-                        //     return "#ccc";
-                        // }
-                        return type === "Site Cleanup" ? "#BABA27" : "#ccc";
-                        //return type === "Site Cleanup" ? "#ffcc66" : "#ccc";
-                    },
-                    getStrokeColor: function(feature) {
-                        var type = feature.cluster[0].attributes.event_type;
-                        return type === "Site Cleanup" ? "#9A9A07" : "#333";
-                    }
-                }
-            }),
-            "select": {
-                fillColor: "#8aeeef",
-                strokeColor: "#32a8a9"
-          }
-        })
+        styleMap: styleMap
     });
+        
+    return newLayer;
 };
-
-app.addFilterableLayerToMap = function(layer) {
-    var points = app.createPointFilterLayer(layer);
-    return points;
-    // app.map.addLayer(points);
-}
 
 app.addGridSummaryLayerToMap = function(layer) {
     var url = layer.url;
@@ -835,68 +770,9 @@ app.addGridSummaryLayerToMap = function(layer) {
 };
 
 app.addVectorLayerToMap = function(layer) {
-
-    // TODO change layer flag from summarize_to_grid to is_filterable or something similar...
-    if (layer.type === 'Vector') { //&& layer.summarize_to_grid) {
-        // layer.layer = app.addGridSummaryLayerToMap(layer);
-        layer.layer = app.addFilterableLayerToMap(layer);
-        return;
-    }
-
-    var url = layer.url,
-        proj = layer.proj || 'EPSG:3857';
-    var styleMap = new OpenLayers.StyleMap({
-        fillColor: layer.color,
-        fillOpacity: layer.fillOpacity,
-        //strokeDashStyle: "dash",
-        //strokeOpacity: 1,
-        strokeColor: layer.color,
-        strokeOpacity: layer.defaultOpacity,
-        //strokeLinecap: "square",
-        //http://dev.openlayers.org/apidocs/files/OpenLayers/Feature/Vector-js.html
-        //title: 'testing'
-        pointRadius: 2,
-        externalGraphic: layer.graphic,
-        graphicWidth: 8,
-        graphicHeight: 8,
-        graphicOpacity: layer.defaultOpacity
+    layer.layer = app.createPointFilterLayer(layer);
+    
     });
-    if (layer.proxy_url) {
-        url = '/proxy/layer/' + layer.id;
-    }
-
-
-    if (layer.lookupField) {
-        var mylookup = {};
-        $.each(layer.lookupDetails, function(index, details) {
-            var fillOp = 0.5;
-
-            mylookup[details.value] = {
-                strokeColor: details.color,
-                strokeDashstyle: details.dashstyle,
-                fill: details.fill,
-                fillColor: details.color,
-                fillOpacity: fillOp,
-                externalGraphic: details.graphic
-            };
-        });
-        styleMap.addUniqueValueRules("default", layer.lookupField, mylookup);
-    }
-    layer.layer = new OpenLayers.Layer.Vector(
-        layer.name, {
-            projection: new OpenLayers.Projection(proj), // 3857
-            displayInLayerSwitcher: false,
-            strategies: [new OpenLayers.Strategy.Fixed()],
-            protocol: new OpenLayers.Protocol.HTTP({
-                url: url,
-                format: new OpenLayers.Format.GeoJSON()
-            }),
-            styleMap: styleMap,
-            layerModel: layer
-        }
-    );
-
-
 };
 
 app.addUtfLayerToMap = function(layer) {
