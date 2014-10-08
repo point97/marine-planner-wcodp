@@ -673,15 +673,9 @@ app.createPointFilterLayer = function(layer) {
         }),
         styleMap: styleMap
     });
-    
+        
     return newLayer;
 };
-
-app.addFilterableLayerToMap = function(layer) {
-    var points = app.createPointFilterLayer(layer);
-    return points;
-    // app.map.addLayer(points);
-}
 
 app.addGridSummaryLayerToMap = function(layer) {
     var url = layer.url;
@@ -776,31 +770,8 @@ app.addGridSummaryLayerToMap = function(layer) {
 };
 
 app.addVectorLayerToMap = function(layer) {
-
-    // TODO change layer flag from summarize_to_grid to is_filterable or something similar...
-    if (layer.type === 'Vector') { //&& layer.summarize_to_grid) {
-        // layer.layer = app.addGridSummaryLayerToMap(layer);
-        layer.layer = app.addFilterableLayerToMap(layer);
-        return;
-    }
-
-    var url = layer.url,
-        proj = layer.proj || 'EPSG:3857';
-    var styleMap = new OpenLayers.StyleMap({
-        fillColor: layer.color,
-        fillOpacity: layer.fillOpacity,
-        //strokeDashStyle: "dash",
-        //strokeOpacity: 1,
-        strokeColor: layer.color,
-        strokeOpacity: layer.defaultOpacity,
-        //strokeLinecap: "square",
-        //http://dev.openlayers.org/apidocs/files/OpenLayers/Feature/Vector-js.html
-        //title: 'testing'
-        pointRadius: 2,
-        externalGraphic: layer.graphic,
-        graphicWidth: 8,
-        graphicHeight: 8,
-        graphicOpacity: layer.defaultOpacity
+    layer.layer = app.createPointFilterLayer(layer);
+    
     });
     if (layer.proxy_url) {
         url = '/proxy/layer/' + layer.id;
