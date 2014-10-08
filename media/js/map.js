@@ -617,8 +617,7 @@ app.createPointFilterLayer = function(layer) {
         }
     }
 
-    var defaultStyleRules = {
-        // Rules go here.
+    var defaultStyleContext = {
         context: {
             radius: function(feature) {
                 return Math.round((Math.log(feature.attributes.count) * 3)) + 5;
@@ -636,6 +635,7 @@ app.createPointFilterLayer = function(layer) {
             }
         }
     };
+
     var defaultStyleData = {
         pointRadius: "${radius}",
         fillColor: "${getColor}",
@@ -647,16 +647,103 @@ app.createPointFilterLayer = function(layer) {
         label: "${clusterCount}",
         fontColor: "#333"
     };
-    var defaultStyle = new OpenLayers.Style(defaultStyleData, defaultStyleRules);
+    
+    var defaultStyle = new OpenLayers.Style(defaultStyleData, 
+                                            defaultStyleContext);
+
     var styleMap = new OpenLayers.StyleMap({
         "default": defaultStyle,
         "select": {
             fillColor: "#8aeeef",
             strokeColor: "#32a8a9"
         }
-    })
+    });
 
+    var eventListeners = {
+        'featureselected': function(e) {
+            console.debug("You clicked on", e.feature);
+
+            var feature = e.feature;
+            if (feature.layer.popup) {
+                this.map.removePopup(feature.layer.popup);
+                feature.layer.popup.destroy();
+            }
+            
+            var html; 
+            var count = 0; 
+            var sites = {}
+            var categories = {}
+            for (var i = 0; i < feature.cluster.length; i++) {
+                attr = feature.cluster[i].attributes;
+                count += attr.count; 
+                if (sites[attr.displayName]) {
+                    sites[attr.displayName]++;
+                }
+                else {
+                    sites[attr.displayName] = 1;
+                }
+                if (categories[attr.internal_name]) {
+                    categories[attr.internal_name] += attr.count;
+                }
+                else {
+                    categories[attr.internal_name] = attr.count; 
+                }
+            }
+            
+            var maxItems = 5;
+            
+            function commaize(number) {
+                // Regex / 
+                return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            }
+            
+            html = '<b>Count:</b> ' + commaize(count) + '<br />';
+            
+            html += '<b>Categories</b><ul>';
+            var sortedCategories = Object.keys(categories).sort();
+            for (var i = 0; i < sortedCategories.length && i < maxItems; i++) {
+                html += '<li><b>' + sortedCategories[i] + '</b>: ' + categories[sortedCategories[i]] + '</li>';
+            }
+            if (i == maxItems && sortedCategories.length > maxItems) {
+                html += '<li>(And ' + (sortedCategories.length - i) + ' more)</li>';
+            }
+            html += '</ul>';
+            
+            var sortedSites = Object.keys(sites).sort();
+            html += '<b>Sites:</b><ul>'
+            for (var i = 0; i < sortedSites.length && i < maxItems; i++) {
+                html += '<li>' + sortedSites[i] + ': ' + sites[sortedSites[i]] + '</li>';
+            }
+            if (i == maxItems && sortedSites.length > maxItems) {
+                html += '<li>(And ' + (sortedSites.length - i) + ' more)</li>';
+            }
+            html += '</ul>';
+
+            var popup = new OpenLayers.Popup.FramedCloud("popup" + feature.id,
+                OpenLayers.LonLat.fromString(feature.geometry.toShortString()),
+                null,
+                html,
+                null,
+                true, // close box
+                null
+            );
+            popup.autoSize = true;
+            popup.maxSize = new OpenLayers.Size(400,800);
+            popup.fixedRelativePosition = true;
+            feature.layer.popup = popup;
+            app.map.addPopup(popup);
+
+        },
+        'featureunselected': function(e) {
+            var feature = e.feature;
+            feature.layer.map.removePopup(feature.layer.popup);
+            feature.layer.popup.destroy();
+            feature.layer.popup = null;
+        }
+    }
+    
     var newLayer = new OpenLayers.Layer.Vector("Events", {
+        eventListeners: eventListeners,
         renderers: OpenLayers.Layer.Vector.prototype.renderers,
         projection: "EPSG:4326",
         strategies: [
@@ -770,7 +857,6 @@ app.addGridSummaryLayerToMap = function(layer) {
 };
 
 app.addVectorLayerToMap = function(layer) {
-
     if (layer.type === 'Vector' && layer.summarize_to_grid) {
         layer.layer = app.addGridSummaryLayerToMap(layer);
         return;
@@ -778,6 +864,13 @@ app.addVectorLayerToMap = function(layer) {
 
     if (layer.type === 'Vector' && layer.filterable) {
         layer.layer = app.createPointFilterLayer(layer);
+        
+        var selectorControl = new OpenLayers.Control.SelectFeature(layer.layer, {
+            hover: false,
+            autoActivate: true
+        });
+    
+        app.map.addControl(selectorControl);
         return;
     }
 
@@ -827,7 +920,6 @@ app.addVectorLayerToMap = function(layer) {
             layerModel: layer
         }
     );
-
 };
 
 

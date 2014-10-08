@@ -38,15 +38,6 @@ function filteringModel() {
         var layers = _.filter(self.filterLayers(), function(x) {
             return x.active() == true;
         });
-        for (var i in layers) {
-            var idx = self.filterLayers().indexOf(layers[i]);
-            if (idx != -1) {
-                // NOTE: We use toggleActive here because it has hooks into
-                // the map stuff that will actually cause it to update the
-                // filters.
-                self.filterLayers()[idx].toggleActive();
-            }
-        }
 
         // key-only maps (to eliminate any duplicate entries)
         var categories = {};
@@ -54,7 +45,6 @@ function filteringModel() {
 
         var from = self.startDate(); 
         var to = self.toDate(); 
-        var type = self.eventTypes; 
 
         // NOTE:  filterItems might only be relevant for Beach Cleanup layer and not for Derelict Gear layer...
         var filterItems = $('#filter-by .select2-choices .select2-search-choice div').contents();
@@ -104,22 +94,15 @@ function filteringModel() {
             queryParameters['to'] = self.dateToString(to);
         }
         
-        if (type) { 
-            queryParameters['type'] = type;
-        }
-        
         var queryString = '&' + $.param(queryParameters)
         
         for (var i in layers) {
             // TODO: Why aren't we just using layers?
             var idx = self.filterLayers().indexOf(layers[i]);
             if (idx != -1) {
-                // NOTE: We use toggleActive here because it has hooks into
-                // the map stuff that will actually cause it to update the
-                // filters.
-
+                self.filterLayers()[idx].deactivateLayer();
                 self.filterLayers()[idx].filter = queryString;
-                self.filterLayers()[idx].toggleActive();
+                self.filterLayers()[idx].activateLayer();
             }
         }
 
