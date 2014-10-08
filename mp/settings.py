@@ -33,6 +33,7 @@ INSTALLED_APPS += ('django_extensions',
                    'general',
                    'data_manager',
                    'mp_settings',
+                   'mp_profile',
                    'explore',
                    'visualize',
                    'django.contrib.humanize',
@@ -47,23 +48,25 @@ GEOMETRY_DB_SRID = 99996
 GEOMETRY_CLIENT_SRID = 3857  # for latlon
 GEOJSON_SRID = 3857
 
-APP_NAME = "Marine Planner Data Portal"
+APP_NAME = "WCODP Marine Planner"
 SERVER_ADMIN = 'edwin@pointnineseven.com'
-DEFAULT_FROM_EMAIL = 'USVI <developers@pointnineseven.com>'
+
+EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+
+HELP_EMAIL = "developers@pointnineseven.com"
+DEFAULT_FROM_EMAIL = "Point 97 Dev Team <developers@pointnineseven.com>"
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
-MANAGERS = ADMINS
 EMAIL_SUBJECT_PREFIX = 'Marine Planner'
 ADMINS = (
-    ('Edwin Knuth', 'edwin@pointnineseven.com'),
+    ('Seth Hill', 'seth@pointnineseven.com'),
     ('Scott Fletcher', 'scott@pointnineseven.com'),
 )
+MANAGERS = ADMINS
 
 MARINE_DEBRIS_URL = 'http://debris-db.westcoastoceans.org/'
 MP_ONTOLOGY_URL = 'http://143.239.249.181:8080/sws/SWS?request=GetConceptHierarchy&responseLanguage=en&elementSet=extended'
 
-# FEEDBACK_RECIPIENT = "Marine Planning Team <mp-team@marineplanner.org>"
-# HELP_EMAIL = "mp-team@marineplanner.org"
-# DEFAULT_FROM_EMAIL = "Marine Planning Team <mp-team@marineplanner.org>"
+FEEDBACK_RECIPIENT = "Point 97 Dev Team <developers@pointnineseven.com>"
 
 # url for socket.io printing
 # SOCKET_URL = 'http://dev.marco.marineplanning.org:8080'

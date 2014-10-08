@@ -799,6 +799,9 @@ img + h3 {
   padding: 5px;
   font-size: 14px;
 }
+#registration-modals form {
+	margin: 0;
+}
 #sign-in-form {
     margin: 0;
 }
@@ -816,9 +819,13 @@ img + h3 {
 #signinButton div {
     float: right !important;
 }
+#loginControls ul {
+    margin-bottom: 0;
+}
 #loginControls li {
     list-style-type: none;
-    display: inline;
+    display: block;
+    margin-top: 5px;
 }
 #login-buttons {
     top: 8px;

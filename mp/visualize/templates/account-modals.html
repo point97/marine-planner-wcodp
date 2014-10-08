@@ -33,8 +33,8 @@
             </div>
             <div id="loginControls">
                 <ul>
-                    <li><a href="#registration-modal" data-dismiss="modal" data-toggle="modal">Not yet Registered?</a> .</li>
-                    <li><a href="#forgot-username-modal" data-dismiss="modal" data-toggle="modal">Forgot your username?</a> .</li>
+                    <li><a href="#registration-modal" data-dismiss="modal" data-toggle="modal">Not yet Registered?</a></li>
+                    <li><a href="#forgot-username-modal" data-dismiss="modal" data-toggle="modal">Forgot your username?</a></li>
                     <li><a href="#forgot-password-modal" data-dismiss="modal" data-toggle="modal">Forgot your password?</a></li>
                 </ul>
             </div>
@@ -42,7 +42,7 @@
         <div class="modal-footer">
             <input type="button" href="#" class="btn" data-dismiss="modal" value="Close">
             <input type="submit" class="btn btn-primary" value="Sign In">
-            <div id="signinButton" class="pull-left">
+            <!-- <div id="signinButton" class="pull-left">
                 <span class="g-signin" data-scope="{{ plus_scope }}"
                     data-clientid="{{ plus_id }}"
                     data-redirecturi="postmessage"
@@ -50,7 +50,7 @@
                     data-cookiepolicy="single_host_origin"
                     data-callback="signInCallback">
                 </span>
-            </div>
+            </div> -->
         </div>
   </form>
 </div>
@@ -189,7 +189,7 @@
             <div class="control-group">
               <label class="control-label" for="password1">New Password</label>
               <div class="controls">
-                  <input class="input-xlarge" type="password" placeholder="New Password" name="new_password1" data-bind="value: password1" required>
+                  <input class="input-xlarge empty-input" type="password" placeholder="New Password" name="new_password1" data-bind="value: password1" required>
               </div>
             </div>
             <div class="control-group" data-bind="css: { warning: passwordWarning, success: passwordSuccess }">

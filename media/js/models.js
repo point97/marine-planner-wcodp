@@ -1793,6 +1793,27 @@ function viewModel() {
     self.passwordSuccess = ko.observable(false);
     self.inactiveError = ko.observable(false);
 
+    $('#reset-password-modal').on('shown', function() {
+        self.password1("");
+        $("#reset-password-modal input[name='old_password']").focus();
+    });
+
+    $('#sign-in-modal').on('shown', function() {
+        $("#login-password").focus();
+    });
+
+    $('#forgot-password-modal').on('shown', function() {
+        $("#forgot-password-modal input[name='email']").focus();
+    });
+
+    $('#forgot-username-modal').on('shown', function() {
+        $("#forgot-username-modal input[name='email']").focus();
+    });
+
+    $('#registration-modal').on('shown', function() {
+        $("#registration-modal input[name='first_name']").focus();
+    });
+
     self.verifyLogin = function(form) {
         var username = $(form.username).val(),
             password = $(form.password).val();

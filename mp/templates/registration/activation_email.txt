@@ -9,4 +9,4 @@ If you have any questions, please feel free to contact us:
 {% help_email %}
 
 Regards,
-MARCO Portal Project Team
+Marine Planner Technical Team
