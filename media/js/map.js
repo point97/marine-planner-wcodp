@@ -354,6 +354,11 @@ app.init = function() {
 
 };
 
+app.commaize = function (number) {
+    // Regex / 
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+}
+
 app.addLayerToMap = function(layer) {
     if (!layer.layer) {
         if (layer.utfurl || (layer.parent && layer.parent.utfurl)) {
@@ -635,7 +640,7 @@ app.createPointFilterLayer = function(layer) {
                 return count; 
             },
             clusterLabel: function(feature) {
-                return defaultStyleContext.context.value(feature).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") ; 
+                return app.commaize(defaultStyleContext.context.value(feature));
             },
             getColor: function(feature) {
                 var type = feature.cluster[0].attributes.event_type;
