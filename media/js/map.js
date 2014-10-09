@@ -625,6 +625,15 @@ app.createPointFilterLayer = function(layer) {
             clusterCount: function(feature) {
                 return feature.attributes.count > 1 ? feature.attributes.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
             },
+            clusterLabel: function(feature) {
+                var count = 0; 
+                for (var i = 0; i < feature.cluster.length; i++) {
+                    attr = feature.cluster[i].attributes;
+                    count += attr.count; 
+                }
+                
+                return count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); 
+            },
             getColor: function(feature) {
                 var type = feature.cluster[0].attributes.event_type;
                 return type === "Site Cleanup" ? "#BABA27" : "#ccc";
@@ -644,7 +653,7 @@ app.createPointFilterLayer = function(layer) {
         strokeColor: "${getStrokeColor}",
         strokeWidth: 2,
         strokeOpacity: 0.8,
-        label: "${clusterCount}",
+        label: "${clusterLabel}",
         fontColor: "#333"
     };
     
