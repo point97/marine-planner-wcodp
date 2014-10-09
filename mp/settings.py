@@ -51,6 +51,8 @@ GEOJSON_SRID = 3857
 APP_NAME = "WCODP Marine Planner"
 SERVER_ADMIN = 'edwin@pointnineseven.com'
 
+ALLOWED_HOSTS = ['.apps.pointnineseven.com']
+
 EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
 
 HELP_EMAIL = "developers@pointnineseven.com"
