@@ -620,19 +620,22 @@ app.createPointFilterLayer = function(layer) {
     var defaultStyleContext = {
         context: {
             radius: function(feature) {
-                return Math.round((Math.log(feature.attributes.count) * 3)) + 5;
+                var c = defaultStyleContext.context.value(feature);
+                return Math.max(10, 2 * Math.log(1 + c));
             },
-            clusterCount: function(feature) {
-                return feature.attributes.count > 1 ? feature.attributes.count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
-            },
-            clusterLabel: function(feature) {
+            value: function(feature) {
                 var count = 0; 
+                if (!feature.cluster) {
+                    return 0; 
+                }
                 for (var i = 0; i < feature.cluster.length; i++) {
                     attr = feature.cluster[i].attributes;
                     count += attr.count; 
                 }
-                
-                return count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); 
+                return count; 
+            },
+            clusterLabel: function(feature) {
+                return defaultStyleContext.context.value(feature).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") ; 
             },
             getColor: function(feature) {
                 var type = feature.cluster[0].attributes.event_type;
