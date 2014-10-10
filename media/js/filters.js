@@ -26,14 +26,6 @@ function filteringModel() {
     self.showFilterInfoButtonIsActive = ko.observable(false);
     self.filterInfoItems = ko.observableArray();
 
-    self.dateToString = function(d) {
-        // Return a date in YYYY-MM-DD format
-        // Neat trick from http://stackoverflow.com/a/3605248/65295
-        return d.getFullYear() + '-' + 
-              ('0' + (d.getMonth()+1)).slice(-2) + '-' + 
-              ('0' + d.getDate()).slice(-2);
-    }
-
     self.updateFilter = function() {
         var layers = _.filter(self.filterLayers(), function(x) {
             return x.active() == true;

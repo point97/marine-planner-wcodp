@@ -45,6 +45,19 @@ if (!Array.prototype.indexOf) {
     };
  }
 
+//** Return a date in YYYY-MM-DD format
+//** Neat trick from http://stackoverflow.com/a/3605248/65295
+app.dateToString = function(d) {
+    return d.getFullYear() + '-' + 
+           ('0' + (d.getMonth()+1)).slice(-2) + '-' + 
+           ('0' + d.getDate()).slice(-2);
+}
+
+//** Return a date in typical US format, i.e. MM/DD/YYYY
+app.dateToString_us = function(d) {
+    return ('0' + (d.getMonth() + 1)).slice(-2) + '/' +
+           ('0' + d.getDate()).slice(-2) + '/' + d.getFullYear();
+}
 
 // state of the app
 app.state = {
