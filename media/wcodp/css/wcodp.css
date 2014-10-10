@@ -150,6 +150,19 @@
 	color: #332e1f; 
 }
 
+.wcodp #left-panel .sidebar-nav {
+	min-width: 370px; 
+	max-width: 370px; 
+	height: 650px; 
+	top: 12px; 
+	z-index: 750; 
+	margin-left: 12px; 
+	background-color: white; 
+	border-radius: 10px; 
+	opacity: .9; 
+	border: 1px solid #ccc;
+}
+
 .wcodp .sidebar-nav .nav-tabs a {
 	border: 0;
 }
@@ -171,6 +184,24 @@
 
 .wcodp .nav-tabs > li.active a {
     color: #0070cf;
+}
+
+.wcodp #active-content .btn-group .btn-layer {
+	width: 75%;
+}
+
+.wcodp #data-accordion .btn-group .btn-layer {
+	width: 83%;
+	border-top-right-radius: 4px;
+	border-bottom-right-radius: 4px;
+}
+
+.wcodp #data-accordion .accordion {
+	margin-bottom: 85px;
+}
+
+.wcodp .accordion-inner .dropdown-menu {
+	border-radius: 4px;
 }
 
 .wcodp .accordion-toggle span {
