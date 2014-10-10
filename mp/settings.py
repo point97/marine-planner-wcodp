@@ -25,11 +25,11 @@ LOG_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), 'logs'))
 
 ADMIN_MEDIA_PATH = "/usr/local/venv/marine-planner/lib/python2.7/site-packages/django/contrib/admin/static/admin/"
 
-STATIC_URL = '/static/'
+#STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 INSTALLED_APPS += ('django_extensions',
                    'social.apps.django_app.default',
-                   'django.contrib.staticfiles',
+                   #'django.contrib.staticfiles',
                    'general',
                    'data_manager',
                    'mp_settings',
