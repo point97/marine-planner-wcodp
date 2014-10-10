@@ -119,19 +119,19 @@
             <div class="control-group">
               <label class="control-label" for="first-name">First Name</label>
               <div class="controls">
-                <input class="input-xlarge" type="text" name="first_name" placeholder="First Name" required>
+                <input class="input-xlarge empty-input" type="text" name="first_name" placeholder="First Name" required>
               </div>
             </div>       
             <div class="control-group">
               <label class="control-label" for="last-name">Last Name</label>
               <div class="controls">
-                <input class="input-xlarge" type="text" name="last_name" placeholder="Last Name" required>
+                <input class="input-xlarge empty-input" type="text" name="last_name" placeholder="Last Name" required>
               </div>
             </div>       
             <div class="control-group" data-bind="css: { error: usernameError }">
               <label class="control-label" for="username">Username</label>
               <div class="controls">
-                <input class="input-xlarge" type="text" data-bind="value: username, event: { blur: checkUsername, focus: turnOffUsernameError }" name="username" placeholder="username" required>
+                <input class="input-xlarge empty-input" type="text" data-bind="value: username, event: { blur: checkUsername, focus: turnOffUsernameError }" name="username" placeholder="username" required>
                 <span class="help-inline" data-bind="visible: usernameError">That username is already in use.  Please try another username.</span>
               </div>
             </div>
