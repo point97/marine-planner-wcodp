@@ -1,19 +1,21 @@
+import datetime
+import json
+import logging
+from urllib import urlencode
+from urlparse import urlparse
+
 from django.conf.urls.defaults import *
-from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+import httplib2
+from proxy.views import proxy_view
+import requests
 
 from data_manager.models import Layer
 from ontology.models import RDFConcept
-from ontology.utils import get_filters as ontology_get_filters
-from proxy.views import proxy_view
 
-from urllib import urlencode, quote as url_quote
-from urlparse import urlparse
-import grequests, requests, logging, httplib2, logging.config, json
-import datetime
+
 #PROXY_FORMAT = u"http://%s/%s" % (settings.PROXY_DOMAIN, u"%s")
-
 def getLegendJSON(request, url):
     logger = logging.getLogger(__name__)  
     logger.info("Begin getLegendJSON")
