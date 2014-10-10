@@ -27,12 +27,20 @@
                 <!-- Date Range -->
                 <p style="margin-left: 15px; padding-left: 0px;" class="control-label">Filter by Date</p>
                 <div style="height: 35px; margin-left: 15px; margin-right: 15px;">
-                    <div class="input-append date span4" style="padding-right: 0px;" id="date-filter-start" data-date-format="dd-mm-yyyy">
-                        <input id="filter-start-date" type="text" data-bind="datepicker: startDate" class="datepicker" placeholder="Start Date" style="max-width: 100px">
+                    <div class="input-append date span4" style="padding-right: 0px;" id="date-filter-start">
+                        <input id="filter-start-date" type="text" 
+                               data-bind="datePicker: startDate"
+                               class="datepicker" 
+                               placeholder="Start Date" 
+                               style="max-width: 100px">
                     </div>
                     <label class="span4" style="padding: 0; margin-top: 7px; text-align: center;">To</label>
-                    <div class="input-append date span4" style="padding-left: 0px; margin-left: -5px;" id="date-filter-end" data-date-format="dd-mm-yyyy">
-                        <input id="filter-to-date" type="text" data-bind="datepicker: toDate" class="datepicker" placeholder="End Date" style="max-width: 100px;">
+                    <div class="input-append date span4" style="padding-left: 0px; margin-left: -5px;" id="date-filter-end">
+                        <input id="filter-to-date" type="text" 
+                               data-bind="datePicker: toDate"
+                               class="datepicker" 
+                               placeholder="End Date" 
+                               style="max-width: 100px;">
                     </div>
                 </div>
 
