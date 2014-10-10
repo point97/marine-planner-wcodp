@@ -1820,7 +1820,7 @@ function viewModel() {
         if (username && password) {
             $.ajax({
                 async: false,
-                url: '/marco_profile/verify_password',
+                url: '/mp_profile/verify_password',
                 data: { username: username, password: password },
                 type: 'POST',
                 dataType: 'json',
@@ -1858,7 +1858,7 @@ function viewModel() {
             if (username && old_password) {
                 $.ajax({
                     async: false,
-                    url: '/marco_profile/verify_password',
+                    url: '/mp_profile/verify_password',
                     data: { username: username, password: old_password },
                     type: 'POST',
                     dataType: 'json',
@@ -1902,7 +1902,7 @@ function viewModel() {
     self.checkUsername = function() {
         if (self.username()) {
             $.ajax({
-                url: '/marco_profile/duplicate_username',
+                url: '/mp_profile/duplicate_username',
                 data: { username: self.username() },
                 method: 'GET',
                 dataType: 'json',
