@@ -98,11 +98,11 @@ function filteringModel() {
         }
 
         if (from) { 
-            queryParameters['from'] = self.dateToString(from);
+            queryParameters['from'] = app.dateToString(from);
         }
 
         if (to) { 
-            queryParameters['to'] = self.dateToString(to);
+            queryParameters['to'] = app.dateToString(to);
         }
         
         var queryString = '&' + $.param(queryParameters)
