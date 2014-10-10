@@ -681,9 +681,9 @@ app.createPointFilterLayer = function(layer) {
             console.debug("You clicked on", e.feature);
 
             var feature = e.feature;
-            if (feature.layer.popup) {
-                this.map.removePopup(feature.layer.popup);
-                feature.layer.popup.destroy();
+            if (feature.layer.map.popup) {
+                this.map.removePopup(feature.layer.map.popup);
+                feature.layer.map.destroy();
             }
             
             var html; 
@@ -708,13 +708,8 @@ app.createPointFilterLayer = function(layer) {
             }
             
             var maxItems = 5;
-            
-            function commaize(number) {
-                // Regex / 
-                return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-            }
-            
-            html = '<b>Count:</b> ' + commaize(count) + '<br />';
+                        
+            html = '<b>Count:</b> ' + app.commaize(count) + '<br />';
             
             html += '<b>Categories</b><ul>';
             var sortedCategories = Object.keys(categories).sort();
@@ -749,15 +744,15 @@ app.createPointFilterLayer = function(layer) {
             popup.autoSize = true;
             popup.maxSize = new OpenLayers.Size(400,800);
             popup.fixedRelativePosition = true;
-            feature.layer.popup = popup;
+            feature.layer.map.popup = popup;
             app.map.addPopup(popup);
 
         },
         'featureunselected': function(e) {
             var feature = e.feature;
-            feature.layer.map.removePopup(feature.layer.popup);
-            feature.layer.popup.destroy();
-            feature.layer.popup = null;
+            feature.layer.map.removePopup(feature.layer.map.popup);
+            feature.layer.map.popup.destroy();
+            feature.layer.map.popup = null;
         }
     }
     

@@ -45,6 +45,19 @@ if (!Array.prototype.indexOf) {
     };
  }
 
+//** Return a date in YYYY-MM-DD format
+//** Neat trick from http://stackoverflow.com/a/3605248/65295
+app.dateToString = function(d) {
+    return d.getFullYear() + '-' + 
+           ('0' + (d.getMonth()+1)).slice(-2) + '-' + 
+           ('0' + d.getDate()).slice(-2);
+}
+
+//** Return a date in typical US format, i.e. MM/DD/YYYY
+app.dateToString_us = function(d) {
+    return ('0' + (d.getMonth() + 1)).slice(-2) + '/' +
+           ('0' + d.getDate()).slice(-2) + '/' + d.getFullYear();
+}
 
 // state of the app
 app.state = {
@@ -132,31 +145,43 @@ $(document).ready(function() {
     });
   });
 
-
   $('.form-search').find('.btn').on('click', function(event) {
      $(event.target).closest('form').find('input').val(null).focus();
   });
-
-
-  // $('.datepicker').datepicker();
 
   // date filters
   $('#filter-start-date').datepicker({
       changeMonth: true,
       changeYear: true,
+      defaultDate: "-1y",
+      showButtonPanel: true,
       onSelect: function(date_text) {
-          app.viewModel.filterTab.startDate(new Date(date_text));
-      }
+          console.debug('start onSelect', this)
+          var date = new Date(date_text);
+          app.viewModel.filterTab.startDate(date);
+          $('#filter-to-date').datepicker('option', 'minDate', date);
+      },
+      onClose: function(date_text, picker) {
+          console.debug('start onClose', picker);
+      },
   });
 
   $('#filter-to-date').datepicker({
       changeMonth: true,
       changeYear: true,
+      defaultDate: +0,
+      maxDate: +0,
+      showButtonPanel: true,
       onSelect: function(date_text) {
-          app.viewModel.filterTab.toDate(new Date(date_text));
-      }
+          console.debug('to onSelect', this)
+          var date = new Date(date_text);
+          app.viewModel.filterTab.toDate(date);
+          $('#filter-start-date').datepicker('option', 'maxDate', date);
+      },
+      onClose: function(date_text) {
+          console.debug('to onClose', this)
+      },
   });
-
 
   app.updateFilterScrollbar = function() {
       var selector = "#filter-by .select2-container";

@@ -1,8 +1,27 @@
+ko.bindingHandlers.datePicker = {
+    init: function(element, valueAccessor, allBindingsAccessor, viewModel) {
+        // Register change callbacks to update the model if the control changes
+        ko.utils.registerEventHandler(element, "change", function() {
+            var value = valueAccessor();
+            value(new Date(element.value));
+        });
+    },
+    // update the control whenever the view model changes
+    update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
+        var value = valueAccessor(); 
+        value = value(); // get the date
+        element.value = app.dateToString_us(value);
+    }
+}
+
 function filteringModel() {
 	var self = this;
 	
-	self.startDate = ko.observable();
-	self.toDate = ko.observable();
+    var today = new Date();
+    var lastYear = new Date();
+    lastYear.setYear(today.getFullYear() - 1);
+	self.startDate = ko.observable(lastYear);
+	self.toDate = ko.observable(today);
 	self.eventTypes = ko.observableArray();
 
     // list of filter layermodels
@@ -25,14 +44,6 @@ function filteringModel() {
     }
     self.showFilterInfoButtonIsActive = ko.observable(false);
     self.filterInfoItems = ko.observableArray();
-
-    self.dateToString = function(d) {
-        // Return a date in YYYY-MM-DD format
-        // Neat trick from http://stackoverflow.com/a/3605248/65295
-        return d.getFullYear() + '-' + 
-              ('0' + (d.getMonth()+1)).slice(-2) + '-' + 
-              ('0' + d.getDate()).slice(-2);
-    }
 
     self.updateFilter = function() {
         var layers = _.filter(self.filterLayers(), function(x) {
