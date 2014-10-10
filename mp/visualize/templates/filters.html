@@ -45,16 +45,16 @@
                 </div>
 
                 <!-- Filters -->
-                <div style="margin: 10px 20px 20px 15px; height: 30px">
-                    <form>
+                <div style="margin: 0px 20px 20px 15px; height: 30px">
+                    <form style="margin: 0px">
                         <div id="filter-by" class="span12 form-group">
                             <label for="multiple" class="control-label">Filter by Debris Type</label>
-                            <select style="width: 320px;" class="field select2-multiple" data-bind="foreach: filters()" multiple>
+                            <select style="width: 337px;" class="field select2-multiple" data-bind="foreach: filters()" multiple>
                               <option data-bind="text: $data.name"></option>
                             </select>
                         </div>
 
-                        <span class="pull-right">
+                        <span>
                             <a id="filter-button" 
                                class="btn btn-default" 
                                data-bind="click: updateFilter, css: { 'enabled': filterButtonIsActive(), 'disabled': !filterButtonIsActive() }" 
@@ -65,8 +65,8 @@
                                data-bind="click: showFilterInfo, 
                                           css: {'enabled': showFilterInfoButtonIsActive(), 
                                                 'disabled': !showFilterInfoButtonIsActive()}"
-                                style="outline: none; float: right;">Debris Type Filter Info
-                                    <i class="icon-large icon-info-sign"></i>
+                                style="outline: none; float: left;">Debris Type Filter Info
+                                <i class="icon-large icon-info-sign"></i>
                             </a>
                         </span>
                     </form>

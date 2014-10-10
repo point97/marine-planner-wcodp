@@ -236,6 +236,63 @@
 	background: rgba(217,237,255, .95);
 }
 
+#filter {
+    outline: 0;
+}
+#filter div:focus {
+    outline: 0;
+}
+#filter ul li {
+	margin-bottom: 10px;
+}
+#filter .btn {
+	padding: 4px 9px;
+}
+#filter .opacity-button {
+    padding: 4px 9px;
+}
+#filter .btn-group {
+	width: 90%;
+}
+#filter .btn-group .btn-layer {
+	text-align: left;
+	width: 94%;
+}
+#filter .btn-info-sign {
+    padding: 4px 8px;
+}
+#filter .btn-layer > div {
+	display: inline-block;
+	line-height: 1;
+	margin-top: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	width: auto;
+    max-width: 72%;
+	/*height: inherit;*/
+    height: 16px;
+    vertical-align: middle;
+}
+
+#filter-by .select2-choices {
+	/*height: 78px !important;*/
+	border: 0;
+	background-image: none;
+	box-shadow: none;
+}
+#filter-by ul li {
+	margin-bottom: 3px;
+}
+#filter-by {
+    margin: 5px 0px 10px;
+}
+#filter-by .select2-container {
+    max-height: 100px;
+    min-height: 100px;
+    overflow: hidden;
+    border: 1px solid #aaa;
+}
+
 .wcodp #overview-overlay-content {
 	color: #332e1f;
 }
