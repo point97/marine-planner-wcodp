@@ -17,8 +17,11 @@ ko.bindingHandlers.datePicker = {
 function filteringModel() {
 	var self = this;
 	
-	self.startDate = ko.observable();
-	self.toDate = ko.observable();
+    var today = new Date();
+    var lastYear = new Date();
+    lastYear.setYear(today.getFullYear() - 1);
+	self.startDate = ko.observable(lastYear);
+	self.toDate = ko.observable(today);
 	self.eventTypes = ko.observableArray();
 
     // list of filter layermodels
