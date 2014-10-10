@@ -356,26 +356,46 @@ function layerModel(options, parent) {
     self.activateLayer = function() {
         var layer = this;
 
-        if (!layer.active() && layer.type !== 'placeholder') {
-
-            self.activateBaseLayer();
-
-            // save reference in parent layer
-            if (layer.parent) {
-                self.activateParentLayer();
-            }
-
-            //add utfgrid if applicable
-            if (layer.utfgrid) {
-                self.activateUtfGridLayer();
-            }
-
-            //activate arcIdentifyControl (if applicable)
-            if (layer.arcIdentifyControl) {
-                layer.arcIdentifyControl.activate();
-            }
-
+        if (layer.active() || layer.type == 'placeholder') {
+            return;
         }
+
+        if (layer.filterable) {
+            console.debug("You have selected a filterable layer, with id", 
+                          layer.id, "and filters", layer.filter);
+            layer.applyFilters(/*filters*/);
+        }
+
+        self.activateBaseLayer();
+
+        // save reference in parent layer
+        if (layer.parent) {
+            self.activateParentLayer();
+        }
+
+        //add utfgrid if applicable
+        if (layer.utfgrid) {
+            self.activateUtfGridLayer();
+        }
+
+        //activate arcIdentifyControl (if applicable)
+        if (layer.arcIdentifyControl) {
+            layer.arcIdentifyControl.activate();
+        }
+    };
+
+    self.applyFilters = function(filter) {
+        var layer = this;
+
+        if (layer._applyFilters || !layer.filterable || !layer.active()) {
+            return; 
+        }
+        
+        layer._applyFilters = true; 
+        layer.filter = filter;
+        layer.deactivateLayer();
+        layer.activateLayer(); 
+        delete layer._applyFilters;
     };
 
     // called from activateLayer

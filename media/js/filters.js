@@ -111,9 +111,7 @@ function filteringModel() {
             // TODO: Why aren't we just using layers?
             var idx = self.filterLayers().indexOf(layers[i]);
             if (idx != -1) {
-                self.filterLayers()[idx].deactivateLayer();
-                self.filterLayers()[idx].filter = queryString;
-                self.filterLayers()[idx].activateLayer();
+                self.filterLayers()[idx].applyFilters(queryString);
             }
         }
 
@@ -127,10 +125,10 @@ function filteringModel() {
 
 app.viewModel.filterTab = new filteringModel();
 
-$.ajax ({
+$.ajax({
     url: "/proxy/events/get_filters",
     type: 'GET',
-    dataType: 'json'
-  }).done(function (filters) {
+    dataType: 'json',
+}).done(function(filters) {
     app.viewModel.filterTab.filters(filters);
-  });
+});
