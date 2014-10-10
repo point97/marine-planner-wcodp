@@ -77,8 +77,6 @@ def get_filters(request):
 
 def layer_proxy_view(request, layer_id):
     layer = get_object_or_404(Layer, id=layer_id, proxy_url=True)
-    urls = []
-    async_url_fetch_results = None
     new_req_url = None
     
     to = request.GET.get('to')
