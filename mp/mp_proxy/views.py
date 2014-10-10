@@ -11,6 +11,7 @@ from proxy.views import proxy_view
 from urllib import urlencode, quote as url_quote
 from urlparse import urlparse
 import grequests, requests, logging, httplib2, logging.config, json
+import datetime
 #PROXY_FORMAT = u"http://%s/%s" % (settings.PROXY_DOMAIN, u"%s")
 
 def getLegendJSON(request, url):
@@ -79,9 +80,14 @@ def layer_proxy_view(request, layer_id):
     urls = []
     async_url_fetch_results = None
     new_req_url = None
+    
+    today = datetime.date.today()
+    last_year = today.replace(year=today.year - 1)
+    default_from = last_year.strftime('%Y-%m-%d')
+    default_to = today.strftime('%Y-%m-%d')
 
-    to = request.GET.get('to')
-    from_ = request.GET.get('from')
+    to = request.GET.get('to', default_to)
+    from_ = request.GET.get('from', default_from)
     concepts = request.GET.get('concepts', [])
     if concepts: 
         concepts = [concepts.split(',')]
