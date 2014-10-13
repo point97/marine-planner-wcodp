@@ -375,6 +375,10 @@ function layerModel(options, parent) {
                 layer.arcIdentifyControl.activate();
             }
 
+            if (layer.filterable) {
+                $('#filterTab').effect("highlight", {}, 1000);
+            }
+
         }
     };
 
