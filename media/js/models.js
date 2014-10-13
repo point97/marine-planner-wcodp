@@ -1449,7 +1449,11 @@ function viewModel() {
     };
 
     self.showMediaPrintDialog = function(self, event) {
-        $('#media-print-modal').modal('show');
+        if (self.isChrome()) {
+            window.print();
+        } else {
+            $('#media-print-modal').modal('show');
+        }
         // var browserType = "";
         // if (self.isChrome()) {
         //     // window.print();
@@ -1492,9 +1496,9 @@ function viewModel() {
     //     return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
     // };
 
-    // self.isChrome = function() {
-    //     return window.chrome;
-    // };
+    self.isChrome = function() {
+        return window.chrome;
+    };
 
     // self.isSafari = function() {
     //     return Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
