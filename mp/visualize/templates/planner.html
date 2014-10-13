@@ -22,6 +22,7 @@
         <link href="{{MEDIA_URL}}css/style.css" rel="stylesheet">
         <link href="{{MEDIA_URL}}assets/pageguide/pageguide.css" rel="stylesheet">
         <link href="{{MEDIA_URL}}wcodp/css/wcodp.css" rel="stylesheet">
+        <link href="{{MEDIA_URL}}wcodp/css/wcodp-print.css" rel="stylesheet">
         <link href="{{MEDIA_URL}}assets/select2/select2.css" rel="stylesheet">
         <link href="{{MEDIA_URL}}marine-debris/style.css" rel="stylesheet">
 
@@ -104,6 +105,7 @@
         <!-- modals -->
         {% include "modals.html" %}
         {% include "bookmark-modals.html" %}
+        {% include "media-print-modals.html" %}
 
         <!-- Active filter info MODAL -->
         <div id="filter-info-modal" role="modal" class="modal hide fade">
@@ -225,9 +227,13 @@
                                               <span>Share this Map</span>
                                           </a>
                                           <!-- Print Button -->
-                                          <a class="btn" id="btn-print" data-bind="click: printing.showPrintDialog, visible: printing.enabled() && !isFullScreen()">
+                                         <!--  <a class="btn" id="btn-print" data-bind="click: printing.showPrintDialog, visible: printing.enabled() && !isFullScreen()">
                                               <i class="icon-print icon-large"></i>
                                               <span>Print/Export</span>
+                                          </a> -->
+                                           <a id="btn-print" class="btn" data-bind="visible: modernBrowser(), click: showMediaPrintDialog">
+                                              <i class="icon-print icon-large"></i>
+                                              <span>Print</span>
                                           </a>
                                           <!--Fullscreen Button-->
                                           <a class="btn" id="btn-fullscreen">

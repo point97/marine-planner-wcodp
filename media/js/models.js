@@ -1448,6 +1448,58 @@ function viewModel() {
         }
     };
 
+    self.showMediaPrintDialog = function(self, event) {
+        $('#media-print-modal').modal('show');
+        // var browserType = "";
+        // if (self.isChrome()) {
+        //     // window.print();
+        //     $('#media-print-modal').modal('show');
+        // } else if (self.isSafari() || self.isFirefox()) {
+        //     $('#media-print-modal').modal('show');
+        // } else {
+        //     alert ("Unknown Browser!");
+        // }
+    };
+
+    // self.suitablePrintBrowser = function() {
+    //     var msie = msieversion();
+    //     if (msie && msie < 10) {
+    //         return false;
+    //     } else {
+    //         return true;
+    //     }
+    // }
+
+    // self.msieversion = function() {
+    //     var ua = window.navigator.userAgent;
+    //     var msie = ua.indexOf("MSIE ");
+
+    //     if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))      // If Internet Explorer, return version number
+    //         return parseInt(ua.substring(msie + 5, ua.indexOf(".", msie)));
+    //     else                 // If another browser, return 0
+    //         return false;
+    // };
+
+    // self.isIE8 = function() {
+    //     return self.msieversion() === "8";
+    // };
+
+    // self.isIE = function() {
+    //     return window.navigator.userAgent.indexOf("MSIE ") !== -1;
+    // };
+
+    // self.isFirefox = function() {
+    //     return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+    // };
+
+    // self.isChrome = function() {
+    //     return window.chrome;
+    // };
+
+    // self.isSafari = function() {
+    //     return Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+    // };
+
     //show Map Links
     /*
     self.showMapLinks = function(self, event) {
