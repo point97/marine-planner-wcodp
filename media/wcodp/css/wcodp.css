@@ -282,15 +282,23 @@
 }
 #filter-by ul li {
 	margin-bottom: 3px;
+	padding: 4px 5px 4px 18px;
 }
 #filter-by {
     margin: 5px 0px 10px;
 }
 #filter-by .select2-container {
-    max-height: 100px;
-    min-height: 100px;
+    max-height: 110px;
+    min-height: 110px;
     overflow: hidden;
     border: 1px solid #aaa;
+}
+#filter-by .select2-container .jspPane {
+	left: 0px !important;
+}
+#filter-by .select2-choices li:last-child {
+	padding-left: 2px;
+	padding-top: 0px;
 }
 
 .wcodp #overview-overlay-content {
