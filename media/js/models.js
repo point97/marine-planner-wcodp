@@ -363,7 +363,8 @@ function layerModel(options, parent) {
         if (layer.filterable) {
             console.debug("You have selected a filterable layer, with id", 
                           layer.id, "and filters", layer.filter);
-            layer.applyFilters(/*filters*/);
+                          
+            layer.applyFilters(app.viewModel.filterTab.getFilters());
         }
 
         self.activateBaseLayer();
@@ -387,15 +388,15 @@ function layerModel(options, parent) {
     self.applyFilters = function(filter) {
         var layer = this;
 
-        if (layer._applyFilters || !layer.filterable || !layer.active()) {
+        if (!layer.filterable) { //} || !!layer._applyingFilters) {
             return; 
         }
         
-        layer._applyFilters = true; 
+        // layer._applyingFilters = true;
         layer.filter = filter;
-        layer.deactivateLayer();
-        layer.activateLayer(); 
-        delete layer._applyFilters;
+        // layer.deactivateLayer();
+        // layer.activateLayer(); 
+        // delete layer._applyFilters;
     };
 
     // called from activateLayer

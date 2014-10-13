@@ -45,20 +45,40 @@ function filteringModel() {
     self.showFilterInfoButtonIsActive = ko.observable(false);
     self.filterInfoItems = ko.observableArray();
 
+    //** Handle a click from the Update Filter button. 
     self.updateFilter = function() {
         var layers = _.filter(self.filterLayers(), function(x) {
             return x.active() == true;
         });
 
+        filters = self.getFilters();
+
+        for (var i in layers) {
+            // TODO: Why aren't we just using layers?
+            var idx = self.filterLayers().indexOf(layers[i]);
+            if (idx != -1) {
+                self.filterLayers()[idx].applyFilters(filters);
+            }
+        }
+
+        if (self.filterInfoItems().length > 0) {
+            self.showFilterInfoButtonIsActive(true);
+        }
+        else {
+            self.showFilterInfoButtonIsActive(false);
+        }
+    };
+
+    //** Return a map of concepts and categories (list of concepts)
+    self.getOntologyFilters = function() {
         // key-only maps (to eliminate any duplicate entries)
         var categories = {};
         var concepts = {};
-
-        var from = self.startDate(); 
-        var to = self.toDate(); 
-
+        
         // NOTE:  filterItems might only be relevant for Beach Cleanup layer and not for Derelict Gear layer...
         var filterItems = $('#filter-by .select2-choices .select2-search-choice div').contents();
+        
+        // TODO: What is filterInfoItems for?
         self.filterInfoItems.removeAll();
         // TODO:  add spinner (somewhere) indicating to the user that the new layer is loading
 
@@ -86,15 +106,26 @@ function filteringModel() {
                 categories[filterField.name] = undefined;
             }
         });
-
-        var queryParameters = {}
         
-        if (Object.keys(concepts).length > 0) {
-            queryParameters['concepts'] = Object.keys(concepts).join(',');
+        return {'concepts': Object.keys(concepts), 
+                'categories': Object.keys(categories)};
+    }
+    
+    //** Return the current state of the filter tab as a query string
+    self.getFilters = function() {
+        var from = self.startDate(); 
+        var to = self.toDate(); 
+        var queryParameters = {}
+        var ontologyFilters = self.getOntologyFilters();
+        var concepts = ontologyFilters['concepts']; 
+        var categories = ontologyFilters['categories']; 
+        
+        if (concepts.length > 0) {
+            queryParameters['concepts'] = concepts.join(',');
         }
         
-        if (Object.keys(categories).length > 0) {
-            queryParameters['categories'] = Object.keys(categories).join(',');
+        if (categories.length > 0) {
+            queryParameters['categories'] = categories.join(',');
         }
 
         if (from) { 
@@ -105,22 +136,10 @@ function filteringModel() {
             queryParameters['to'] = app.dateToString(to);
         }
         
-        var queryString = '&' + $.param(queryParameters)
+        var queryString = '&' + $.param(queryParameters);
         
-        for (var i in layers) {
-            // TODO: Why aren't we just using layers?
-            var idx = self.filterLayers().indexOf(layers[i]);
-            if (idx != -1) {
-                self.filterLayers()[idx].applyFilters(queryString);
-            }
-        }
-
-        if (filterItems.length > 0) {
-            self.showFilterInfoButtonIsActive(true);
-        } else {
-            self.showFilterInfoButtonIsActive(false);
-        }
-    };
+        return queryString; 
+    }
 } // end filteringModel
 
 app.viewModel.filterTab = new filteringModel();
