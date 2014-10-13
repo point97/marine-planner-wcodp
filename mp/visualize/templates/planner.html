@@ -22,6 +22,7 @@
         <link href="{{MEDIA_URL}}css/style.css" rel="stylesheet">
         <link href="{{MEDIA_URL}}assets/pageguide/pageguide.css" rel="stylesheet">
         <link href="{{MEDIA_URL}}wcodp/css/wcodp.css" rel="stylesheet">
+        <link href="{{MEDIA_URL}}wcodp/css/wcodp-print.css" rel="stylesheet">
         <link href="{{MEDIA_URL}}assets/select2/select2.css" rel="stylesheet">
         <link href="{{MEDIA_URL}}marine-debris/style.css" rel="stylesheet">
 
@@ -29,11 +30,8 @@
         <link href="{{MEDIA_URL}}assets/jquery/jquery.mCustomScrollbar.css" rel="stylesheet">
         <link href="{{MEDIA_URL}}assets/jquery/jquery.jscrollpane.css" rel="stylesheet">
         
-        {% if project_icon %}
-        <link rel="shortcut icon" href="{{project_icon}}">
-        {% else %}
+        <!-- <link rel="shortcut icon" href="{{project_icon}}"> -->
         <link rel="shortcut icon" href="{{MEDIA_URL}}ico/favicon.ico">
-        {% endif %}
 
         <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
         <!--[if lt IE 9]>
@@ -107,6 +105,7 @@
         <!-- modals -->
         {% include "modals.html" %}
         {% include "bookmark-modals.html" %}
+        {% include "media-print-modals.html" %}
 
         <!-- Active filter info MODAL -->
         <div id="filter-info-modal" role="modal" class="modal hide fade">
@@ -228,9 +227,13 @@
                                               <span>Share this Map</span>
                                           </a>
                                           <!-- Print Button -->
-                                          <a class="btn" id="btn-print" data-bind="click: printing.showPrintDialog, visible: printing.enabled() && !isFullScreen()">
+                                         <!--  <a class="btn" id="btn-print" data-bind="click: printing.showPrintDialog, visible: printing.enabled() && !isFullScreen()">
                                               <i class="icon-print icon-large"></i>
                                               <span>Print/Export</span>
+                                          </a> -->
+                                           <a id="btn-print" class="btn" data-bind="click: showMediaPrintDialog">
+                                              <i class="icon-print icon-large"></i>
+                                              <span>Print</span>
                                           </a>
                                           <!--Fullscreen Button-->
                                           <a class="btn" id="btn-fullscreen">
@@ -424,10 +427,10 @@
                 
                 
                 
-                <!-- Data Panel (left panel) -->
-                <div class="row-fluid" data-bind="visible: showLayers()">
-                <div class="span4 tabs">
-                    <div class="sidebar-nav" data-bind="css: {'fullscreen-data': isFullScreen()}" style="min-width: 350px; max-width: 350px; height: 650px; top: 12px; z-index: 750; margin-left: 12px; background-color: white; border-radius: 10px; opacity: .9; border: 1px solid #ccc;">
+                <!-- Left Panel -->
+                <div id="left-panel" class="row-fluid" data-bind="visible: showLayers()">
+                  <div class="span4 tabs">
+                    <div class="sidebar-nav" data-bind="css: {'fullscreen-data': isFullScreen()}">
                         
                         <!-- Header -->
                         <div>
@@ -452,11 +455,11 @@
                                     <i class="icon-minus icon-large" data-bind="click: minimizeLeftPanel" style="cursor: pointer; position: absolute; top: 5px; right: 12px;"></i>
                                 </div>
                                 <div>
-                                    <span style="position: absolute; bottom: 12px; left: 12px; z-index: 1;" class="btn-group">
+                                    <span style="position: absolute; bottom: 12px; left: 15px; z-index: 1;" class="btn-group">
                                       <a id="help-button" class="btn" style="outline: none; margin-top: 10px;" href="#help-modal" data-toggle="modal">Take a Tour</a>
                                     </span>
                                     {% if user.is_staff %}
-                                    <span style="position: absolute; bottom: 12px; right: 12px; z-index: 1;" class="btn-group">
+                                    <span style="position: absolute; bottom: 12px; right: 15px; z-index: 1;" class="btn-group">
                                       <a id="add-layer-button" class="btn" style="outline: none; margin-top: 10px;" data-bind="click: showAddLayerModal">
                                         <i class="icon-plus"></i>
                                         Add Layer
@@ -489,7 +492,7 @@
                         </div>
                         
                         <!-- Search -->
-                        <div class="row-fluid" style="padding: 20px 0px; height: 30px;">
+                        <div class="row-fluid" style="padding-bottom: 20px; height: 30px;">
                             <div class="search-form span12">
                                 <form class="form-search" data-bind="submit: layerSearch" style="margin-left: auto; margin-right: auto; width: 80%; height: 0px">
                                     <div class="span12" style="float: none;">
@@ -523,6 +526,7 @@
                             </li>
                             <li data-tab="filter" >
                                 <a href="#filter" data-toggle="tab" id="filterTab">Filter  
+                                  <span style="margin-left: -10px"><i class="icon icon-filter"></i></span>
                                     <!--<span data-bind="visible: activeLayers().length > 0">
                                         (<span  data-bind="text: activeLayers().length">0</span>)
                                     </span>-->
@@ -559,8 +563,8 @@
 
                                                                         <a class="btn btn-layer" data-bind="css: { 'active': active(), 'not-active': ! active() }, click: toggleActive">
                                                                             <div style="font-weight: normal">
-                                                                                <span style="padding-left: 5px;"><i class="icon-large icon-filter" data-bind="visible: filterable"></i></span>
-                                                                                <span data-bind="text: name"></span>
+                                                                                <span style="padding-left: 5px;" data-bind="visible: filterable"><i class="icon-large icon-filter"></i></span>
+                                                                                <span style="padding-left: 5px;" data-bind="text: name"></span>
                                                                                 <span class="caret" style="display:none" data-bind="visible: subLayers.length > 0"></span>
                                                                                 <i class="check icon-large icon-check" data-bind="visible: active() && visible()"></i>
                                                                                 <i class="check icon-large icon-check-empty" data-bind="visible: active() && ! visible()"></i>
@@ -576,6 +580,7 @@
                                                                                         <i class="icon-ok-circle"></i>
                                                                                     </span>-->
                                                                                     <i class="icon-ok" data-bind="style: {visibility: active() ? 'visible': 'hidden' }"></i>
+                                                                                    <span style="margin-right: -8px;" data-bind="visible: filterable"><i class="icon icon-filter"></i></span>
                                                                                     <span class="sublayer-name" data-bind="text: name"></span>
                                                                                 </a>
                                                                             </li>
@@ -589,6 +594,7 @@
                                                                                         <i class="icon-check" data-bind="style: {display: active() ? 'inline': 'none' }"></i>
                                                                                         <i style="opacity: .4" class="icon-check-empty" data-bind="style: {display: ! active() ? 'inline': 'none' }"></i>
                                                                                     </span>
+                                                                                    <span style="margin-right: -8px;" data-bind="visible: filterable"><i class="icon icon-filter"></i></span>
                                                                                     <span class="sublayer-name" data-bind="text: name"></span>
                                                                                 </a>
                                                                             </li>
@@ -631,7 +637,8 @@
                                                 <div class="btn-group">
                                                     <button class="btn btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive()}"><i class="icon-info-sign icon-large"></i></button>
                                                     <a class="btn btn-layer" data-bind="css: { 'active': visible() }, click: toggleVisible">
-                                                        <div data-bind="text: name"></div>
+                                                        <span style="padding-left: 10px;" data-bind="visible: filterable"><i class="icon-large icon-filter"></i></span>
+                                                        <span data-bind="text: name"></span>
                                                         <span rel="tooltip" data-bind="attr: {title: sharedBy}">
                                                             <i class="icon-group" data-bind="visible: shared" style="padding-left: 10px"></i>
                                                         </span>
@@ -699,8 +706,9 @@
                             
                         </div>
                     </div>
+                  </div>
                 </div>
-                <!-- /Data Panel -->
+                <!-- /Left Panel -->
                 
                 <div class="span5"></div>
                 
@@ -741,7 +749,6 @@
                     </div>
                 </div>
                 <!-- /Legends Panel -->
-                </div>
             </div>
             <span class="timestamp" data-bind="visible: mapTitle"><span data-bind="text: new Date().toString('M/d/yyyy HH:mm')"></span></span>
         </div>

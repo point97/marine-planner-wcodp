@@ -147,7 +147,8 @@ app.viewModel.filterTab = new filteringModel();
 $.ajax({
     url: "/proxy/events/get_filters",
     type: 'GET',
-    dataType: 'json',
-}).done(function(filters) {
-    app.viewModel.filterTab.filters(filters);
+    dataType: 'json'
+}).done(function (filters) {
+    var sorted_filters = _.sortBy(filters, 'name');
+    app.viewModel.filterTab.filters(sorted_filters);
 });
