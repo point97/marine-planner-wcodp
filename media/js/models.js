@@ -376,7 +376,10 @@ function layerModel(options, parent) {
             }
 
             if (layer.filterable) {
-                $('#filterTab').effect("highlight", {}, 1000);
+                // if the Filter tab exists and the Data tab is active
+                if ( $('#filterTab').length && $("#myTab li.active").has('#dataTab').length ) {
+                    $('#filterTab').effect("highlight", {}, 1000);
+                }                
             }
 
         }
