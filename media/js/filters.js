@@ -132,5 +132,6 @@ $.ajax ({
     type: 'GET',
     dataType: 'json'
   }).done(function (filters) {
-    app.viewModel.filterTab.filters(filters);
+    var sorted_filters = _.sortBy(filters, 'name');
+    app.viewModel.filterTab.filters(sorted_filters);
   });
