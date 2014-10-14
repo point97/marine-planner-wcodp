@@ -1,5 +1,9 @@
 
 @media print {
+	@page {
+		size: landscape
+	}
+
 	.wcodp #left-panel {
 		display: none;
 	}
@@ -47,7 +51,7 @@
 	.wcodp #pageGuideMessage {
 		display: none;
 	}
-	
+
 	.modal {
 		display: none !important;
 	}
