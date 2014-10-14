@@ -391,11 +391,14 @@ function layerModel(options, parent) {
             return; 
         }
         
-        // layer._applyingFilters = true;
-        layer.filter = filter;
-        // layer.deactivateLayer();
-        // layer.activateLayer(); 
-        // delete layer._applyFilters;
+        // avoid recursion, this is a bit messy
+        if (!layer.hasOwnProperty('_applyingFilters')) {
+            layer._applyingFilters = true;
+            layer.filter = filter;
+            layer.deactivateLayer();
+            layer.activateLayer();
+            delete layer._applyingFilters;
+        }
     };
 
     // called from activateLayer
