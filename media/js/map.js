@@ -9,6 +9,26 @@ app.init = function() {
         projection: "EPSG:3857"
     });
 
+    map.loadLayerProgress = new P97.Controls.LayerLoadProgress({
+        map: map,
+        element: null,
+        onStartLoading: function() {
+            if ($("#loading").is(":visible")) {
+                this.element.hide();
+            } else {
+                this.element.show();
+            }
+        },
+        onLoading: function(num, max, percentStr) {
+            // this.element.text(percentStr);
+        },
+        onFinishLoading: function() {
+            this.element.hide();
+        }
+        
+    });
+    map.addControl(map.loadLayerProgress);
+
     if (app.MPSettings && app.MPSettings.max_zoom) {
         max_zoom = app.MPSettings.max_zoom + 1;
     } else {
@@ -882,8 +902,7 @@ app.addVectorLayerToMap = function(layer) {
         var selectorControl = new OpenLayers.Control.SelectFeature(layer.layer, {
             hover: false,
             autoActivate: true
-        });
-    
+        });    
         app.map.addControl(selectorControl);
         return;
     }
