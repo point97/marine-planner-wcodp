@@ -683,7 +683,7 @@ app.createPointFilterLayer = function(layer) {
             var feature = e.feature;
             if (feature.layer.map.popup) {
                 this.map.removePopup(feature.layer.map.popup);
-                feature.layer.map.destroy();
+                feature.layer.map.popup.destroy();
             }
             
             var html; 
