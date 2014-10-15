@@ -377,6 +377,29 @@ app.addLayerToMap = function(layer) {
     app.map.addLayer(layer.layer);
     layer.layer.opacity = layer.opacity();
     layer.layer.setVisibility(true);
+
+    // do we always have a filterTab no matter what? 
+    if (app.viewModel.hasOwnProperty('filterTab')) {
+        var filterLayerModels = app.viewModel.filterTab.filterLayers();
+        var filterLayers = [];
+        
+        for (var i = 0; i < filterLayerModels.length; i++) {
+            if (filterLayerModels[i].layer) {
+                // .layer is undefined if the layer hasn't been turned on
+                filterLayers.push(filterLayerModels[i].layer);   
+            }
+        }
+
+        if (!app.hasOwnProperty('filterableSelectFeatureControl')) {
+            app.filterableSelectFeatureControl = new OpenLayers.Control.SelectFeature(filterLayers,
+                {hover: false, autoActivate: true}
+            );
+            app.map.addControl(app.filterableSelectFeatureControl);
+        }
+        else {
+            app.filterableSelectFeatureControl.setLayer(filterLayers);
+        }
+    }
 };
 
 // add XYZ layer with no utfgrid
@@ -878,13 +901,6 @@ app.addVectorLayerToMap = function(layer) {
 
     if (layer.type === 'Vector' && layer.filterable) {
         layer.layer = app.createPointFilterLayer(layer);
-        
-        var selectorControl = new OpenLayers.Control.SelectFeature(layer.layer, {
-            hover: false,
-            autoActivate: true
-        });
-    
-        app.map.addControl(selectorControl);
         return;
     }
 
