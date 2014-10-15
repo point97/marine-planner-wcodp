@@ -209,6 +209,10 @@
 	font-size: 16px;
 }
 
+.wcodp #legend-content .accordion-toggle span {
+	font-size: 15px;
+}
+
 .wcodp .accordion-heading.active {
 	font-weight: inherit;
 }
@@ -268,7 +272,7 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	width: auto;
-    max-width: 72%;
+    /*max-width: 72%;*/
 	/*height: inherit;*/
     height: 16px;
     vertical-align: middle;

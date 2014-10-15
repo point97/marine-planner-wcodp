@@ -637,8 +637,10 @@
                                                 <div class="btn-group">
                                                     <button class="btn btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive()}"><i class="icon-info-sign icon-large"></i></button>
                                                     <a class="btn btn-layer" data-bind="css: { 'active': visible() }, click: toggleVisible">
-                                                        <span style="padding-left: 10px;" data-bind="visible: filterable"><i class="icon-large icon-filter"></i></span>
-                                                        <span data-bind="text: name"></span>
+                                                        <div>
+                                                            <span style="margin-left: -2px" data-bind="visible: filterable"><i class="icon-large icon-filter"></i></span>
+                                                            <span data-bind="text: name"></span>
+                                                        </div>
                                                         <span rel="tooltip" data-bind="attr: {title: sharedBy}">
                                                             <i class="icon-group" data-bind="visible: shared" style="padding-left: 10px"></i>
                                                         </span>
@@ -857,7 +859,8 @@
         {% endif %}
         <script src="{{MEDIA_URL}}js/app.js"></script>
         <script src="{{MEDIA_URL}}js/pageguide.js"></script>
-         <script src="{{MEDIA_URL}}js/simple-statistics.js"></script>
+        <script src="{{MEDIA_URL}}js/simple-statistics.js"></script>
+
 
         <!--[if gt IE 8]><!-->
         <script src="{{MEDIA_URL}}assets/jquery/jquery.mousewheel.min.js"></script>
