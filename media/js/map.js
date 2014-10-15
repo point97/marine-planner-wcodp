@@ -718,12 +718,10 @@ app.createPointFilterLayer = function(layer) {
             for (var i = 0; i < feature.cluster.length; i++) {
                 var attr = feature.cluster[i].attributes;
                 
-                if (!app.viewModel.filterTab.countableName(attr.internal_name)) {
-                    console.debug("Skipped counting", attr.internal_name)
-                    continue; 
+                if (app.viewModel.filterTab.countableName(attr.internal_name)) {
+                    count += attr.count; 
                 }
                 
-                count += attr.count; 
                 if (sites[attr.displayName]) {
                     sites[attr.displayName]++;
                 }
