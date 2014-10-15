@@ -386,7 +386,7 @@ app.addLayerToMap = function(layer) {
         for (var i = 0; i < filterLayerModels.length; i++) {
             if (filterLayerModels[i].layer) {
                 // .layer is undefined if the layer hasn't been turned on
-                filterLayers.push(filterLayerModels[i].layer);   
+                filterLayers.push(filterLayerModels[i].layer);
             }
         }
 
