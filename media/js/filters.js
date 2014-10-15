@@ -28,6 +28,7 @@ function filteringModel() {
     self.filterLayers = ko.observableArray();
 
     self.filters = ko.observableArray();
+    self.allowedAttributeNames = [];
     app.filterTypeAheadSource = function() {
         var filter_stuff = app.viewModel.filterTab.filters();
         return jQuery.map(filter_stuff, function(x) {
@@ -140,6 +141,42 @@ function filteringModel() {
         
         return queryString; 
     }
+
+
+    //** Returns whether an internal name (slug) corresponds to something that
+    // can be counted, based on whether or not the name is present in the 
+    // ontology. 
+    // MP-155: filter returned data to show only attrs that are present
+    // in the ontology (effectively disabling the derelict gear layer)
+    // Build search table
+    // filters format is [{name:"...", slug:"..."}]
+    // if it's a category, then it has a "subfields" property that
+    // references another item without a subfield, so we can ignore
+    // categories altogether. 
+    self.countableName = function(name) {
+        return name in self.allowedAttributeNames;
+    };
+    
+    self._buildAllowedAttrIndex = function() {
+        self.allowedAttributeNames = [];
+        var filters = self.filters();
+        
+        for (var i = 0; i < filters.length; i++) {
+            if (filters[i].subfields.length > 0) {
+                continue;
+            }
+            // some of the terms in the ontology are broken
+            if (filters[i].slug == "") {
+                console.debug(i, filters[i]);
+                continue;
+            }
+        
+            self.allowedAttributeNames[filters[i].slug] = undefined;
+        }
+        
+        console.debug("Allowed Attributes", allowedAttrs);
+    };
+
 } // end filteringModel
 
 app.viewModel.filterTab = new filteringModel();
@@ -151,4 +188,5 @@ $.ajax({
 }).done(function (filters) {
     var sorted_filters = _.sortBy(filters, 'name');
     app.viewModel.filterTab.filters(sorted_filters);
+    app.viewModel.filterTab._buildAllowedAttrIndex();
 });

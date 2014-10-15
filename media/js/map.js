@@ -658,7 +658,9 @@ app.createPointFilterLayer = function(layer) {
                 }
                 for (var i = 0; i < feature.cluster.length; i++) {
                     attr = feature.cluster[i].attributes;
-                    count += attr.count; 
+                    if (app.viewModel.filterTab.countableName(attr.internal_name)) {
+                        count += attr.count; 
+                    }
                 }
                 return count; 
             },
@@ -714,7 +716,13 @@ app.createPointFilterLayer = function(layer) {
             var sites = {}
             var categories = {}
             for (var i = 0; i < feature.cluster.length; i++) {
-                attr = feature.cluster[i].attributes;
+                var attr = feature.cluster[i].attributes;
+                
+                if (!app.viewModel.filterTab.countableName(attr.internal_name)) {
+                    console.debug("Skipped counting", attr.internal_name)
+                    continue; 
+                }
+                
                 count += attr.count; 
                 if (sites[attr.displayName]) {
                     sites[attr.displayName]++;
