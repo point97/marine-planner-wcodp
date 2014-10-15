@@ -636,6 +636,14 @@ OpenLayers.Strategy.AttributeCluster = OpenLayers.Class(OpenLayers.Strategy.Clus
     CLASS_NAME: "OpenLayers.Strategy.AttributeCluster"
 });
 
+app.removePopup = function() {
+    if (app.map.popup) {
+        this.map.removePopup(app.map.popup);
+        app.map.popup.destroy();
+        app.map.popup = null; 
+    }
+};
+
 app.createPointFilterLayer = function(layer) {
     var url = layer.url;
     if (layer.proxy_url) {
@@ -706,10 +714,7 @@ app.createPointFilterLayer = function(layer) {
             console.debug("You clicked on", e.feature);
 
             var feature = e.feature;
-            if (feature.layer.map.popup) {
-                this.map.removePopup(feature.layer.map.popup);
-                feature.layer.map.popup.destroy();
-            }
+            app.removePopup();
             
             var html; 
             var count = 0; 
@@ -773,15 +778,12 @@ app.createPointFilterLayer = function(layer) {
             popup.autoSize = true;
             popup.maxSize = new OpenLayers.Size(400,800);
             popup.fixedRelativePosition = true;
-            feature.layer.map.popup = popup;
+            app.map.popup = popup;
             app.map.addPopup(popup);
 
         },
         'featureunselected': function(e) {
-            var feature = e.feature;
-            feature.layer.map.removePopup(feature.layer.map.popup);
-            feature.layer.map.popup.destroy();
-            feature.layer.map.popup = null;
+            app.removePopup();
         }
     }
     

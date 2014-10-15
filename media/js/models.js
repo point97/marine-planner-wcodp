@@ -252,6 +252,8 @@ function layerModel(options, parent) {
     self.deactivateLayer = function() {
         var layer = this;
 
+        app.removePopup();
+
         //deactivate layer
         self.deactivateBaseLayer();
 
@@ -360,6 +362,8 @@ function layerModel(options, parent) {
             return;
         }
 
+        app.removePopup();
+
         if (layer.filterable) {
             console.debug("You have selected a filterable layer, with id", 
                           layer.id, "and filters", layer.filter);
@@ -383,7 +387,7 @@ function layerModel(options, parent) {
             // if the Filter tab exists and the Data tab is active
             if ( $('#filterTab').length && $("#myTab li.active").has('#dataTab').length ) {
                 $('#filterTab').effect("highlight", {}, 1000);
-            }                
+            }
         }
    };
 
