@@ -386,7 +386,12 @@ app.init = function() {
 };
 
 app.commaize = function (number) {
-    // Regex / 
+    /* Regex: Find all sets of three digits from right to left, and insert ,'s
+    \B match beginning of the word
+    (?=(\d{3})+ followed by any number of sets of 3 digits (positive lookahead)
+       (?!\d)) But not four (negative lookahead)
+    Then, stick a , in front of them
+    */
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
 }
 
