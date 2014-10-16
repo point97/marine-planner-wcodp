@@ -374,7 +374,8 @@ function layerModel(options, parent) {
             // if the Filter tab exists and the Data tab is active
             if ( $('#filterTab').length && $("#myTab li.active").has('#dataTab').length ) {
                 $('#filterTab').effect("highlight", {}, 1000);
-            }               
+            }   
+            return;            
         }
 
         self.activateBaseLayer();
@@ -396,15 +397,24 @@ function layerModel(options, parent) {
         if (!layer.filterable) { //} || !!layer._applyingFilters) {
             return; 
         }
+
+        layer.filter = filter || app.viewModel.filterTab.getFilters();
+
+        if(layer.active) {
+            layer.deactivateLayer();
+            layer.activateBaseLayer();
+        } else {
+            layer.activateBaseLayer();
+        }
         
         // avoid recursion, this is a bit messy
-        if (!layer.hasOwnProperty('_applyingFilters')) {
-            layer._applyingFilters = true;
-            layer.filter = filter;
-            layer.deactivateLayer();
-            layer.activateLayer();
-            delete layer._applyingFilters;
-        }
+        // if (!layer.hasOwnProperty('_applyingFilters')) {
+        //     layer._applyingFilters = true;
+        //     layer.filter = filter;
+        //     layer.deactivateLayer();
+        //     layer.activateLayer();
+        //     delete layer._applyingFilters;
+        // }
     };
 
     // called from activateLayer

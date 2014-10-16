@@ -174,7 +174,7 @@ function filteringModel() {
             self.allowedAttributeNames[filters[i].slug] = undefined;
         }
         
-        console.debug("Allowed Attributes", allowedAttrs);
+        // console.debug("Allowed Attributes", allowedAttrs);
     };
 
 } // end filteringModel
