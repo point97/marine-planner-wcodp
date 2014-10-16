@@ -20,9 +20,18 @@ function filteringModel() {
     var today = new Date();
     var lastYear = new Date();
     lastYear.setYear(today.getFullYear() - 1);
+
 	self.startDate = ko.observable(lastYear);
-	self.toDate = ko.observable(today);
-	self.eventTypes = ko.observableArray();
+    self.startDate.subscribe( function() {
+        self.highlightUpdateFilter();
+    });
+
+    self.toDate = ko.observable(today);
+    self.toDate.subscribe( function() {
+        self.highlightUpdateFilter();
+    });
+
+    self.eventTypes = ko.observableArray();
 
     // list of filter layermodels
     self.filterLayers = ko.observableArray();
@@ -176,6 +185,10 @@ function filteringModel() {
         
         // console.debug("Allowed Attributes", allowedAttrs);
     };
+
+    self.highlightUpdateFilter = function() {
+        $('#filter-button').effect("highlight", {color: 'rgba(186, 186, 39, .5)'}, 1000); // , {color: 'blue'}
+    }
 
 } // end filteringModel
 
