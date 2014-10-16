@@ -252,6 +252,8 @@ function layerModel(options, parent) {
     self.deactivateLayer = function() {
         var layer = this;
 
+        app.removePopup();
+
         //deactivate layer
         self.deactivateBaseLayer();
 
@@ -362,6 +364,8 @@ function layerModel(options, parent) {
         if (layer.active() || layer.type == 'placeholder') {
             return;
         }
+
+        app.removePopup();
 
         if (layer.filterable) {
             console.debug("You have selected a filterable layer, with id", layer.id, "and filters", layer.filter); 

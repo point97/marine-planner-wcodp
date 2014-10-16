@@ -408,6 +408,29 @@ app.addLayerToMap = function(layer) {
     app.map.addLayer(layer.layer);
     layer.layer.opacity = layer.opacity();
     layer.layer.setVisibility(true);
+
+    // do we always have a filterTab no matter what? 
+    if (app.viewModel.hasOwnProperty('filterTab')) {
+        var filterLayerModels = app.viewModel.filterTab.filterLayers();
+        var filterLayers = [];
+        
+        for (var i = 0; i < filterLayerModels.length; i++) {
+            if (filterLayerModels[i].layer) {
+                // .layer is undefined if the layer hasn't been turned on
+                filterLayers.push(filterLayerModels[i].layer);
+            }
+        }
+
+        if (!app.hasOwnProperty('filterableSelectFeatureControl')) {
+            app.filterableSelectFeatureControl = new OpenLayers.Control.SelectFeature(filterLayers,
+                {hover: false, autoActivate: true}
+            );
+            app.map.addControl(app.filterableSelectFeatureControl);
+        }
+        else {
+            app.filterableSelectFeatureControl.setLayer(filterLayers);
+        }
+    }
 };
 
 // add XYZ layer with no utfgrid
@@ -611,6 +634,15 @@ app.addArcRestLayerToMap = function(layer) {
     );
 };
 
+
+app.removePopup = function() {
+    if (app.map.popup) {
+        this.map.removePopup(app.map.popup);
+        app.map.popup.destroy();
+        app.map.popup = null; 
+    }
+};
+
 app.createPointFilterLayer = function(layer) {
     var url = layer.url;
     if (layer.proxy_url) {
@@ -638,7 +670,9 @@ app.createPointFilterLayer = function(layer) {
                 }
                 for (var i = 0; i < feature.cluster.length; i++) {
                     attr = feature.cluster[i].attributes;
-                    count += attr.count; 
+                    if (app.viewModel.filterTab.countableName(attr.internal_name)) {
+                        count += attr.count; 
+                    }
                 }
                 return count; 
             },
@@ -684,18 +718,19 @@ app.createPointFilterLayer = function(layer) {
             // console.debug("You clicked on", e.feature);
 
             var feature = e.feature;
-            if (feature.layer.map.popup) {
-                this.map.removePopup(feature.layer.map.popup);
-                feature.layer.map.destroy();
-            }
+            app.removePopup();
             
             var html; 
             var count = 0; 
             var sites = {}
             var categories = {}
             for (var i = 0; i < feature.cluster.length; i++) {
-                attr = feature.cluster[i].attributes;
-                count += attr.count; 
+                var attr = feature.cluster[i].attributes;
+                
+                if (app.viewModel.filterTab.countableName(attr.internal_name)) {
+                    count += attr.count; 
+                }
+                
                 if (sites[attr.displayName]) {
                     sites[attr.displayName]++;
                 }
@@ -747,15 +782,12 @@ app.createPointFilterLayer = function(layer) {
             popup.autoSize = true;
             popup.maxSize = new OpenLayers.Size(400,800);
             popup.fixedRelativePosition = true;
-            feature.layer.map.popup = popup;
+            app.map.popup = popup;
             app.map.addPopup(popup);
 
         },
         'featureunselected': function(e) {
-            var feature = e.feature;
-            feature.layer.map.removePopup(feature.layer.map.popup);
-            feature.layer.map.popup.destroy();
-            feature.layer.map.popup = null;
+            app.removePopup();
         }
     }
     
