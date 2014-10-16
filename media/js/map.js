@@ -11,23 +11,34 @@ app.init = function() {
 
     map.loadLayerProgress = new P97.Controls.LayerLoadProgress({
         map: map,
-        element: null,
+        element: $('#layer-loading-message'),
         onStartLoading: function() {
-            if ($("#loading").is(":visible")) {
-                this.element.hide();
-            } else {
-                this.element.show();
+            // console.log('onStartLoading');
+            if (this.element) {
+                if ($("#loading").is(":visible")) {
+                    this.element.hide();
+                } else {
+                    this.element.show();
+                }
             }
         },
         onLoading: function(num, max, percentStr) {
             // this.element.text(percentStr);
         },
         onFinishLoading: function() {
-            this.element.hide();
+            if (this.element && app.map.loadingVectorLayer !== true) {
+                this.element.hide();
+            }
         }
         
     });
     map.addControl(map.loadLayerProgress);
+
+    map.onFinishClustering = function() {
+        // console.log('onFinishClustering');
+        app.map.loadingVectorLayer = false;
+        app.map.loadLayerProgress.onFinishLoading();
+    };
 
     if (app.MPSettings && app.MPSettings.max_zoom) {
         max_zoom = app.MPSettings.max_zoom + 1;
@@ -600,39 +611,6 @@ app.addArcRestLayerToMap = function(layer) {
     );
 };
 
-/**
- * Class: OpenLayers.Strategy.AttributeCluster
- * Strategy for vector feature clustering based on feature attributes.
- *
- * Inherits from:
- *  - <OpenLayers.Strategy.Cluster>
- */
-OpenLayers.Strategy.AttributeCluster = OpenLayers.Class(OpenLayers.Strategy.Cluster, {
-    /**
-     * the attribute to use for comparison
-     */
-    attribute: null,
-    /**
-     * Method: shouldCluster
-     * Determine whether to include a feature in a given cluster.
-     *
-     * Parameters:
-     * cluster - {<OpenLayers.Feature.Vector>} A cluster.
-     * feature - {<OpenLayers.Feature.Vector>} A feature.
-     *
-     * Returns:
-     * {Boolean} The feature should be included in the cluster.
-     */
-    shouldCluster: function(cluster, feature) {
-        var cc_attrval = cluster.cluster[0].attributes[this.attribute];
-        var fc_attrval = feature.attributes[this.attribute];
-        var superProto = OpenLayers.Strategy.Cluster.prototype;
-        return cc_attrval === fc_attrval && 
-               superProto.shouldCluster.apply(this, arguments);
-    },
-    CLASS_NAME: "OpenLayers.Strategy.AttributeCluster"
-});
-
 app.createPointFilterLayer = function(layer) {
     var url = layer.url;
     if (layer.proxy_url) {
@@ -641,6 +619,11 @@ app.createPointFilterLayer = function(layer) {
             url += '?filter=' + layer.filter;
         }
     }
+
+    // show Loading Layer message   
+    app.map.loadingVectorLayer = true;     
+    app.map.loadLayerProgress.onStartLoading();
+        
 
     var defaultStyleContext = {
         context: {
@@ -698,7 +681,7 @@ app.createPointFilterLayer = function(layer) {
 
     var eventListeners = {
         'featureselected': function(e) {
-            console.debug("You clicked on", e.feature);
+            // console.debug("You clicked on", e.feature);
 
             var feature = e.feature;
             if (feature.layer.map.popup) {
@@ -782,9 +765,11 @@ app.createPointFilterLayer = function(layer) {
         projection: "EPSG:4326",
         strategies: [
             new OpenLayers.Strategy.Fixed(),
-            new OpenLayers.Strategy.AttributeCluster({
+            // new OpenLayers.Strategy.AttributeCluster({
+            new P97.Strategies.AttributeCluster({
                 attribute: 'event_type',
-                distance: 35
+                distance: 35,
+                onFinishClustering: app.map.onFinishClustering
             })
         ],
         protocol: new OpenLayers.Protocol.HTTP({
@@ -891,14 +876,14 @@ app.addGridSummaryLayerToMap = function(layer) {
 };
 
 app.addVectorLayerToMap = function(layer) {
+
     if (layer.type === 'Vector' && layer.summarize_to_grid) {
         layer.layer = app.addGridSummaryLayerToMap(layer);
         return;
     }
 
     if (layer.type === 'Vector' && layer.filterable) {
-        layer.layer = app.createPointFilterLayer(layer);
-        
+        layer.layer = app.createPointFilterLayer(layer);        
         var selectorControl = new OpenLayers.Control.SelectFeature(layer.layer, {
             hover: false,
             autoActivate: true
@@ -960,7 +945,7 @@ app.addUtfLayerToMap = function(layer) {
     var opts = {
         displayInLayerSwitcher: false
     };
-    console.log(layer);
+    // console.log(layer);
     layer.utfgrid = new OpenLayers.Layer.UTFGrid({
         layerModel: layer,
         url: layer.utfurl ? layer.utfurl : layer.parent.utfurl,

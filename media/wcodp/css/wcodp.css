@@ -150,6 +150,25 @@
 	color: #332e1f; 
 }
 
+.wcodp #layer-loading-message {
+	display: none;
+	position: absolute;
+    top: 12px;
+    left: 50%;
+    margin-left: -128px;
+    height: 1.5em;
+    width: 224px;
+    padding: 8px;
+    overflow: hidden;
+    border: 8px solid #fff;
+    border-radius: 16px;
+    background-color: rgba(255,255,255, 0.75);
+    color: black;
+    opacity: 0.75;
+    text-align: center;
+    z-index: 1000;
+}
+
 .wcodp #left-panel .sidebar-nav {
 	min-width: 370px; 
 	max-width: 370px; 

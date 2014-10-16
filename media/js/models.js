@@ -85,8 +85,8 @@ function layerModel(options, parent) {
             // url: self.url + "request=GetCapabilities", 
             url: '/proxy/capabilities/' + self.id,
             success: function(response) { 
-                console.log(self.name);
-                console.log(self.wms_slug);
+                // console.log(self.name);
+                // console.log(self.wms_slug);
                 if (self.wms_slug === 'ports1m') {
                     var wms_slug = 'ports';
                 } else {
@@ -98,7 +98,7 @@ function layerModel(options, parent) {
                     var capLayer = _.findWhere(cap.capability.layers, {'name': wms_slug});
                     if (capLayer && capLayer.styles) {
                         self.legend = capLayer.styles[0].legend.href;    
-                        console.log('self.legend = ' + self.legend);                
+                        // console.log('self.legend = ' + self.legend);                
                     }
                 }
                 //reset visibility (to reset activeLegendLayers)
@@ -286,7 +286,10 @@ function layerModel(options, parent) {
         // remove from filter layers
         // if (layer.summarize_to_grid) {
         //     app.viewModel.filterTab.filterLayers.remove(layer);
-        // }        
+        // }   
+
+        // if filterable, then turn off layer loading message 
+        app.map.onFinishClustering();
 
         //remove the key/value pair from aggregatedAttributes
         app.viewModel.removeFromAggregatedAttributes(layer.name);
@@ -361,10 +364,13 @@ function layerModel(options, parent) {
         }
 
         if (layer.filterable) {
-            console.debug("You have selected a filterable layer, with id", 
-                          layer.id, "and filters", layer.filter);
-                          
+            console.debug("You have selected a filterable layer, with id", layer.id, "and filters", layer.filter); 
+
             layer.applyFilters(app.viewModel.filterTab.getFilters());
+            // if the Filter tab exists and the Data tab is active
+            if ( $('#filterTab').length && $("#myTab li.active").has('#dataTab').length ) {
+                $('#filterTab').effect("highlight", {}, 1000);
+            }               
         }
 
         self.activateBaseLayer();
@@ -377,13 +383,6 @@ function layerModel(options, parent) {
         //add utfgrid if applicable
         if (layer.utfgrid) {
             self.activateUtfGridLayer();
-        }
-
-        if (layer.filterable) {
-            // if the Filter tab exists and the Data tab is active
-            if ( $('#filterTab').length && $("#myTab li.active").has('#dataTab').length ) {
-                $('#filterTab').effect("highlight", {}, 1000);
-            }                
         }
    };
 
@@ -414,7 +413,7 @@ function layerModel(options, parent) {
         } else {
             app.addLayerToMap(layer);
 
-            //now that we now longer use the selectfeature control we can simply do the following
+            //now that we no longer use the selectfeature control we can simply do the following
             app.viewModel.activeLayers.unshift(layer);
         }
 

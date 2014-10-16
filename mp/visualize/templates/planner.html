@@ -138,7 +138,11 @@
         <div id="registration-modals">
         {% include "account-modals.html" %}
         </div>
-        <!-- SIGN IN MODAL -->                
+        <!-- SIGN IN MODAL -->     
+
+        <!-- Loading Layers message -->
+        <div id="layer-loading-message">Layer Loading... <i class="icon-spinner icon-spin icon-large"></i></div>
+        <!-- End Loading Layers message -->           
         
         <div class="container-fluid" id="primary-content" style="padding: 0px;">
             <div id="loading" style="margin: 50px">
@@ -845,7 +849,8 @@
             };
         </script>
         
-        <script src="{{MEDIA_URL}}wcodp/js/controls/layer-load-progress.js"></script>
+        <script src="{{MEDIA_URL}}wcodp/js/controls/LayerLoadingMessage.js"></script>
+        <script src="{{MEDIA_URL}}wcodp/js/strategies/Cluster.js"></script>
 
         <script src="{{MEDIA_URL}}js/fixtures.js"></script>
         <script src="{{MEDIA_URL}}js/map.js"></script>
