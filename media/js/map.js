@@ -681,7 +681,7 @@ app.createPointFilterLayer = function(layer) {
                 return count; 
             },
             clusterLabel: function(feature) {
-                return app.commaize(defaultStyleContext.context.value(feature));
+                return app.utils.numberWithCommas(defaultStyleContext.context.value(feature));
             },
             getColor: function(feature) {
                 var type = feature.cluster[0].attributes.event_type;
@@ -758,7 +758,7 @@ app.createPointFilterLayer = function(layer) {
             // Populate the knockout
             // alias the really long object name
             var info = app.viewModel.filterTab.selectedClusterInfo;
-            info.count(app.commaize(count));
+            info.count(app.utils.numberWithCommas(count));
             info.anyUncountable(anyUncountable);
             // Convert the categories into an array of objects to make it easier
             // for to use in knockout
