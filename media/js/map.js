@@ -353,6 +353,12 @@ app.init = function() {
         return !isNaN(parseFloat(n)) && isFinite(n);
     };
 
+    /** Regex: Find all sets of three digits from right to left, and insert ,'s
+    \B match beginning of the word
+    (?=(\d{3})+ followed by any number of sets of 3 digits (positive lookahead)
+       (?!\d)) But not four (negative lookahead)
+    Then, stick a , in front of them
+    */
     app.utils.numberWithCommas = function(x) {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     };
@@ -386,16 +392,6 @@ app.init = function() {
     };
 
 };
-
-app.commaize = function (number) {
-    /* Regex: Find all sets of three digits from right to left, and insert ,'s
-    \B match beginning of the word
-    (?=(\d{3})+ followed by any number of sets of 3 digits (positive lookahead)
-       (?!\d)) But not four (negative lookahead)
-    Then, stick a , in front of them
-    */
-    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-}
 
 app.addLayerToMap = function(layer) {
     if (!layer.layer) {
