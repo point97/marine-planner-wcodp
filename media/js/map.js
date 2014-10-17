@@ -720,20 +720,23 @@ app.createPointFilterLayer = function(layer) {
 
     var eventListeners = {
         'featureselected': function(e) {
-            // console.debug("You clicked on", e.feature);
-
+            var maxItems = 5; // show at most 5 items in the popup
             var feature = e.feature;
             app.removePopup();
             
-            var html; 
             var count = 0; 
             var sites = {}
             var categories = {}
+            var anyUncountable = false; // were any data fields excluded from the count? 
+            
             for (var i = 0; i < feature.cluster.length; i++) {
                 var attr = feature.cluster[i].attributes;
                 
                 if (app.viewModel.filterTab.countableName(attr.internal_name)) {
                     count += attr.count; 
+                }
+                else {
+                    anyUncountable = true;
                 }
                 
                 if (sites[attr.displayName]) {
@@ -749,32 +752,62 @@ app.createPointFilterLayer = function(layer) {
                     categories[attr.internal_name] = attr.count; 
                 }
             }
-            
-            var maxItems = 5;
-                        
-            html = '<b>Count:</b> ' + app.commaize(count) + '<br />';
-            
-            html += '<b>Categories</b><ul>';
+
+
+            // Populate the knockout
+            // alias the really long object name
+            var info = app.viewModel.filterTab.selectedClusterInfo;
+            info.count(app.commaize(count));
+            info.anyUncountable(anyUncountable);
+            // Convert the categories into an array of objects to make it easier
+            // for to use in knockout
             var sortedCategories = Object.keys(categories).sort();
+            info.categories.removeAll();
+            for (var i = 0; i < sortedCategories.length; i++) {
+                info.categories.push({
+                    name: sortedCategories[i],
+                    count: categories[sortedCategories[i]],
+                    countable: app.viewModel.filterTab.countableName(sortedCategories[i])
+                });
+            }
+            
+            info.shortCategories.removeAll();
             for (var i = 0; i < sortedCategories.length && i < maxItems; i++) {
-                html += '<li><b>' + sortedCategories[i] + '</b>: ' + categories[sortedCategories[i]] + '</li>';
+                info.shortCategories.push(info.categories()[i]);
             }
             if (i == maxItems && sortedCategories.length > maxItems) {
-                html += '<li>(And ' + (sortedCategories.length - i) + ' more)</li>';
+                info.moreCategories(sortedCategories.length - i); 
             }
-            html += '</ul>';
-            
+            else {
+                info.moreCategories(0);
+            }
+
+
             var sortedSites = Object.keys(sites).sort();
-            html += '<b>Sites:</b><ul>'
+            info.sites.removeAll();
+            for (var i = 0; i < sortedSites.length; i++) {
+                info.sites.push({
+                    name: sortedSites[i],
+                    count: sites[sortedSites[i]]
+                });
+            }
+            
+            info.shortSites.removeAll();
             for (var i = 0; i < sortedSites.length && i < maxItems; i++) {
-                html += '<li>' + sortedSites[i] + ': ' + sites[sortedSites[i]] + '</li>';
+                info.shortSites.push(info.sites()[i]);
             }
             if (i == maxItems && sortedSites.length > maxItems) {
-                html += '<li>(And ' + (sortedSites.length - i) + ' more)</li>';
+                info.moreSites(sortedSites.length - i); 
             }
-            html += '</ul>';
+            else {
+                info.moreSites(0);
+            }
+            // end populate knockout
             
-            html += '<a href="http://debris.westcoastoceans.org/events" target="_blank">Jump to the Marine Debris Database</a>';
+            // Now that KO has done it's thing, make of copy of the HTML that
+            // it generated for us and stuff that into the popup. 
+            // I'm sure there's a better way to render this template.
+            var html = document.querySelector('#selected-cluster-info').innerHTML;
 
             var popup = new OpenLayers.Popup.FramedCloud("popup" + feature.id,
                 OpenLayers.LonLat.fromString(feature.geometry.toShortString()),

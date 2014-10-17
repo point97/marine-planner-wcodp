@@ -128,6 +128,90 @@
                 <button href="#" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
+        
+        <!-- HTML for the full cluster info dialogue box -->
+        <div id="filter-item-more-info" role="modal" class="modal hide fade">
+            <div class="modal-header">
+                <h3>More information</h3>
+            </div>
+            
+            <div class="modal-body" style="overflow: auto; height: 600px;"
+                 data-bind='with: app.viewModel.filterTab.selectedClusterInfo'>
+                <b>Count:</b> <span data-bind='text: count'></span> <br />
+
+                <div>
+                    <b>Categories</b>
+                    <ul>
+                        <!-- ko foreach: categories -->
+                        <li><span data-bind='text:name'></span>: 
+                            <span data-bind='text:count'></span><span data-bind='ifnot:countable'>*</span></li>
+                        <!-- /ko -->
+                    </ul>
+                </div>
+
+                <b>Sites</b>
+                <ul>
+                    <!-- ko foreach:sites -->
+                        <li><span data-bind='text:name'></span>: 
+                            <span data-bind='text:count'></span></li>
+                    <!-- /ko -->
+                </ul>
+                <a href="http://debris.westcoastoceans.org/events" target="_blank">Visit the Marine Debris Database</a>
+            
+                <p><sub data-bind='if:anyUncountable'>* Indicates items that 
+                    were excluded from the total count.</sub></p>
+            </div>
+
+            <div class="modal-footer">
+                <button href="#" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+        <!-- HTML for the cluster popup -->
+        <div id="selected-cluster-info" 
+             data-bind='with: app.viewModel.filterTab.selectedClusterInfo'
+             class="hide">
+            <b>Count:</b> <span data-bind='text: count'></span> <br />
+
+            <div>
+                <b>Categories</b>
+                <ul>
+                    <!-- ko foreach: shortCategories -->
+                    <li><span data-bind='text:name'></span>: 
+                        <span data-bind='text:count'></span><span data-bind='ifnot:countable'>*</span>
+                    </li>
+                    <!-- /ko -->
+                    
+                    <!-- ko if:moreCategories() > 0 -->
+                    <li><a href="#" onclick="
+                        app.removePopup();
+                        $('#filter-item-more-info').modal();
+                        ">(And <span data-bind='text:moreCategories'></span> more</a>)</li>
+                    <!-- /ko -->
+                </ul>
+            </div>
+            
+            <b>Sites</b>
+            <ul>
+                <!-- ko foreach:shortSites -->
+                    <li><span data-bind='text:name'></span>: 
+                        <span data-bind='text:count'></span>
+                    </li>
+                <!-- /ko -->
+                
+                <!-- ko if: moreSites() > 0 -->
+                <li><a href="#" onclick="
+                    app.removePopup();
+                    $('#filter-item-more-info').modal();
+                    ">(And <span data-bind='text:moreSites'></span> more</a>)</li>
+                <!-- /ko -->
+            </ul>
+
+            <a href="http://debris.westcoastoceans.org/events" target="_blank">Visit the Marine Debris Database</a>
+            
+            <p><sub data-bind='if:anyUncountable'>* Indicates items that 
+                were excluded from the total count.</sub></p>
+        </div>
         <!-- end modals -->
 
         <!-- TOUR -->

@@ -27,6 +27,21 @@ function filteringModel() {
     // list of filter layermodels
     self.filterLayers = ko.observableArray();
 
+    // Selected clusterbubble info (populated on click)
+    // TODO: Does knockout have an observable object?
+    // "shortCategories" is the first 5 elements of the categories array. 
+    // Needed until I know how to make knockout use a regular for loop
+    self.selectedClusterInfo = {
+        count: ko.observable(),
+        anyUncountable: ko.observable(),
+        categories: ko.observableArray(),
+        shortCategories: ko.observableArray(),
+        moreCategories: ko.observable(),
+        sites: ko.observableArray(),
+        shortSites: ko.observableArray(),
+        moreSites: ko.observable()
+    };
+
     self.filters = ko.observableArray();
     self.allowedAttributeNames = [];
     app.filterTypeAheadSource = function() {
