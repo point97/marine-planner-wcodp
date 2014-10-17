@@ -23,18 +23,20 @@ function filteringModel() {
 
 	self.startDate = ko.observable(lastYear);
     self.startDate.subscribe( function() {
-        self.highlightUpdateFilter();
+        // self.highlightUpdateFilter();
+        self.updateFilterButtonIsEnabled(true);
     });
 
     self.toDate = ko.observable(today);
     self.toDate.subscribe( function() {
-        self.highlightUpdateFilter();
+        // self.highlightUpdateFilter();
+        self.updateFilterButtonIsEnabled(true);
     });
 
     self.eventTypes = ko.observableArray();
 
     // list of filter layermodels
-    self.filterLayers = ko.observableArray();
+    self.filterLayers = ko.observableArray(); 
 
     self.filters = ko.observableArray();
     self.allowedAttributeNames = [];
@@ -45,21 +47,30 @@ function filteringModel() {
         });
     }
 
-    self.filterButtonIsActive = ko.observable(true);
+    self.updateFilterButtonIsEnabled = ko.observable(false);
 
     self.showFilterInfo = function() {
-        if (self.showFilterInfoButtonIsActive()) {
+        self.getOntologyFilters();
+        if (self.filterInfoButtonIsEnabled()) {
             $('#filter-info-modal').modal();
         }
     }
-    self.showFilterInfoButtonIsActive = ko.observable(false);
+    self.filterInfoButtonIsEnabled = ko.observable(false);
     self.filterInfoItems = ko.observableArray();
+
+    self.updateFilterClick = function() {
+        if (self.updateFilterButtonIsEnabled()) {
+            self.updateFilter();
+        }
+    };
 
     //** Handle a click from the Update Filter button. 
     self.updateFilter = function() {
         var layers = _.filter(self.filterLayers(), function(x) {
             return x.active() == true;
         });
+
+        self.updateFilterButtonIsEnabled(false);
 
         filters = self.getFilters();
 
@@ -71,13 +82,17 @@ function filteringModel() {
             }
         }
 
-        if (self.filterInfoItems().length > 0) {
-            self.showFilterInfoButtonIsActive(true);
-        }
-        else {
-            self.showFilterInfoButtonIsActive(false);
-        }
+        // if (self.filterInfoItems().length > 0) {
+        //     self.filterInfoButtonIsEnabled(true);
+        // }
+        // else {
+        //     self.filterInfoButtonIsEnabled(false);
+        // }
     };
+
+    self.getFilterItems = function() {
+        return $('#filter-by .select2-choices .select2-search-choice div').contents();
+    }
 
     //** Return a map of concepts and categories (list of concepts)
     self.getOntologyFilters = function() {
@@ -86,11 +101,11 @@ function filteringModel() {
         var concepts = {};
         
         // NOTE:  filterItems might only be relevant for Beach Cleanup layer and not for Derelict Gear layer...
-        var filterItems = $('#filter-by .select2-choices .select2-search-choice div').contents();
+        var filterItems = self.getFilterItems();
         
         // TODO: What is filterInfoItems for?
+        // Answer: it's used in the modal that displays the Filter Item Information
         self.filterInfoItems.removeAll();
-        // TODO:  add spinner (somewhere) indicating to the user that the new layer is loading
 
         $.each(filterItems, function(index, value) {
             var filterField = _.findWhere(self.filters(), {name: value.data});
@@ -149,8 +164,15 @@ function filteringModel() {
         var queryString = '&' + $.param(queryParameters);
         
         return queryString; 
-    }
+    };
 
+    self.activeFilterLayers = ko.observableArray();
+    app.viewModel.activeLayers.subscribe( function(activeLayers) {
+        self.activeFilterLayers(_.where(activeLayers, {'filterable': true}));
+        if(self.activeFilterLayers().length === 0) {
+            self.updateFilterButtonIsEnabled(false);
+        }
+    });
 
     //** Returns whether an internal name (slug) corresponds to something that
     // can be counted, based on whether or not the name is present in the 

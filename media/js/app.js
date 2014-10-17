@@ -207,8 +207,17 @@ $(document).ready(function() {
             }
         }
     });
-    $("#filter-by .select2-multiple").on("change", function() {
-        app.viewModel.filterTab.highlightUpdateFilter();
+    $("#filter-by .select2-multiple").on("change", function(a, b, c) {
+        // app.viewModel.filterTab.highlightUpdateFilter();
+        if (app.viewModel.filterTab.activeFilterLayers()) {
+            app.viewModel.filterTab.updateFilterButtonIsEnabled(true);
+        }
+        
+        if (app.viewModel.filterTab.getFilterItems().length > 0) {
+            app.viewModel.filterTab.filterInfoButtonIsEnabled(true);
+        } else {
+            app.viewModel.filterTab.filterInfoButtonIsEnabled(false);
+        } 
     });
   }
   

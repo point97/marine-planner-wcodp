@@ -56,14 +56,14 @@
 
                         <span>
                             <a id="filter-button" class="btn btn-default" 
-                               data-bind="click: updateFilter, css: { 'enabled': filterButtonIsActive(), 'disabled': !filterButtonIsActive() }" 
+                               data-bind="click: updateFilterClick, css: { 'enabled': updateFilterButtonIsEnabled(), 'disabled': !updateFilterButtonIsEnabled() }" 
                                style="outline: none; float: right; margin-right: -3px; margin-left: 6px;">Update Filter
                                <i class="icon-large icon-filter"></i>
                              </a>
                             <a class="btn btn-default" 
                                data-bind="click: showFilterInfo, 
-                                          css: {'enabled': showFilterInfoButtonIsActive(), 
-                                                'disabled': !showFilterInfoButtonIsActive()}"
+                                          css: {'enabled': filterInfoButtonIsEnabled(), 
+                                                'disabled': !filterInfoButtonIsEnabled()}"
                                style="outline: none; float: left;">Debris Type Filter Info
                                <i class="icon-large icon-info-sign"></i>
                             </a>
