@@ -146,6 +146,8 @@ app.init = function() {
         if (map.getZoom() < min_zoom) {
             map.zoomTo(min_zoom);
         }
+        
+        app.removePopup();
     });
 
     map.events.register("moveend", null, function() {
@@ -720,6 +722,8 @@ app.createPointFilterLayer = function(layer) {
     });
 
     var eventListeners = {
+        //** Compute popup contents, render, and display! 
+        // TODO: Refactor; this is way too big. 
         'featureselected': function(e) {
             var maxItems = 5; // show at most 5 items in the popup
             var feature = e.feature;
@@ -838,7 +842,7 @@ app.createPointFilterLayer = function(layer) {
         },
         'featureunselected': function(e) {
             app.removePopup();
-        }
+        },
     }
     
     var newLayer = new OpenLayers.Layer.Vector("Events", {
