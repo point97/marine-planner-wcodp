@@ -666,7 +666,8 @@ app.createPointFilterLayer = function(layer) {
         context: {
             radius: function(feature) {
                 var c = defaultStyleContext.context.value(feature);
-                return Math.max(10, 2 * Math.log(1 + c));
+                feature._radius = Math.max(10, 2 * Math.log(1 + c));
+                return feature._radius;
             },
             value: function(feature) {
                 var count = 0; 
@@ -820,9 +821,20 @@ app.createPointFilterLayer = function(layer) {
             popup.autoSize = true;
             popup.maxSize = new OpenLayers.Size(400,800);
             popup.fixedRelativePosition = true;
+            
             app.map.popup = popup;
             app.map.addPopup(popup);
 
+            // Scoot the anchor over a bit
+            var theta = {
+                tl: Math.PI, 
+                tr: 0,
+                bl: Math.PI,
+                br: 0
+            }[popup.relativePosition];
+            popup.anchor.offset.x = Math.cos(theta) * feature._radius;
+            popup.anchor.offset.y = Math.sin(theta) * feature._radius;
+            popup.draw();
         },
         'featureunselected': function(e) {
             app.removePopup();
