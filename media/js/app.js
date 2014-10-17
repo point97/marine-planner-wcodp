@@ -156,7 +156,7 @@ $(document).ready(function() {
       defaultDate: "-1y",
       showButtonPanel: true,
       onSelect: function(date_text) {
-          console.debug('start onSelect', this)
+          // console.debug('start onSelect', this);
           var date = new Date(date_text);
           app.viewModel.filterTab.startDate(date);
           $('#filter-to-date').datepicker('option', 'minDate', date);
@@ -173,7 +173,7 @@ $(document).ready(function() {
       maxDate: +0,
       showButtonPanel: true,
       onSelect: function(date_text) {
-          console.debug('to onSelect', this)
+          // console.debug('to onSelect', this);
           var date = new Date(date_text);
           app.viewModel.filterTab.toDate(date);
           $('#filter-start-date').datepicker('option', 'maxDate', date);
@@ -198,14 +198,26 @@ $(document).ready(function() {
         .on("select2-selecting", app.updateFilterScrollbar)
         .on("select2-removed", app.updateFilterScrollbar);
     $('#filter-by .select2-multiple').on( "select2-open", function() {
-      if ( $(this).parents('[class*="has-"]').length ) {
-        var classNames = $(this).parents('[class*="has-"]')[0].className.split(/\s+/);
-        for (var i=0; i<classNames.length; ++i) {
-            if ( classNames[i].match("has-") ) {
-              $('#select2-drop').addClass( classNames[i] );
+        if ( $(this).parents('[class*="has-"]').length ) {
+            var classNames = $(this).parents('[class*="has-"]')[0].className.split(/\s+/);
+            for (var i=0; i<classNames.length; ++i) {
+                if ( classNames[i].match("has-") ) {
+                    $('#select2-drop').addClass( classNames[i] );
+                }
             }
         }
-      }
+    });
+    $("#filter-by .select2-multiple").on("change", function(a, b, c) {
+        // app.viewModel.filterTab.highlightUpdateFilter();
+        if (app.viewModel.filterTab.activeFilterLayers()) {
+            app.viewModel.filterTab.updateFilterButtonIsEnabled(true);
+        }
+        
+        if (app.viewModel.filterTab.getFilterItems().length > 0) {
+            app.viewModel.filterTab.filterInfoButtonIsEnabled(true);
+        } else {
+            app.viewModel.filterTab.filterInfoButtonIsEnabled(false);
+        } 
     });
   }
   

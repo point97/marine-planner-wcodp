@@ -373,7 +373,7 @@ function layerModel(options, parent) {
             layer.applyFilters(app.viewModel.filterTab.getFilters());
             // if the Filter tab exists and the Data tab is active
             if ( $('#filterTab').length && $("#myTab li.active").has('#dataTab').length ) {
-                $('#filterTab').effect("highlight", {}, 1000);
+                $('#filterTab').effect("highlight", {color: 'rgba(186, 186, 39, .5)'}, 1000);
             }   
             return;            
         }

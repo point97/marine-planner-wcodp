@@ -4,7 +4,8 @@
         <div id="filter-content" class="span12" style="height: 100%;">
             <div>
                 <!-- Data Layers -->
-                <ul class="unstyled list" style="margin: 10px 5px 0px 5px;" data-bind="sortable: { data: filterLayers, options: {  } }">
+                <!-- <ul class="unstyled list" style="margin: 10px 5px 0px 5px;" data-bind="sortable: { data: filterLayers, options: {  } }"> -->
+                <ul class="unstyled list" style="margin: 10px 5px 0px 5px;" data-bind="foreach: filterLayers">
                     <li>
                         <div class="btn-group">
 
@@ -55,18 +56,17 @@
                         </div>
 
                         <span>
-                            <a id="filter-button" 
-                               class="btn btn-default" 
-                               data-bind="click: updateFilter, css: { 'enabled': filterButtonIsActive(), 'disabled': !filterButtonIsActive() }" 
+                            <a id="filter-button" class="btn btn-default" 
+                               data-bind="click: updateFilterClick, css: { 'enabled': updateFilterButtonIsEnabled(), 'disabled': !updateFilterButtonIsEnabled() }" 
                                style="outline: none; float: right; margin-right: -3px; margin-left: 6px;">Update Filter
-                                   <i class="icon-large icon-filter"></i>
-                               </a>
+                               <i class="icon-large icon-filter"></i>
+                             </a>
                             <a class="btn btn-default" 
                                data-bind="click: showFilterInfo, 
-                                          css: {'enabled': showFilterInfoButtonIsActive(), 
-                                                'disabled': !showFilterInfoButtonIsActive()}"
-                                style="outline: none; float: left;">Debris Type Filter Info
-                                <i class="icon-large icon-info-sign"></i>
+                                          css: {'enabled': filterInfoButtonIsEnabled(), 
+                                                'disabled': !filterInfoButtonIsEnabled()}"
+                               style="outline: none; float: left;">Debris Type Filter Info
+                               <i class="icon-large icon-info-sign"></i>
                             </a>
                         </span>
                     </form>
