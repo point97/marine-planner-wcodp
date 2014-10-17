@@ -4,7 +4,8 @@
         <div id="filter-content" class="span12" style="height: 100%;">
             <div>
                 <!-- Data Layers -->
-                <ul class="unstyled list" style="margin: 10px 5px 0px 5px;" data-bind="sortable: { data: filterLayers, options: {  } }">
+                <!-- <ul class="unstyled list" style="margin: 10px 5px 0px 5px;" data-bind="sortable: { data: filterLayers, options: {  } }"> -->
+                <ul class="unstyled list" style="margin: 10px 5px 0px 5px;" data-bind="foreach: filterLayers">
                     <li>
                         <div class="btn-group">
 
