@@ -146,6 +146,8 @@ app.init = function() {
         if (map.getZoom() < min_zoom) {
             map.zoomTo(min_zoom);
         }
+        
+        app.removePopup();
     });
 
     map.events.register("moveend", null, function() {
@@ -351,6 +353,12 @@ app.init = function() {
         return !isNaN(parseFloat(n)) && isFinite(n);
     };
 
+    /** Regex: Find all sets of three digits from right to left, and insert ,'s
+    \B match beginning of the word
+    (?=(\d{3})+ followed by any number of sets of 3 digits (positive lookahead)
+       (?!\d)) But not four (negative lookahead)
+    Then, stick a , in front of them
+    */
     app.utils.numberWithCommas = function(x) {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     };
@@ -384,16 +392,6 @@ app.init = function() {
     };
 
 };
-
-app.commaize = function (number) {
-    /* Regex: Find all sets of three digits from right to left, and insert ,'s
-    \B match beginning of the word
-    (?=(\d{3})+ followed by any number of sets of 3 digits (positive lookahead)
-       (?!\d)) But not four (negative lookahead)
-    Then, stick a , in front of them
-    */
-    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-}
 
 app.addLayerToMap = function(layer) {
     if (!layer.layer) {
@@ -666,7 +664,8 @@ app.createPointFilterLayer = function(layer) {
         context: {
             radius: function(feature) {
                 var c = defaultStyleContext.context.value(feature);
-                return Math.max(10, 2 * Math.log(1 + c));
+                feature._radius = Math.max(10, 2 * Math.log(1 + c));
+                return feature._radius;
             },
             value: function(feature) {
                 var count = 0; 
@@ -682,7 +681,7 @@ app.createPointFilterLayer = function(layer) {
                 return count; 
             },
             clusterLabel: function(feature) {
-                return app.commaize(defaultStyleContext.context.value(feature));
+                return app.utils.numberWithCommas(defaultStyleContext.context.value(feature));
             },
             getColor: function(feature) {
                 var type = feature.cluster[0].attributes.event_type;
@@ -719,6 +718,8 @@ app.createPointFilterLayer = function(layer) {
     });
 
     var eventListeners = {
+        //** Compute popup contents, render, and display! 
+        // TODO: Refactor; this is way too big. 
         'featureselected': function(e) {
             var maxItems = 5; // show at most 5 items in the popup
             var feature = e.feature;
@@ -757,7 +758,7 @@ app.createPointFilterLayer = function(layer) {
             // Populate the knockout
             // alias the really long object name
             var info = app.viewModel.filterTab.selectedClusterInfo;
-            info.count(app.commaize(count));
+            info.count(app.utils.numberWithCommas(count));
             info.anyUncountable(anyUncountable);
             // Convert the categories into an array of objects to make it easier
             // for to use in knockout
@@ -820,13 +821,24 @@ app.createPointFilterLayer = function(layer) {
             popup.autoSize = true;
             popup.maxSize = new OpenLayers.Size(400,800);
             popup.fixedRelativePosition = true;
+            
             app.map.popup = popup;
             app.map.addPopup(popup);
 
+            // Scoot the anchor over a bit
+            var theta = {
+                tl: Math.PI, 
+                tr: 0,
+                bl: Math.PI,
+                br: 0
+            }[popup.relativePosition];
+            popup.anchor.offset.x = Math.cos(theta) * feature._radius;
+            popup.anchor.offset.y = Math.sin(theta) * feature._radius;
+            popup.draw();
         },
         'featureunselected': function(e) {
             app.removePopup();
-        }
+        },
     }
     
     var newLayer = new OpenLayers.Layer.Vector("Events", {
