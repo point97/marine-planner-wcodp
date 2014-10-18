@@ -421,6 +421,11 @@ function layerModel(options, parent) {
     self.activateBaseLayer = function() {
         var layer = this;
 
+        // set the active flag
+        layer.active(true);
+        // setting visible to true before adding layer to map so that getState sets the visibility correctly
+        layer.visible(true);
+
         if (layer.summarize_to_grid) {
             // app.viewModel.filterTab.filterLayers.unshift(layer);
             app.viewModel.filterTab.filterButtonIsActive(true);
@@ -431,9 +436,6 @@ function layerModel(options, parent) {
             app.viewModel.activeLayers.unshift(layer);
         }
 
-        // set the active flag
-        layer.active(true);
-        layer.visible(true);
     };
 
     // called from activateLayer
