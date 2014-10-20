@@ -154,8 +154,8 @@
          *     result of a moveend event.
          */
         cluster: function(event) {
+            this.onStartClustering();
             if((!event || event.zoomChanged) && this.features) {
-                this.onStartClustering();
                 var resolution = this.layer.map.getResolution();
                 if(resolution != this.resolution || !this.clustersExist()) {
                     this.resolution = resolution;
@@ -202,8 +202,8 @@
                     }
                     this.clusters = clusters;
                 }
-                this.onFinishClustering();
             }
+            this.onFinishClustering();
         },
         
         /**

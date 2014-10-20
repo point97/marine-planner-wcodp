@@ -34,6 +34,11 @@ app.init = function() {
     });
     map.addControl(map.loadLayerProgress);
 
+    map.onStartClustering = function() {
+        console.debug("onStartClustering");
+        app.map.loadingVectorLayer = true;
+        app.map.loadLayerProgress.onStartLoading();
+    }
     map.onFinishClustering = function() {
         // console.log('onFinishClustering');
         app.map.loadingVectorLayer = false;
@@ -658,7 +663,6 @@ app.createPointFilterLayer = function(layer) {
     // show Loading Layer message   
     app.map.loadingVectorLayer = true;     
     app.map.loadLayerProgress.onStartLoading();
-        
 
     var defaultStyleContext = {
         context: {
@@ -839,6 +843,9 @@ app.createPointFilterLayer = function(layer) {
         'featureunselected': function(e) {
             app.removePopup();
         },
+        'loadend': function(e) {
+            app.map.onFinishClustering();
+        }
     }
     
     var newLayer = new OpenLayers.Layer.Vector("Events", {
@@ -851,6 +858,7 @@ app.createPointFilterLayer = function(layer) {
             new P97.Strategies.AttributeCluster({
                 attribute: 'event_type',
                 distance: 35,
+                onStartClustering: app.map.onStartClustering,
                 onFinishClustering: app.map.onFinishClustering
             })
         ],
