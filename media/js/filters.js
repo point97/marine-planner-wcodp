@@ -219,8 +219,6 @@ function filteringModel() {
         
             self.allowedAttributeNames[filters[i].slug] = undefined;
         }
-        
-        // console.debug("Allowed Attributes", allowedAttrs);
     };
 
     self.highlightUpdateFilter = function() {

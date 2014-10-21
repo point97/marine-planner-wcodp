@@ -85,8 +85,6 @@ function layerModel(options, parent) {
             // url: self.url + "request=GetCapabilities", 
             url: '/proxy/capabilities/' + self.id,
             success: function(response) { 
-                // console.log(self.name);
-                // console.log(self.wms_slug);
                 if (self.wms_slug === 'ports1m') {
                     var wms_slug = 'ports';
                 } else {
@@ -98,7 +96,6 @@ function layerModel(options, parent) {
                     var capLayer = _.findWhere(cap.capability.layers, {'name': wms_slug});
                     if (capLayer && capLayer.styles) {
                         self.legend = capLayer.styles[0].legend.href;    
-                        // console.log('self.legend = ' + self.legend);                
                     }
                 }
                 //reset visibility (to reset activeLegendLayers)
@@ -368,8 +365,6 @@ function layerModel(options, parent) {
         app.removePopup();
 
         if (layer.filterable) {
-            console.debug("You have selected a filterable layer, with id", layer.id, "and filters", layer.filter); 
-
             layer.applyFilters(app.viewModel.filterTab.getFilters());
             // if the Filter tab exists and the Data tab is active
             if ( $('#filterTab').length && $("#myTab li.active").has('#dataTab').length ) {

@@ -156,13 +156,11 @@ $(document).ready(function() {
       defaultDate: "-1y",
       showButtonPanel: true,
       onSelect: function(date_text) {
-          // console.debug('start onSelect', this);
           var date = new Date(date_text);
           app.viewModel.filterTab.startDate(date);
           $('#filter-to-date').datepicker('option', 'minDate', date);
       },
       onClose: function(date_text, picker) {
-          console.debug('start onClose', picker);
       },
   });
 
@@ -173,13 +171,11 @@ $(document).ready(function() {
       maxDate: +0,
       showButtonPanel: true,
       onSelect: function(date_text) {
-          // console.debug('to onSelect', this);
           var date = new Date(date_text);
           app.viewModel.filterTab.toDate(date);
           $('#filter-start-date').datepicker('option', 'maxDate', date);
       },
       onClose: function(date_text) {
-          console.debug('to onClose', this)
       },
   });
 

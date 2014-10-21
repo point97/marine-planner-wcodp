@@ -46,25 +46,13 @@
                 return false;
             }
         },
-        // deactivate: function() {
-        //     if (OpenLayers.Control.prototype.deactivate.apply(this, arguments)) {
-        //         // this.map.events.unregister('move', this, this.startCountingLoadingTiles);
-        //         // this.map.events.unregister('zoomend', this, this.startCountingLoadingTiles);
-        //         return true;
-        //     } else {
-        //         return false;
-        //     }
-        // },
         getNumLoadingTiles: function() {
             var sum = 0; 
-            // console.log('inside getNumLoadingTiles...');
-            // console.log('sum = ' + sum);
             for (var i = 0; i < this.map.layers.length; i++) {
                 // only grid layers have 'numLoadingTiles'
                 if (typeof(this.map.layers[i].numLoadingTiles) != "undefined") {
                     sum += this.map.layers[i].numLoadingTiles;
                 }
-                // console.log('sum = ' + sum);
             }
             return sum;
         },
@@ -82,15 +70,12 @@
         countLoadingTiles: function() {
             var percentStr = '';
             var num = this.getNumLoadingTiles();
-            // console.log('getNumLoadingTiles = ' + num);
         
             if (!this.isLoading && num > 0) {
                 this.isLoading = true;
-                // console.log('calling onStartLoading');
                 this.onStartLoading();
             }
             
-            // console.log('maxTiles = ' + this.maxTiles);
             // we auto adjust the max up (for example, when new layers are shown)
             // but don't know how to auto adjust down yet. Maybe we can ask 
             // OpenLayers how many tiles there are in all the layers? 
@@ -105,7 +90,6 @@
             else {
                 percent = percent + '%';
             }
-            // console.log('countLoadingTiles.percent = ' + percent);
 
             if (num > 0) {
                 this.counterRunning = setTimeout(this.countLoadingTiles.bind(this), 
@@ -115,7 +99,6 @@
                 this.onLoading(num, this.maxTiles, percentStr);
                 if (this.element) {
                     // this.element.html(percentStr);
-                    // console.log(percentStr);
                 }
             }
             else {
@@ -124,11 +107,9 @@
             
                 this.isLoading = false;
             
-                // console.log('calling onFinishedLoading from countLoadingTiles');
                 this.onFinishLoading();
                 if (this.element) {
                     // this.element.html(this.finishedLoadingStr);
-                    // console.log(this.finishedLoadingStr);
                 }
             }
         }

@@ -13,7 +13,6 @@ app.init = function() {
         map: map,
         element: $('#layer-loading-message'),
         onStartLoading: function() {
-            // console.log('onStartLoading');
             if (this.element) {
                 if ($("#loading").is(":visible")) {
                     this.element.hide();
@@ -35,12 +34,10 @@ app.init = function() {
     map.addControl(map.loadLayerProgress);
 
     map.onStartClustering = function() {
-        console.debug("onStartClustering");
         app.map.loadingVectorLayer = true;
         app.map.loadLayerProgress.onStartLoading();
     }
     map.onFinishClustering = function() {
-        // console.log('onFinishClustering');
         app.map.loadingVectorLayer = false;
         app.map.loadLayerProgress.onFinishLoading();
     };
@@ -1035,7 +1032,6 @@ app.addUtfLayerToMap = function(layer) {
     var opts = {
         displayInLayerSwitcher: false
     };
-    // console.log(layer);
     layer.utfgrid = new OpenLayers.Layer.UTFGrid({
         layerModel: layer,
         url: layer.utfurl ? layer.utfurl : layer.parent.utfurl,
