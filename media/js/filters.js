@@ -19,7 +19,7 @@ function filteringModel() {
 	
     var today = new Date();
     var lastYear = new Date();
-    lastYear.setYear(today.getFullYear() - 1);
+    lastYear.setYear(today.getFullYear() - 3);
 
 	self.startDate = ko.observable(lastYear);
     self.startDate.subscribe( function() {
