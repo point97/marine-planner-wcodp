@@ -177,5 +177,10 @@ LOGGING = {
 import logging
 logging.getLogger('django.db.backends').setLevel(logging.ERROR)
 
-from settings_local import *
+try:
+    from settings_local import *
+except ImportError: 
+    import warnings
+    warnings.warn("settings_local.py module missing.")
+
 
