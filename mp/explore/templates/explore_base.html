@@ -50,13 +50,15 @@
                                 <link rel="stylesheet" href="{{MEDIA_URL}}mp/css/mp/mp_style.ie.css">
                         <![endif]-->        
                         
-                        <link rel="stylesheet" href="{{MEDIA_URL}}assets/bootstrap/bootstrap.css">
-                        <link rel="stylesheet" href="{{MEDIA_URL}}assets/bootstrap/bootstrap-responsive.css">
+                        <link rel="stylesheet" href="/media/assets/bootstrap/bootstrap.css">
+                        <link rel="stylesheet" href="/media/assets/bootstrap/bootstrap-responsive.css">
 
                         <!-- marine planner stylesheet -->
-                        <link rel="stylesheet" href="{{MEDIA_URL}}css/mp_style.css">
+                        <link rel="stylesheet" href="/media/css/mp_style.css">
+                        <link rel="stylesheet" href="/media/wcodp/css/wcodp.css">
+
                         <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/themes/base/jquery-ui.css">
-                        <link rel="shortcut icon" href="{{MEDIA_URL}}ico/favicon.ico">
+                        <link rel="shortcut icon" href="/media/ico/favicon.ico">
                         <style>
                             body {
                                 margin-top: 110px;
@@ -75,13 +77,13 @@
 
                     </head>
                     
-                    <body class="blog">
+                    <body class="wcodp blog">
                         <header role="banner">
                             <div class="navbar navbar-fixed-top">
                                 <div class="navbar-inner">
                                 <div class="container">
                                     <div class="row-fluid">
-                                        <div class="span4">
+                                        <div class="span12">
                                             <a href="/planner">
                                                 {% if project_logo %}
                                                 <img style="height: 77px;" src="{{project_logo}}"/>
@@ -89,12 +91,10 @@
                                                     {% if project_name %}
                                                     <h1 id="project-name-header">{{project_name}}</h1>
                                                     {% else %}
-                                                    <h1 id="project-name-header">West Coast Ocean Data Portal</h1>
+                                                    <h1 id="project-name-header">West Coast Ocean Data Portal Marine Planner</h1>
                                                     {% endif %}
                                                 {% endif %}
                                             </a>
-                                        </div>
-                                        <div class="span8">
                                         </div>
                                         <!--/.nav-collapse -->
                                     </div>
@@ -102,44 +102,7 @@
                                 </div>
                             </div>
                         </header>
-                        <!--
-                        <div id="feedback-tab" class="rounded hidden-phone" data-toggle="modal" data-target="#feedback-modal">
-                            feedback
-                        </div>
-                        <div id="feedback-modal" class="modal hide fade">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                <h3>Feedback</h3>
-                            </div>
-                            <form class="form-horizontal" id="feedback-form">
-                            <div class="modal-body">        
-                                <div class="control-group">
-                                  <label class="control-label" for="name">Full Name</label>
-                                  <div class="controls">
-                                    <input class="input-xlarge" type="text" name="name" placeholder="Full Name" required>
-                                  </div>
-                                </div>
-                                <div class="control-group">
-                                  <label class="control-label" for="email">Email Address</label>
-                                  <div class="controls">
-                                    <input class="input-xlarge" type="email" name="email" placeholder="Email Address" required>
-                                  </div>
-                                </div>
-                                <div class="control-group">
-                                  <label class="control-label" for="comment">Comment</label>
-                                  <div class="controls">
-                                      <textarea class="input-xlarge" rows="3" name="comment" required></textarea>
-                                  </div>
-                                </div>
-
-                            </div>
-                            <div class="modal-footer">
-                                <button href="#" class="btn" data-dismiss="modal">Close</button>
-                                <button type="submit" class="btn btn-primary">Send Feedback</button>
-                            </div>
-                          </form>
-                        </div>
-                        -->
+                        
                         <!-- end header -->
                         <div class="container">
                             <div id="content" class="row-fluid">
@@ -162,14 +125,14 @@
                             </div>
                             <!-- end #container -->
                             <!-- scripts are now optimized via Modernizr.load -->
-                            <script src="{{MEDIA_URL}}assets/jquery/jquery.js"></script>  
-                            <script src="{{MEDIA_URL}}assets/jquery/jquery-ui.js"></script>
-                            <script src="{{MEDIA_URL}}assets/bootstrap/bootstrap-transition.js"></script>
-                            <script src="{{MEDIA_URL}}assets/bootstrap/bootstrap-typeahead.js"></script>   
-                            <script src="{{MEDIA_URL}}assets/bootstrap/bootstrap-tooltip.js"></script>
-                            <script src="{{MEDIA_URL}}assets/bootstrap/bootstrap-popover.js"></script>
-                            <script src="{{MEDIA_URL}}assets/bootstrap/bootstrap-modal.js"></script>
-                            <script src="{{MEDIA_URL}}assets/bootstrap/bootstrap-collapse.js"></script>  
+                            <script src="/media/assets/jquery/jquery.js"></script>  
+                            <script src="/media/assets/jquery/jquery-ui.js"></script>
+                            <script src="/media/assets/bootstrap/bootstrap-transition.js"></script>
+                            <script src="/media/assets/bootstrap/bootstrap-typeahead.js"></script>   
+                            <script src="/media/assets/bootstrap/bootstrap-tooltip.js"></script>
+                            <script src="/media/assets/bootstrap/bootstrap-popover.js"></script>
+                            <script src="/media/assets/bootstrap/bootstrap-modal.js"></script>
+                            <script src="/media/assets/bootstrap/bootstrap-collapse.js"></script>  
                             <script>
                             if (!Array.prototype.indexOf) {
 
@@ -239,4 +202,4 @@
                             {% block javascript %}
                             {% endblock %}
                     </body>
-                    </html>
+                </html>
