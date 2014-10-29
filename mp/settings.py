@@ -48,7 +48,7 @@ GEOMETRY_DB_SRID = 99996
 GEOMETRY_CLIENT_SRID = 3857  # for latlon
 GEOJSON_SRID = 3857
 
-APP_NAME = "WCODP Marine Planner"
+APP_NAME = "West Coast Ocean Data Portal Marine Planner"
 SERVER_ADMIN = 'edwin@pointnineseven.com'
 
 ALLOWED_HOSTS = ['.apps.pointnineseven.com']
