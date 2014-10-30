@@ -5,6 +5,7 @@ from urllib import urlencode
 from urlparse import urlparse
 
 from django.conf.urls.defaults import *
+from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 import httplib2
@@ -85,8 +86,13 @@ def layer_proxy_view(request, layer_id):
     from_ = request.GET.get('from')
     
     if not to and not from_: 
+        try:
+            limit = settings.MP_ONTOLOGY_FILTER_DEFAULT_LIMIT
+        except: 
+            limit = 3
+        
         to = datetime.date.today()
-        from_ = to.replace(year=to.year - 1)
+        from_ = to.replace(year=to.year - limit)
 
         to = to.strftime('%Y-%m-%d')
         from_ = from_.strftime('%Y-%m-%d')

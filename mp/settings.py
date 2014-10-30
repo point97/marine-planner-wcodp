@@ -67,7 +67,7 @@ MANAGERS = ADMINS
 
 MARINE_DEBRIS_URL = 'http://debris-db.westcoastoceans.org/'
 MP_ONTOLOGY_URL = 'http://143.239.249.181:8080/sws/SWS?request=GetConceptHierarchy&responseLanguage=en&elementSet=extended'
-
+MP_ONTOLOGY_FILTER_DEFAULT_LIMIT = 3 # years
 FEEDBACK_RECIPIENT = "Point 97 Dev Team <developers@pointnineseven.com>"
 
 # url for socket.io printing
