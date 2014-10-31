@@ -129,14 +129,11 @@ def layer_proxy_view(request, layer_id):
         new_req_url = '%s&%s' % (layer.url, '&'.join(query_parameters))
 
     resp = None
-    the_grand_or_list = {}
     if new_req_url:
         r = requests.get(new_req_url)
-        # So now that we have request data we need to stick it all together:
-        for key, value in r.json().items():
-            the_grand_or_list[key] = value
-
-        resp = HttpResponse(json.dumps(the_grand_or_list), r.status_code)
+        # Note: Future versions will need to use r.iter_content and a django
+        # Streaming HTTP Response. 
+        resp = HttpResponse(r.text, r.status_code)
     else:
         # If we don't have any categories we just do this:
         resp = proxy_view(request, layer.url)
