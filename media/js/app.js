@@ -153,7 +153,7 @@ $(document).ready(function() {
   $('#filter-start-date').datepicker({
       changeMonth: true,
       changeYear: true,
-      defaultDate: "-1y",
+      defaultDate: "-3y",
       showButtonPanel: true,
       onSelect: function(date_text) {
           var date = new Date(date_text);
