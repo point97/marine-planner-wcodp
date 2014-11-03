@@ -157,7 +157,7 @@ $(document).ready(function() {
       showButtonPanel: true,
       onSelect: function(date_text) {
           var date = new Date(date_text);
-          app.viewModel.filterTab.startDate(date);
+          app.viewModel.filterTab.fromDate(date);
           $('#filter-to-date').datepicker('option', 'minDate', date);
       },
       onClose: function(date_text, picker) {
@@ -205,7 +205,7 @@ $(document).ready(function() {
     });
     $("#filter-by .select2-multiple").on("change", function(a, b, c) {
         // app.viewModel.filterTab.highlightUpdateFilter();
-        if (app.viewModel.filterTab.activeFilterLayers()) {
+        if (app.viewModel.filterTab.activeFilterLayers() && app.viewModel.filterTab.activeFilterLayers().length) {
             app.viewModel.filterTab.updateFilterButtonIsEnabled(true);
         }
         

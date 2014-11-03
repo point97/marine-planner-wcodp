@@ -21,16 +21,25 @@ function filteringModel() {
     var lastYear = new Date();
     lastYear.setYear(today.getFullYear() - 3);
 
-	self.startDate = ko.observable(lastYear);
-    self.startDate.subscribe( function() {
+	self.fromDate = ko.observable(lastYear);
+    self.fromDate.subscribe( function() {
         // self.highlightUpdateFilter();
-        self.updateFilterButtonIsEnabled(true);
+        if(self.activeFilterLayers().length !== 0) {
+            self.updateFilterButtonIsEnabled(true);            
+        } else {
+            self.updateFilterButtonIsEnabled(false);
+        }
+        
     });
 
     self.toDate = ko.observable(today);
     self.toDate.subscribe( function() {
         // self.highlightUpdateFilter();
-        self.updateFilterButtonIsEnabled(true);
+        if(self.activeFilterLayers().length !== 0) {
+            self.updateFilterButtonIsEnabled(true);            
+        } else {
+            self.updateFilterButtonIsEnabled(false);
+        }
     });
 
     self.eventTypes = ko.observableArray();
@@ -103,11 +112,14 @@ function filteringModel() {
         // else {
         //     self.filterInfoButtonIsEnabled(false);
         // }
+        app.updateUrl();
     };
 
     self.getFilterItems = function() {
         return $('#filter-by .select2-choices .select2-search-choice div').contents();
-    }
+        // TODO:  CHANGE TO
+        // return $('#filter-select').select2("val");
+    };
 
     //** Return a map of concepts and categories (list of concepts)
     self.getOntologyFilters = function() {
@@ -138,8 +150,7 @@ function filteringModel() {
 
             if (filterField.slug) {
                 concepts[filterField.slug] = undefined;
-            }
-            else if (filterField.name && filterField.subfields.length > 0) {
+            } else if (filterField.name && filterField.subfields.length > 0) {
                 //This is probably a category
 
                 // filterField.name is not a slug; we can get the name subfields from self.filters (or let the django do it)
@@ -153,7 +164,7 @@ function filteringModel() {
     
     //** Return the current state of the filter tab as a query string
     self.getFilters = function() {
-        var from = self.startDate(); 
+        var from = self.fromDate(); 
         var to = self.toDate(); 
         var queryParameters = {}
         var ontologyFilters = self.getOntologyFilters();
@@ -179,6 +190,36 @@ function filteringModel() {
         var queryString = '&' + $.param(queryParameters);
         
         return queryString; 
+    };
+
+    self.getFiltersJSON = function() {
+        var from = self.fromDate(); 
+        var to = self.toDate(); 
+        var queryParameters = {};
+
+        var filterItems = self.getFilterItems();
+        var filterList = [];
+
+        $.each(filterItems, function(index, value) {
+            var filterField = _.findWhere(self.filters(), {name: value.data});
+            
+            if (filterField.name) {
+                filterList.push(filterField.name);
+            } 
+        });
+        if (filterList.length) {
+            queryParameters['filters'] = filterList;
+        }            
+
+        if (from) { 
+            queryParameters['from'] = app.dateToString(from);
+        }
+
+        if (to) { 
+            queryParameters['to'] = app.dateToString(to);
+        }        
+        
+        return queryParameters; 
     };
 
     self.activeFilterLayers = ko.observableArray();

@@ -30,7 +30,7 @@
                 <div style="height: 35px; margin-left: 15px; margin-right: 15px;">
                     <div class="input-append date span4" style="padding-right: 0px;" id="date-filter-start">
                         <input id="filter-start-date" type="text" 
-                               data-bind="datePicker: startDate"
+                               data-bind="datePicker: fromDate"
                                class="datepicker" 
                                placeholder="Start Date" 
                                style="max-width: 100px">
@@ -50,7 +50,7 @@
                     <form style="margin: 0px">
                         <div id="filter-by" class="span12 form-group">
                             <label for="multiple" class="control-label">Filter by Debris Type</label>
-                            <select style="width: 337px;" class="field select2-multiple" data-bind="foreach: filters()" multiple>
+                            <select id="filter-select" style="width: 337px;" class="field select2-multiple" data-bind="foreach: filters()" multiple>
                               <option data-bind="text: $data.name"></option>
                             </select>
                         </div>

@@ -10,7 +10,8 @@ app.getState = function () {
                     //return {id: layer.id, opacity: layer.opacity(), isVisible: layer.visible()};
                     return [ layer.id, layer.opacity(), layer.visible() ];
                 });
-    return {
+
+    var state = {
         x: center.lon.toFixed(2),
         y: center.lat.toFixed(2),
         z: app.map.getZoom(),
@@ -23,6 +24,11 @@ app.getState = function () {
         layers: app.viewModel.showLayers() ? 'true': 'false'
         //and active tab
     };
+
+    if (app.viewModel.filterTab) {
+        state['filters'] = app.viewModel.filterTab.getFiltersJSON();
+    }
+    return state;
 };
 
 $(document).on('map-ready', function () {
@@ -72,8 +78,20 @@ app.loadCompressedState = function(state) {
 
             if (layer) {
 
-                if (layer.filterable) {
-                    // console.log('filterable layer detected');
+                if (layer.filterable) {  
+                    // set fromDate
+                    var fromDate = state.filters.from.split('-');
+                    app.viewModel.filterTab.fromDate(new Date(fromDate));
+
+                    // set toDate
+                    var toDate = state.filters.to.split('-');
+                    app.viewModel.filterTab.toDate(new Date(toDate));
+                    
+                    // populate filters
+                    var filters = state.filters.filters;
+                    $('#filter-select').val(filters).trigger("change");
+                    
+                    app.viewModel.filterTab.updateFilterButtonIsEnabled(false);
                 }
 
                 layer.activateLayer();
