@@ -664,7 +664,13 @@ app.createPointFilterLayer = function(layer) {
     var defaultStyleContext = {
         context: {
             radius: function(feature) {
-                var c = defaultStyleContext.context.value(feature);
+                var c; 
+                if (defaultStyleContext.context.isDerelictGearFeature(feature)) {
+                    c = defaultStyleContext.context.derelictGearValue(feature);
+                }
+                else {
+                    c = defaultStyleContext.context.value(feature);
+                }
                 feature._radius = Math.max(10, 2 * Math.log(1 + c));
                 return feature._radius;
             },
@@ -681,8 +687,28 @@ app.createPointFilterLayer = function(layer) {
                 }
                 return count; 
             },
+            derelictGearValue: function(feature) {
+                var count = 0; 
+                if (!feature.cluster) {
+                    return 0; 
+                }
+                return feature.cluster.length;
+            },
+            isDerelictGearFeature: function(feature) {
+                try {
+                    return feature.cluster[0].attributes.event_type == 'Derelict Gear Removal';
+                } 
+                catch (e) {
+                    return false; 
+                }
+            },
             clusterLabel: function(feature) {
-                return app.utils.numberWithCommas(defaultStyleContext.context.value(feature));
+                if (defaultStyleContext.context.isDerelictGearFeature(feature)) {
+                    return app.utils.numberWithCommas(defaultStyleContext.context.derelictGearValue(feature));
+                }
+                else {
+                    return app.utils.numberWithCommas(defaultStyleContext.context.value(feature));
+                }
             },
             getColor: function(feature) {
                 var type = feature.cluster[0].attributes.event_type;
