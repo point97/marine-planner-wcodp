@@ -753,35 +753,55 @@ app.createPointFilterLayer = function(layer) {
             app.removePopup();
             
             var count = 0; 
-            var sites = {}
-            var categories = {}
+            var sites = {};
+            var categories = {};
+            var gearType = {};
             var anyUncountable = false; // were any data fields excluded from the count? 
+            var isDerelictGear = false;
             
             for (var i = 0; i < feature.cluster.length; i++) {
                 var attr = feature.cluster[i].attributes;
-                
-                if (app.viewModel.filterTab.countableName(attr.internal_name)) {
-                    count += attr.count; 
+            
+                if (attr.event_type == 'Derelict Gear Removal') {
+                    count++; 
+                    if (gearType[attr.field_value]) {
+                        gearType[attr.field_value]++;
+                    }
+                    else {
+                        gearType[attr.field_value] = 1;
+                    }
                 }
                 else {
-                    anyUncountable = true;
+                    if (app.viewModel.filterTab.countableName(attr.internal_name)) {
+                        count += attr.count; 
+                    }
+                    else {
+                        anyUncountable = true;
+                    }
+                    
+                    if (categories[attr.internal_name]) {
+                        categories[attr.internal_name] += attr.count;
+                    }
+                    else {
+                        categories[attr.internal_name] = attr.count; 
+                    }
                 }
-                
+
                 if (sites[attr.displayName]) {
                     sites[attr.displayName]++;
                 }
                 else {
                     sites[attr.displayName] = 1;
                 }
-                if (categories[attr.internal_name]) {
-                    categories[attr.internal_name] += attr.count;
-                }
-                else {
-                    categories[attr.internal_name] = attr.count; 
-                }
             }
 
-
+            // hack
+            if (Object.keys(gearType).length > 0 && Object.keys(categories).length == 0) {
+                categories = gearType; 
+                isDerelictGear = true;
+            }
+            
+            
             // Populate the knockout
             // alias the really long object name
             var info = app.viewModel.filterTab.selectedClusterInfo;
@@ -795,7 +815,7 @@ app.createPointFilterLayer = function(layer) {
                 info.categories.push({
                     name: sortedCategories[i],
                     count: categories[sortedCategories[i]],
-                    countable: app.viewModel.filterTab.countableName(sortedCategories[i])
+                    countable: isDerelictGear || app.viewModel.filterTab.countableName(sortedCategories[i])
                 });
             }
             
