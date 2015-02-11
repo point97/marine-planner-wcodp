@@ -1871,8 +1871,11 @@ function viewModel() {
     self.convertToSlug = function(orig) {
         return orig
             .toLowerCase()
-            .replace(/[^\w ]+/g,'')
-            .replace(/ +/g,'-');
+            // .replace(/[^\w ]+/g,'')
+            // .replace(/ +/g,'-');
+            .replace(/[^\w]+/g,' ') // replace non word characters with a space
+            .replace(/^\s\s*/, '').replace(/\s\s*$/, '') // remove trailing and (fronting?) whitespace
+            .replace(/ +/g,'-'); // replace spaces with hyphens
     };
 
     /* REGISTRATION */
