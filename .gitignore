@@ -1,3 +1,7 @@
+*.swp
+*.swo
+mp/logs/
+*/.DS_Store
 proxy/cache_data
 proxy/mapproxy.yaml
 *.pyc
@@ -36,9 +40,14 @@ printing/shots/*
 /media/crop/*
 scripts/cookbooks/node_*.json
 
+mp/data_manager/archived_migrations/*
 mp/data_manager/fixtures/datadump_2013_11_20.json
-
 mp/data_manager/fixtures/initial_data_orig.json
+mp/data_manager/fixtures/datadump_2014_05_16.json
+mp/data_manager/fixtures/wcodp-md_datadump_20140516.json
+mp/data_manager/fixtures/08212014_initial_data.json
+mp/data_manager/fixtures/crop_initial_data.json
+mp/data_manager/fixtures/ofr_initial_data.json
 
 mp/logs/main.log
 
@@ -49,8 +58,12 @@ mp/logs/main_debug.log
 /media/assets/openlayers/lib/*
 /media/assets/openlayers/archive/*
 
-mp/data_manager/fixtures/08212014_initial_data.json
+/media/assets/font-awesome-orig/*
 
-mp/data_manager/fixtures/crop_initial_data.json
+mp/data_manager/fixtures/wcodp-md_initial_data_old.json
+.externalToolBuilders
+.settings
 
-mp/data_manager/fixtures/ofr_initial_data.json
+mp/data_manager/fixtures/wcodp-md-staging-datadump-2014-10-07.json
+
+media/wcodp/img/BeachCleanupLegend.png

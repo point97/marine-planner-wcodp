@@ -42,8 +42,8 @@ def duplicate_username(request):
 
 def send_username(request, use_openid=False, redirect_field_name=REDIRECT_FIELD_NAME):
     if request.method == 'POST':
-        subject = 'Marine Planner login'
-        reply_email = "Marine Planner Team <%s>" % settings.DEFAULT_FROM_EMAIL
+        subject = 'West Coast Ocean Data Portal'
+        reply_email = "%s" % settings.DEFAULT_FROM_EMAIL
         #check for user account
         user_email = [request.POST.get('email', '')]
         try:
@@ -53,7 +53,7 @@ def send_username(request, use_openid=False, redirect_field_name=REDIRECT_FIELD_
             username = None
         if username:
             message = "Hello,"
-            message += "\n\nYour username for Marine Planner is:  %s" %username
+            message += "\n\nYour username for West Coast Ocean Data Portal Marine Planner is:  %s" %username
             message += "\n\n-Marine Planner Technical Team"
         else:
             message = "Hello,"
@@ -94,10 +94,10 @@ def update_profile(request, username, use_openid=False, redirect_field_name=REDI
 
     if request.method == 'POST':
         #prepare email fields
-        subject = 'Marine Planner profile change'
+        subject = 'West Coast Ocean Data Portal profile change'
         user_email = user.email
-        reply_email = "Marine Planner Team<%s>" % settings.DEFAULT_FROM_EMAIL
-        message = "Your Marine Planner profile was just updated."
+        reply_email = "%s" % settings.DEFAULT_FROM_EMAIL
+        message = "Your West Coast Ocean Data Portal Marine Planner profile was just updated."
         message += "\nIf this was in error, please contact us immediately so that we can rectify the situation."
         message += "\n\nThank you."
         message += "\n\n-Marine Planner technical staff"
@@ -176,10 +176,10 @@ def password_change(request, username,
 
     if request.POST:
         #prepare email fields
-        subject = 'Marine Planner profile change'
+        subject = 'West Coast Ocean Data Portal'
         user_email = user.email
-        reply_email = "Marine Planner Team<%s>" % settings.DEFAULT_FROM_EMAIL
-        message = "Your Marine Planner password was just changed."
+        reply_email = "%s" % settings.DEFAULT_FROM_EMAIL
+        message = "Your West Coast Ocean Data Portal Marine Planner password was just changed."
         message += "\nIf you did not make this change, please contact us immediately."
         message += "\n\nThank you."
         message += "\n\n-Marine Planner technical staff"

@@ -1,5 +1,6 @@
 app.init = function() {
-
+    var max_zoom,
+        min_zoom;
     //to turn basemap indicator off (hide the plus sign)
     //see email from Matt on 7/26 2:24pm with list of controls
     var map = new OpenLayers.Map(null, {
@@ -8,40 +9,82 @@ app.init = function() {
         projection: "EPSG:3857"
     });
 
-    if (app.MPSettings && app.MPSettings['max_zoom']) {
-        var max_zoom = app.MPSettings['max_zoom'] + 1;
-    } else {
-        var max_zoom = 13;
-    }
+    map.loadLayerProgress = new P97.Controls.LayerLoadProgress({
+        map: map,
+        element: $('#layer-loading-message'),
+        onStartLoading: function() {
+            if (this.element) {
+                if ($("#loading").is(":visible")) {
+                    this.element.hide();
+                } else {
+                    this.element.show();
+                }
+            }
+        },
+        onLoading: function(num, max, percentStr) {
+            // this.element.text(percentStr);
+        },
+        onFinishLoading: function() {
+            if (this.element && app.map.loadingVectorLayer !== true) {
+                this.element.hide();
+            }
+        }
+        
+    });
+    map.addControl(map.loadLayerProgress);
 
-    esriOcean = new OpenLayers.Layer.XYZ("ESRI Ocean", "http://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/${z}/${y}/${x}", {
+    map.onStartClustering = function() {
+        app.map.loadingVectorLayer = true;
+        app.map.loadLayerProgress.onStartLoading();
+    }
+    map.onFinishClustering = function() {
+        app.map.loadingVectorLayer = false;
+        app.map.loadLayerProgress.onFinishLoading();
+    };
+
+    if (app.MPSettings && app.MPSettings.max_zoom) {
+        max_zoom = app.MPSettings.max_zoom + 1;
+    } else {
+        max_zoom = 13;
+    }
+    esriOcean = new OpenLayers.Layer.XYZ("ESRI Ocean","http://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/${z}/${y}/${x}", {
         sphericalMercator: true,
         isBaseLayer: true,
         numZoomLevels: max_zoom,
-        attribution: "Sources: Esri, GEBCO, NOAA, National Geographic, DeLorme, NAVTEQ, Geonames.org, and others"
+        attribution: "Sources: Esri, GEBCO, NOAA, National Geographic, DeLorme, NAVTEQ, Geonames.org, and others",
+        buffer: 3
     });
+    // esriOcean = new OpenLayers.Layer.WMTS({
+    //     name: "ESRI Ocean",
+    //     url: "http://services.arcgisonline.com/arcgis/rest/services/Ocean_Basemap/MapServer/0",
+    //     layer: 0
+    // });
 
     openStreetMap = new OpenLayers.Layer.OSM("Open Street Map", "http://a.tile.openstreetmap.org/${z}/${x}/${y}.png", {
         sphericalMercator: true,
         isBaseLayer: true,
-        numZoomLevels: max_zoom
+        numZoomLevels: max_zoom,
+        buffer: 3
     });
     googleStreet = new OpenLayers.Layer.Google("Google Streets", {
         sphericalMercator: true,
         isBaseLayer: true,
-        numZoomLevels: max_zoom
+        numZoomLevels: max_zoom,
+        buffer: 3
     });
     googleTerrain = new OpenLayers.Layer.Google("Google Physical", {
         type: google.maps.MapTypeId.TERRAIN,
         sphericalMercator: true,
         isBaseLayer: true,
-        numZoomLevels: max_zoom
+        numZoomLevels: max_zoom,
+        buffer: 3
     });
     googleSatellite = new OpenLayers.Layer.Google("Google Satellite", {
         type: google.maps.MapTypeId.SATELLITE,
         sphericalMercator: true,
         isBaseLayer: true,
-        numZoomLevels: max_zoom
+        numZoomLevels: max_zoom,
+        buffer: 3
     });
 
     /*var bingHybrid = new OpenLayers.Layer.Bing( {
@@ -59,13 +102,13 @@ app.init = function() {
         key: "AvD-cuulbvBqwFDQGNB1gCXDEH4S6sEkS7Yw9r79gOyCvd2hBvQYPaRBem8cpkjv",
         type: "AerialWithLabels"
     });*/
-
     nauticalCharts = new OpenLayers.Layer.WMS("Nautical Charts", "http://egisws02.nos.noaa.gov/ArcGIS/services/RNC/NOAA_RNC/ImageServer/WMSServer", {
         layers: 'null'
     }, {
         isBaseLayer: true,
         numZoomLevels: max_zoom,
-        projection: "EPSG:3857"
+        projection: "EPSG:3857",
+        buffer: 3
     });
 
     map.addLayers([esriOcean, openStreetMap, googleStreet, googleTerrain, googleSatellite]); //, nauticalCharts]);
@@ -94,10 +137,10 @@ app.init = function() {
 
     // only allow onetime zooming with box
     map.events.register("zoomend", null, function() {
-        if (app.MPSettings && app.MPSettings['min_zoom']) {
-            var min_zoom = app.MPSettings['min_zoom'];
+        if (app.MPSettings && app.MPSettings.min_zoom) {
+            min_zoom = app.MPSettings.min_zoom;
         } else {
-            var min_zoom = 3;
+            min_zoom = 3;
         }
         if (map.zoomBox.active) {
             app.viewModel.deactivateZoomBox();
@@ -105,6 +148,8 @@ app.init = function() {
         if (map.getZoom() < min_zoom) {
             map.zoomTo(min_zoom);
         }
+        
+        app.removePopup();
     });
 
     map.events.register("moveend", null, function() {
@@ -135,7 +180,7 @@ app.init = function() {
 
     app.map.utfGridClickHandling = function(infoLookup, lonlat, xy) {
         var clickAttributes = [];
-
+        // we should probably use another loop here to avoid the jshint on the next line
         for (var idx in infoLookup) {
             $.each(app.viewModel.visibleLayers(), function(layer_index, potential_layer) {
                 if (potential_layer.type !== 'Vector') {
@@ -146,7 +191,7 @@ app.init = function() {
                             hasAllAttributes = true,
                             parentHasAllAttributes = false;
                         // if info.data has all the attributes we're looking for
-                        // we'll accept this layer as the attribution layer 
+                        // we'll accept this layer as the attribution layer
                         //if ( ! potential_layer.attributes.length ) {
                         hasAllAttributes = false;
                         //}
@@ -209,18 +254,19 @@ app.init = function() {
             app.viewModel.aggregatedAttributes(app.map.clickOutput.attributes);
         }
         app.viewModel.updateMarker(lonlat);
-        //app.marker.display(true); 
+        //app.marker.display(true);
 
     }; //end utfGridClickHandling
 
     app.map.events.register("featureclick", null, function(e) {
         var layer = e.feature.layer.layerModel || e.feature.layer.scenarioModel;
+        var attrs;
         if (layer) {
             var text = [],
                 title = layer.name;
 
             if (layer.scenarioAttributes && layer.scenarioAttributes.length) {
-                var attrs = layer.scenarioAttributes;
+                attrs = layer.scenarioAttributes;
                 for (var i = 0; i < attrs.length; i++) {
                     text.push({
                         'display': attrs[i].title,
@@ -228,13 +274,13 @@ app.init = function() {
                     });
                 }
             } else if (layer.attributes.length) {
-                var attrs = layer.attributes;
+                attrs = layer.attributes;
 
-                for (var i = 0; i < attrs.length; i++) {
-                    if (e.feature.data[attrs[i].field]) {
+                for (var idx=0; idx < attrs.length; idx++) {
+                    if (e.feature.data[attrs[idx].field]) {
                         text.push({
-                            'display': attrs[i].display,
-                            'data': e.feature.data[attrs[i].field]
+                            'display': attrs[idx].display,
+                            'data': e.feature.data[attrs[idx].field]
                         });
                     }
                 }
@@ -307,25 +353,37 @@ app.init = function() {
 
     app.utils.isNumber = function(n) {
         return !isNaN(parseFloat(n)) && isFinite(n);
-    }
+    };
+
+    /** Regex: Find all sets of three digits from right to left, and insert ,'s
+    \B match beginning of the word
+    (?=(\d{3})+ followed by any number of sets of 3 digits (positive lookahead)
+       (?!\d)) But not four (negative lookahead)
+    Then, stick a , in front of them
+    */
     app.utils.numberWithCommas = function(x) {
         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    }
+    };
+
     app.utils.isInteger = function(n) {
         return app.utils.isNumber(n) && (Math.floor(n) === n);
-    }
+    };
+
     app.utils.formatNumber = function(n) {
         var number = Number(n);
+        var preciseNumber;
         if (app.utils.isInteger(number)) {
-            var preciseNumber = number.toFixed(0);
+            preciseNumber = number.toFixed(0);
         } else {
-            var preciseNumber = number.toFixed(1);
+            preciseNumber = number.toFixed(1);
         }
         return app.utils.numberWithCommas(preciseNumber);
-    }
+    };
+
     app.utils.trim = function(str) {
         return str.replace(/^\s+|\s+$/g, '');
-    }
+    };
+
     app.utils.getObjectFromList = function(list, field, value) {
         for (var i = 0; i < list.length; i += 1) {
             if (list[i][field] === value) {
@@ -333,7 +391,7 @@ app.init = function() {
             }
         }
         return undefined;
-    }
+    };
 
 };
 
@@ -355,6 +413,29 @@ app.addLayerToMap = function(layer) {
     app.map.addLayer(layer.layer);
     layer.layer.opacity = layer.opacity();
     layer.layer.setVisibility(true);
+
+    // do we always have a filterTab no matter what? 
+    if (app.viewModel.hasOwnProperty('filterTab')) {
+        var filterLayerModels = app.viewModel.filterTab.filterLayers();
+        var filterLayers = [];
+        
+        for (var i = 0; i < filterLayerModels.length; i++) {
+            if (filterLayerModels[i].layer) {
+                // .layer is undefined if the layer hasn't been turned on
+                filterLayers.push(filterLayerModels[i].layer);
+            }
+        }
+
+        if (!app.hasOwnProperty('filterableSelectFeatureControl')) {
+            app.filterableSelectFeatureControl = new OpenLayers.Control.SelectFeature(filterLayers,
+                {hover: false, autoActivate: true}
+            );
+            app.map.addControl(app.filterableSelectFeatureControl);
+        }
+        else {
+            app.filterableSelectFeatureControl.setLayer(filterLayers);
+        }
+    }
 };
 
 // add XYZ layer with no utfgrid
@@ -365,7 +446,7 @@ app.addXyzLayerToMap = function(layer) {
 
     var url = app.modifyURL(layer.url);
 
-    // adding layer to the map for the first time		
+    // adding layer to the map for the first time
     layer.layer = new OpenLayers.Layer.XYZ(layer.name,
         url,
         $.extend({}, opts, {
@@ -427,15 +508,15 @@ app.addWmsLayerToMap = function(layer) {
 
     // var url = app.modifyURL(layer.url);
 
-    // layer.layer = new OpenLayers.Layer.WMS( 
-    //     "25M Depth Contour", "http://www.coastalatlas.net/services/wms/getmap", 
-    //     // layer.name, 
+    // layer.layer = new OpenLayers.Layer.WMS(
+    //     "25M Depth Contour", "http://www.coastalatlas.net/services/wms/getmap",
+    //     // layer.name,
     //     // url,
     //     {
     //         layers: "SubmarineCables_OFCC_2012",
     //         transparent: "true",
     //         format: "image/png"
-    //     }, 
+    //     },
     //     {
     //         singleTile: true
     //     }
@@ -457,20 +538,20 @@ app.addArcRestLayerToMap = function(layer) {
                 var clickAttributes = [],
                     jsonFormat = new OpenLayers.Format.JSON(),
                     returnJSON = jsonFormat.read(responseText.text);
+                var attributeObjs;
+                if (returnJSON.features && returnJSON.features.length) {
+                    attributeObjs = [];
 
-                if (returnJSON['features'] && returnJSON['features'].length) {
-                    var attributeObjs = [];
-
-                    $.each(returnJSON['features'], function(index, feature) {
-                        if (index == 0) {
-                            var attributeList = feature['attributes'];
+                    $.each(returnJSON.features, function(index, feature) {
+                        if (index === 0) {
+                            var attributeList = feature.attributes;
 
                             if ('fields' in returnJSON) {
                                 if (layer.attributes.length) {
                                     for (var i = 0; i < layer.attributes.length; i += 1) {
                                         if (attributeList[layer.attributes[i].field]) {
                                             var data = attributeList[layer.attributes[i].field],
-                                                field_obj = app.utils.getObjectFromList(returnJSON['fields'], 'name', layer.attributes[i].field);
+                                                field_obj = app.utils.getObjectFromList(returnJSON.fields, 'name', layer.attributes[i].field);
                                             if (field_obj && field_obj.type === 'esriFieldTypeDate') {
                                                 data = new Date(data).toDateString();
                                             } else if (app.utils.isNumber(data)) {
@@ -485,9 +566,9 @@ app.addArcRestLayerToMap = function(layer) {
                                         }
                                     }
                                 } else {
-                                    $.each(returnJSON['fields'], function(fieldNdx, field) {
+                                    $.each(returnJSON.fields, function(fieldNdx, field) {
                                         if (field.name.indexOf('OBJECTID') === -1) {
-                                            var data = attributeList[field.name]
+                                            var data = attributeList[field.name];
                                             if (field.type === 'esriFieldTypeDate') {
                                                 data = new Date(data).toDateString();
                                             } else if (app.utils.isNumber(data)) {
@@ -525,7 +606,7 @@ app.addArcRestLayerToMap = function(layer) {
     });
     /*
     layer.layer = new OpenLayers.Layer.ArcGIS93Rest(
-        layer.name, 
+        layer.name,
         layer.url,
         {
             layers: "show:"+layer.arcgislayers,
@@ -558,6 +639,283 @@ app.addArcRestLayerToMap = function(layer) {
     );
 };
 
+
+app.removePopup = function() {
+    if (app.map.popup) {
+        this.map.removePopup(app.map.popup);
+        app.map.popup.destroy();
+        app.map.popup = null; 
+    }
+};
+
+app.createPointFilterLayer = function(layer) {
+    var url = layer.url;
+    if (layer.proxy_url) {
+        url = '/proxy/layer/' + layer.id;
+        if (layer.filter) {
+            url += '?filter=' + layer.filter;
+        }
+    }
+
+    // show Loading Layer message   
+    app.map.loadingVectorLayer = true;     
+    app.map.loadLayerProgress.onStartLoading();
+
+    var defaultStyleContext = {
+        context: {
+            radius: function(feature) {
+                var c; 
+                if (defaultStyleContext.context.isDerelictGearFeature(feature)) {
+                    c = defaultStyleContext.context.derelictGearValue(feature);
+                }
+                else {
+                    c = defaultStyleContext.context.value(feature);
+                }
+                feature._radius = Math.max(10, 2 * Math.log(1 + c));
+                return feature._radius;
+            },
+            value: function(feature) {
+                var count = 0; 
+                if (!feature.cluster) {
+                    return 0; 
+                }
+                for (var i = 0; i < feature.cluster.length; i++) {
+                    attr = feature.cluster[i].attributes;
+                    if (app.viewModel.filterTab.countableName(attr.internal_name)) {
+                        count += attr.count; 
+                    }
+                }
+                return count; 
+            },
+            derelictGearValue: function(feature) {
+                var count = 0; 
+                if (!feature.cluster) {
+                    return 0; 
+                }
+                return feature.cluster.length;
+            },
+            isDerelictGearFeature: function(feature) {
+                try {
+                    return feature.cluster[0].attributes.event_type == 'Derelict Gear Removal';
+                } 
+                catch (e) {
+                    return false; 
+                }
+            },
+            clusterLabel: function(feature) {
+                if (defaultStyleContext.context.isDerelictGearFeature(feature)) {
+                    return app.utils.numberWithCommas(defaultStyleContext.context.derelictGearValue(feature));
+                }
+                else {
+                    return app.utils.numberWithCommas(defaultStyleContext.context.value(feature));
+                }
+            },
+            getColor: function(feature) {
+                var type = feature.cluster[0].attributes.event_type;
+                return type === "Site Cleanup" ? "#BABA27" : "#ccc";
+            },
+            getStrokeColor: function(feature) {
+                var type = feature.cluster[0].attributes.event_type;
+                return type === "Site Cleanup" ? "#9A9A07" : "#333";
+            }
+        }
+    };
+
+    var defaultStyleData = {
+        pointRadius: "${radius}",
+        fillColor: "${getColor}",
+        fillOpacity: 0.8,
+        fontSize: 10,
+        strokeColor: "${getStrokeColor}",
+        strokeWidth: 2,
+        strokeOpacity: 0.8,
+        label: "${clusterLabel}",
+        fontColor: "#333"
+    };
+    
+    var defaultStyle = new OpenLayers.Style(defaultStyleData, 
+                                            defaultStyleContext);
+
+    var styleMap = new OpenLayers.StyleMap({
+        "default": defaultStyle,
+        "select": {
+            fillColor: "#8aeeef",
+            strokeColor: "#32a8a9"
+        }
+    });
+
+    var eventListeners = {
+        //** Compute popup contents, render, and display! 
+        // TODO: Refactor; this is way too big. 
+        'featureselected': function(e) {
+            var maxItems = 5; // show at most 5 items in the popup
+            var feature = e.feature;
+            app.removePopup();
+            
+            var count = 0; 
+            var sites = {};
+            var categories = {};
+            var gearType = {};
+            var anyUncountable = false; // were any data fields excluded from the count? 
+            var isDerelictGear = false;
+            
+            for (var i = 0; i < feature.cluster.length; i++) {
+                var attr = feature.cluster[i].attributes;
+            
+                if (attr.event_type == 'Derelict Gear Removal') {
+                    count++; 
+                    if (gearType[attr.field_value]) {
+                        gearType[attr.field_value]++;
+                    }
+                    else {
+                        gearType[attr.field_value] = 1;
+                    }
+                }
+                else {
+                    if (app.viewModel.filterTab.countableName(attr.internal_name)) {
+                        count += attr.count; 
+                    }
+                    else {
+                        anyUncountable = true;
+                    }
+                    
+                    if (categories[attr.internal_name]) {
+                        categories[attr.internal_name] += attr.count;
+                    }
+                    else {
+                        categories[attr.internal_name] = attr.count; 
+                    }
+                }
+
+                if (sites[attr.displayName]) {
+                    sites[attr.displayName]++;
+                }
+                else {
+                    sites[attr.displayName] = 1;
+                }
+            }
+
+            // hack
+            if (Object.keys(gearType).length > 0 && Object.keys(categories).length == 0) {
+                categories = gearType; 
+                isDerelictGear = true;
+            }
+            
+            
+            // Populate the knockout
+            // alias the really long object name
+            var info = app.viewModel.filterTab.selectedClusterInfo;
+            info.count(app.utils.numberWithCommas(count));
+            info.anyUncountable(anyUncountable);
+            // Convert the categories into an array of objects to make it easier
+            // for to use in knockout
+            var sortedCategories = Object.keys(categories).sort();
+            info.categories.removeAll();
+            for (var i = 0; i < sortedCategories.length; i++) {
+                info.categories.push({
+                    name: sortedCategories[i],
+                    count: categories[sortedCategories[i]],
+                    countable: isDerelictGear || app.viewModel.filterTab.countableName(sortedCategories[i])
+                });
+            }
+            
+            info.shortCategories.removeAll();
+            for (var i = 0; i < sortedCategories.length && i < maxItems; i++) {
+                info.shortCategories.push(info.categories()[i]);
+            }
+            if (i == maxItems && sortedCategories.length > maxItems) {
+                info.moreCategories(sortedCategories.length - i); 
+            }
+            else {
+                info.moreCategories(0);
+            }
+
+
+            var sortedSites = Object.keys(sites).sort();
+            info.sites.removeAll();
+            for (var i = 0; i < sortedSites.length; i++) {
+                info.sites.push({
+                    name: sortedSites[i],
+                    count: sites[sortedSites[i]]
+                });
+            }
+            
+            info.shortSites.removeAll();
+            for (var i = 0; i < sortedSites.length && i < maxItems; i++) {
+                info.shortSites.push(info.sites()[i]);
+            }
+            if (i == maxItems && sortedSites.length > maxItems) {
+                info.moreSites(sortedSites.length - i); 
+            }
+            else {
+                info.moreSites(0);
+            }
+            // end populate knockout
+            
+            // Now that KO has done it's thing, make of copy of the HTML that
+            // it generated for us and stuff that into the popup. 
+            // I'm sure there's a better way to render this template.
+            var html = document.querySelector('#selected-cluster-info').innerHTML;
+
+            var popup = new OpenLayers.Popup.FramedCloud("popup" + feature.id,
+                OpenLayers.LonLat.fromString(feature.geometry.toShortString()),
+                null,
+                html,
+                null,
+                true, // close box
+                null
+            );
+            popup.autoSize = true;
+            popup.maxSize = new OpenLayers.Size(400,800);
+            popup.fixedRelativePosition = true;
+            
+            app.map.popup = popup;
+            app.map.addPopup(popup);
+
+            // Scoot the anchor over a bit
+            var theta = {
+                tl: Math.PI, 
+                tr: 0,
+                bl: Math.PI,
+                br: 0
+            }[popup.relativePosition];
+            popup.anchor.offset.x = Math.cos(theta) * feature._radius;
+            popup.anchor.offset.y = Math.sin(theta) * feature._radius;
+            popup.draw();
+        },
+        'featureunselected': function(e) {
+            app.removePopup();
+        },
+        'loadend': function(e) {
+            app.map.onFinishClustering();
+        }
+    }
+    
+    var newLayer = new OpenLayers.Layer.Vector("Events", {
+        eventListeners: eventListeners,
+        renderers: OpenLayers.Layer.Vector.prototype.renderers,
+        projection: "EPSG:4326",
+        strategies: [
+            new OpenLayers.Strategy.Fixed(),
+            // new OpenLayers.Strategy.AttributeCluster({
+            new P97.Strategies.AttributeCluster({
+                attribute: 'event_type',
+                distance: 35,
+                onStartClustering: app.map.onStartClustering,
+                onFinishClustering: app.map.onFinishClustering
+            })
+        ],
+        protocol: new OpenLayers.Protocol.HTTP({
+            url: url,
+            format: new OpenLayers.Format.GeoJSON(),
+            params: {}
+        }),
+        styleMap: styleMap
+    });
+        
+    return newLayer;
+};
+
 app.addGridSummaryLayerToMap = function(layer) {
     var url = layer.url;
     var dfd = new jQuery.Deferred();
@@ -568,12 +926,12 @@ app.addGridSummaryLayerToMap = function(layer) {
     if (!app.grid) {
         app.grid = {
             layers: {}
-        }
-    };
+        };
+    }
 
     var style = new OpenLayers.Style({
         fillColor: "${fillColor}",
-        fillOpacity: .8
+        fillOpacity: 0.8
     }, {
         context: {
             fillColor: function(feature) {
@@ -585,11 +943,11 @@ app.addGridSummaryLayerToMap = function(layer) {
                             return false;
                         }
                     });
-                    return color;    
+                    return color;
                 } else {
                     return scale[0];
                 }
-                
+
             }
         }
     });
@@ -657,28 +1015,32 @@ app.addVectorLayerToMap = function(layer) {
         return;
     }
 
+    if (layer.type === 'Vector' && layer.filterable) {
+        layer.layer = app.createPointFilterLayer(layer);        
+        var selectorControl = new OpenLayers.Control.SelectFeature(layer.layer, {
+            hover: false,
+            autoActivate: true
+        });    
+        app.map.addControl(selectorControl);
+        return;
+    }
+
     var url = layer.url,
         proj = layer.proj || 'EPSG:3857';
     var styleMap = new OpenLayers.StyleMap({
         fillColor: layer.color,
         fillOpacity: layer.fillOpacity,
-        //strokeDashStyle: "dash",
-        //strokeOpacity: 1,
         strokeColor: layer.color,
         strokeOpacity: layer.defaultOpacity,
-        //strokeLinecap: "square",
-        //http://dev.openlayers.org/apidocs/files/OpenLayers/Feature/Vector-js.html
-        //title: 'testing'
         pointRadius: 2,
         externalGraphic: layer.graphic,
-        graphicWidth: 8,
-        graphicHeight: 8,
+        graphicWidth: 15,
+        graphicHeight: 15,
         graphicOpacity: layer.defaultOpacity
     });
     if (layer.proxy_url) {
         url = '/proxy/layer/' + layer.id;
     }
-
 
     if (layer.lookupField) {
         var mylookup = {};
@@ -709,15 +1071,13 @@ app.addVectorLayerToMap = function(layer) {
             layerModel: layer
         }
     );
-
-
 };
+
 
 app.addUtfLayerToMap = function(layer) {
     var opts = {
         displayInLayerSwitcher: false
     };
-    console.log(layer);
     layer.utfgrid = new OpenLayers.Layer.UTFGrid({
         layerModel: layer,
         url: layer.utfurl ? layer.utfurl : layer.parent.utfurl,

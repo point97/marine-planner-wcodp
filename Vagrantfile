@@ -16,48 +16,72 @@ Vagrant.configure("2") do |config|
         vb.customize ["modifyvm", :id, "--memory", 256]
     end
 
-    config.vm.provision :chef_solo do |chef|
-        chef.cookbooks_path = "scripts/cookbooks"
-        chef.roles_path = "scripts/roles"
-        chef.json  = {
-            :user => "vagrant",
-            :servername => "example.example.com",
-            :dbname => "marine-planner",
-            :staticfiles => "/usr/local/apps/marine-planner/mediaroot",
-            :postgresql => {
-                :password => {
-                    :postgres  => "SECRET"
-                }
+    config.vm.provision "ansible" do |ansible|
+      ansible.sudo = true
+      ansible.playbook = "../devops/provisioning/vagrant.yml"
+      ansible.extra_vars = {
+            repo: 'https://github.com/point97/marine-planner.git',
+            branch: 'wcodp-md-staging',
+            name: 'marine-planner',
+            app: 'mp',
+            local_settings: 'mp/settings_local.py',
+            settings: 'settings',
+            assets_dir: 'media',
+            redis: false,
+            installmedia: true,
+            enable_sharing: true,
+            gplus: {
+                key: '40588472264-7qt1n9prnkpj40ivnuuck4jcntbknluk.apps.googleusercontent.com',
+                secret: 'e8aiVDsZGUGqyNK-8tmMq3Wv'
             },
-            :mapproxy => {
-                :grids => [
-                    {
-                        :slug => "or_lambert",
-                        :extent => "[197752.0112, 118183.8060, 2410622.1845, 1680961.2935]",
-                        :srs => "EPSG:2992"
-                    }
-                ],
-                :proxylayers => [
-                    {
-                        :url => "http://www.coastalatlas.net/services/wms/?",
-                        :title => "Oregon Coastal Atlas",
-                        :slug => "or_coastal_atlas",
-                        :layers => [
-                            {
-                                :slug => "NAIP_Orthos_2011",
-                                :title => "NAIP Orthos 2011",
-                                :grid => "or_lambert"
-                            },
-                            {
-                                :slug => "Big_Regional_Water",
-                                :title => "Big Regional Water",
-                                :grid => "or_lambert"
-                            }
-                        ]
-                    }
-                ]
-            }
+            srids: [99996]
         }
-        chef.add_role "vagrant"
+      # ansible.inventory_path = "hosts.ini"
+      # ansible.limit = "vagrant-apps"
     end
+
+    # config.vm.provision :chef_solo do |chef|
+    #     chef.cookbooks_path = "scripts/cookbooks"
+    #     chef.roles_path = "scripts/roles"
+    #     chef.json  = {
+    #         :user => "vagrant",
+    #         :servername => "example.example.com",
+    #         :dbname => "marine-planner",
+    #         :staticfiles => "/usr/local/apps/marine-planner/mediaroot",
+    #         :postgresql => {
+    #             :password => {
+    #                 :postgres  => "SECRET"
+    #             }
+    #         },
+    #         :mapproxy => {
+    #             :grids => [
+    #                 {
+    #                     :slug => "or_lambert",
+    #                     :extent => "[197752.0112, 118183.8060, 2410622.1845, 1680961.2935]",
+    #                     :srs => "EPSG:2992"
+    #                 }
+    #             ],
+    #             :proxylayers => [
+    #                 {
+    #                     :url => "http://www.coastalatlas.net/services/wms/?",
+    #                     :title => "Oregon Coastal Atlas",
+    #                     :slug => "or_coastal_atlas",
+    #                     :layers => [
+    #                         {
+    #                             :slug => "NAIP_Orthos_2011",
+    #                             :title => "NAIP Orthos 2011",
+    #                             :grid => "or_lambert"
+    #                         },
+    #                         {
+    #                             :slug => "Big_Regional_Water",
+    #                             :title => "Big Regional Water",
+    #                             :grid => "or_lambert"
+    #                         }
+    #                     ]
+    #                 }
+    #             ]
+    #         }
+    #     }
+    #     chef.add_role "vagrant"
+    # end
 end

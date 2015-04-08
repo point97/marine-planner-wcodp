@@ -1,10 +1,11 @@
 from django.conf.urls.defaults import *
 from django.contrib import admin
-from django.views.generic.simple import redirect_to
-from django.conf import settings
-from data_manager.api import LayerResource, ThemeResource
-from tastypie.api import Api
+from django.views.generic import RedirectView
 
+from django.conf import settings
+from data_manager.api import LayerResource, ThemeResource, TocThemeResource
+from tastypie.api import Api
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 import visualize
 import explore
@@ -16,9 +17,11 @@ admin.autodiscover()
 v1_api = Api(api_name='v1')
 v1_api.register(LayerResource())
 v1_api.register(ThemeResource())
+v1_api.register(TocThemeResource())
 
 
 urlpatterns = patterns('',
+                        url('', include('social.apps.django_app.urls', namespace='social')),
                        (r'^api/', include(v1_api.urls)),
                        (r'^mp_profile/', include('mp_profile.urls')),
                        #(r'^sdc/', include('scenarios.urls')),
@@ -40,14 +43,16 @@ urlpatterns = patterns('',
                        (r'^([\w-]*)/embed/',
                         visualize.views.show_embedded_map),
                        (r'^([\w-]*)/catalog/', explore.views.data_catalog),
-                       (r'^$', redirect_to, {'url': '/visualize/'}),
+                       (r'^$', RedirectView.as_view(url='/visualize')),
+                       url("^media/admin/(?P<path>.*)$",
+                               "django.views.static.serve",
+                               {"document_root": settings.ADMIN_MEDIA_PATH}),
                        (r'', include('madrona.common.urls')),
                        )
 
 
 if settings.DEBUG:
-    urlpatterns += patterns('',
-                            url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {
-                                'document_root': settings.MEDIA_ROOT,
-                                }),
-                            )
+    # urlpatterns = patterns(url("^media/admin/(?P<path>.*)$",
+    #     "django.views.static.serve",
+    #     {"document_root": settings.ADMIN_MEDIA_PATH})) + urlpatterns
+    urlpatterns += staticfiles_urlpatterns()

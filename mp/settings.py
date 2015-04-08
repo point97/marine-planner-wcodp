@@ -4,7 +4,7 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TIME_ZONE = 'America/Vancouver'
-ROOT_URLCONF = 'urls' 
+ROOT_URLCONF = 'urls'
 LOGIN_REDIRECT_URL = '/visualize'
 
 DATABASES = {
@@ -14,53 +14,86 @@ DATABASES = {
         'USER': 'vagrant',
     }
 }
- 
 
+# added in a merge conflict ... leaving in as a precaution sfletche 7-2-2014
 LOG_FILE =  os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'mp.log'))
 LOG_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), 'logs'))
 
+LOG_FILE = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                            '..', 'mp.log'))
+LOG_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), 'logs'))
 
-INSTALLED_APPS += ( 
-                    'django_extensions',
+ADMIN_MEDIA_PATH = "/usr/local/venv/marine-planner/lib/python2.7/site-packages/django/contrib/admin/static/admin/"
 
-                    'general', 
-                    'data_manager',
-                    'mp_settings',
-                    'explore',
-                    'visualize',
-                    'django.contrib.humanize',
-                    'flatblocks',
-                    'mp_proxy',
-                    'map_proxy'
-                  )
+STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+INSTALLED_APPS += ('django_extensions',
+                   'social.apps.django_app.default',
+                   'django.contrib.staticfiles',
+                   'general',
+                   'data_manager',
+                   'mp_settings',
+                   'mp_profile',
+                   'explore',
+                   'visualize',
+                   'django.contrib.humanize',
+                   'flatblocks',
+                   'mp_proxy',
+                   'ontology',
+                   'django_mptt_admin',
+                   'map_proxy'
+                   )
 
 GEOMETRY_DB_SRID = 99996
-GEOMETRY_CLIENT_SRID = 3857 #for latlon
+GEOMETRY_CLIENT_SRID = 3857  # for latlon
 GEOJSON_SRID = 3857
 
-APP_NAME = "Marine Planner Data Portal"
+APP_NAME = "West Coast Ocean Data Portal Marine Planner"
 SERVER_ADMIN = 'edwin@pointnineseven.com'
-DEFAULT_FROM_EMAIL = 'USVI <developers@pointnineseven.com>'
+
+ALLOWED_HOSTS = ['.apps.pointnineseven.com']
+
+EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
+
+HELP_EMAIL = "developers@pointnineseven.com"
+DEFAULT_FROM_EMAIL = "Point 97 Dev Team <developers@pointnineseven.com>"
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
-MANAGERS = ADMINS
 EMAIL_SUBJECT_PREFIX = 'Marine Planner'
 ADMINS = (
-    ('Edwin Knuth', 'edwin@pointnineseven.com'),
+    ('Seth Hill', 'seth@pointnineseven.com'),
     ('Scott Fletcher', 'scott@pointnineseven.com'),
 )
+MANAGERS = ADMINS
 
-#FEEDBACK_RECIPIENT = "Marine Planning Team <mp-team@marineplanner.org>"
-#HELP_EMAIL = "mp-team@marineplanner.org"
-#DEFAULT_FROM_EMAIL = "Marine Planning Team <mp-team@marineplanner.org>"
+MARINE_DEBRIS_URL = 'http://debris-db.westcoastoceans.org/'
+MP_ONTOLOGY_URL = 'http://143.239.249.181:8080/sws/SWS?request=GetConceptHierarchy&responseLanguage=en&elementSet=extended'
+MP_ONTOLOGY_FILTER_DEFAULT_LIMIT = 3 # years
+FEEDBACK_RECIPIENT = "Point 97 Dev Team <developers@pointnineseven.com>"
 
 # url for socket.io printing
-#SOCKET_URL = 'http://dev.marco.marineplanning.org:8080'
+# SOCKET_URL = 'http://dev.marco.marineplanning.org:8080'
 SOCKET_URL = False
 
-# Change the following line to True, to display the 'under maintenance' template
+# Change the following line to True,
+# to display the 'under maintenance' template
 UNDER_MAINTENANCE_TEMPLATE = False
 
-TEMPLATE_DIRS = ( os.path.realpath(os.path.join(os.path.dirname(__file__), 'templates').replace('\\','/')), )
+TEMPLATE_DIRS = (os.path.realpath(os.path.join(os.path.dirname(__file__),
+                 'templates').replace('\\', '/')), )
+
+
+AUTHENTICATION_BACKENDS = (
+    # 'social.backends.google.GooglePlusAuth',
+    'auth.CustomGooglePlusAuth',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.request',
+    'social.apps.django_app.context_processors.backends',
+    'social.apps.django_app.context_processors.login_redirect',
+)
 
 MIDDLEWARE_CLASSES += (
     'django.middleware.common.CommonMiddleware',
@@ -144,5 +177,10 @@ LOGGING = {
 import logging
 logging.getLogger('django.db.backends').setLevel(logging.ERROR)
 
-from settings_local import *
+try:
+    from settings_local import *
+except ImportError: 
+    import warnings
+    warnings.warn("settings_local.py module missing.")
+
 

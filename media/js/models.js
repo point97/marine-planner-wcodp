@@ -7,6 +7,7 @@ function layerModel(options, parent) {
     self.name = options.name || null;
     self.featureAttributionName = self.name;
     self.url = options.url || null;
+    self.filterable = options.filterable || false;
     self.arcgislayers = options.arcgis_layers || -1;
     self.wms_slug = options.wms_slug || '';
     self.type = options.type || null;
@@ -30,10 +31,10 @@ function layerModel(options, parent) {
     self.defaultOpacity = options.opacity || 0.5;
     self.opacity = ko.observable(self.defaultOpacity);
     self.graphic = options.graphic || null;
-    
+
     self.sharedBy = ko.observable(false);
     self.shared = ko.observable(false);
-    
+
     if (self.featureAttributionName === 'OCS Lease Blocks') {
         self.featureAttributionName = 'OCS Lease Blocks -- DRAFT Report';
     } else if (self.featureAttributionName === 'Party & Charter Boat') {
@@ -48,18 +49,18 @@ function layerModel(options, parent) {
             url: self.url.replace('/export', '/legend/?f=pjson'),
             type: 'GET',
             success: function(data) {
-                if (data['layers']) {
-                    $.each(data['layers'], function(i, layerobj) {
-                        if (parseInt(layerobj['layerId'], 10) === parseInt(self.arcgislayers, 10)) {
+                if (data.layers) {
+                    $.each(data.layers, function(i, layerobj) {
+                        if (parseInt(layerobj.layerId, 10) === parseInt(self.arcgislayers, 10)) {
                             self.legend = {'elements': []};
-                            $.each(layerobj['legend'], function(j, legendobj) {
+                            $.each(layerobj.legend, function(j, legendobj) {
                                 //http://ocean.floridamarine.org/arcgis/rest/services/SAFMC/SAFMC_Regulations/MapServer/13/images/94ed037ab533027972ba3fc4a7c9d05c
-                                var swatchURL = self.url.replace('/export', '/'+self.arcgislayers+'/images/'+legendobj['url']),
-                                    label = legendobj['label'];
+                                var swatchURL = self.url.replace('/export', '/'+self.arcgislayers+'/images/'+legendobj.url),
+                                    label = legendobj.label;
                                 if (label === "") {
-                                    label = layerobj['layerName'];
+                                    label = layerobj.layerName;
                                 }
-                                self.legend['elements'].push({'swatch': swatchURL, 'label': label});
+                                self.legend.elements.push({'swatch': swatchURL, 'label': label});
                                 //console.log(self.legend);
                             });
                         }
@@ -71,7 +72,7 @@ function layerModel(options, parent) {
                 } else {
                     //debugger;
                 }
-            }, 
+            },
             error: function(error) {
                 //debugger;
             }
@@ -84,8 +85,6 @@ function layerModel(options, parent) {
             // url: self.url + "request=GetCapabilities", 
             url: '/proxy/capabilities/' + self.id,
             success: function(response) { 
-                console.log(self.name);
-                console.log(self.wms_slug);
                 if (self.wms_slug === 'ports1m') {
                     var wms_slug = 'ports';
                 } else {
@@ -97,7 +96,6 @@ function layerModel(options, parent) {
                     var capLayer = _.findWhere(cap.capability.layers, {'name': wms_slug});
                     if (capLayer && capLayer.styles) {
                         self.legend = capLayer.styles[0].legend.href;    
-                        console.log('self.legend = ' + self.legend);                
                     }
                 }
                 //reset visibility (to reset activeLegendLayers)
@@ -124,7 +122,7 @@ function layerModel(options, parent) {
     } else {
         self.description = null;
     }
-    
+
     // set overview text for Learn More option
     if (options.overview) {
         self.overview = options.overview;
@@ -137,7 +135,7 @@ function layerModel(options, parent) {
     } else {
         self.overview = null;
     }
-    
+
     // if no description is provided, try using the web services description
     if ( !self.overview && self.url && (self.arcgislayers !== -1) ) {
         $.ajax({
@@ -145,28 +143,28 @@ function layerModel(options, parent) {
             url: self.url.replace('/export', '/'+self.arcgislayers) + '?f=pjson',
             type: 'GET',
             success: function(data) {
-                self.overview = data['description'];
+                self.overview = data.description;
             }
         });
     }
-    
-    // set data source and data notes text 
+
+    // set data source and data notes text
     self.data_source = options.data_source || null;
     if (! self.data_source && parent && parent.data_source) {
         self.data_source = parent.data_source;
-    } 
+    }
     self.data_notes = options.data_notes || null;
     if (! self.data_notes && parent && parent.data_notes) {
         self.data_notes = parent.data_notes;
-    } 
-    
-    // set download links 
+    }
+
+    // set download links
     self.kml = options.kml || null;
     self.data_download = options.data_download || null;
     self.metadata = options.metadata || null;
     self.source = options.source || null;
     self.tiles = options.tiles || null;
-    
+
     if ( ! self.metadata ) {
         if ( self.url && (self.arcgislayers !== -1) ) {
             self.metadata = self.url.replace('/export', '/'+self.arcgislayers);
@@ -176,14 +174,14 @@ function layerModel(options, parent) {
     // opacity
     self.opacity.subscribe(function(newOpacity) {
         if (self.layer.CLASS_NAME === "OpenLayers.Layer.Vector") {
-            self.layer.styleMap.styles['default'].defaultStyle.strokeOpacity = newOpacity;
-            self.layer.styleMap.styles['default'].defaultStyle.graphicOpacity = newOpacity;
+            self.layer.styleMap.styles["default"].defaultStyle.strokeOpacity = newOpacity;
+            self.layer.styleMap.styles["default"].defaultStyle.graphicOpacity = newOpacity;
             //fill is currently turned off for many of the vector layers
-            //the following should not override the zeroed out fill opacity 
+            //the following should not override the zeroed out fill opacity
             //however we do still need to account for shipping lanes (in which styling is handled via lookup)
             if (self.fillOpacity > 0) {
                 var newFillOpacity = self.fillOpacity - (self.defaultOpacity - newOpacity);
-                self.layer.styleMap.styles['default'].defaultStyle.fillOpacity = newFillOpacity;
+                self.layer.styleMap.styles["default"].defaultStyle.fillOpacity = newFillOpacity;
             }
             self.layer.redraw();
         } else {
@@ -198,17 +196,17 @@ function layerModel(options, parent) {
             self.infoActive(false);
         }
     });
-    
+
     // is the layer a checkbox layer
     self.isCheckBoxLayer = ko.observable(false);
     if (self.type === 'checkbox') {
         self.isCheckBoxLayer(true);
     }
-    
+
     // is the layer in the active panel?
     self.active = ko.observable(false);
     // is the layer visible?
-    self.visible = ko.observable(false);       
+    self.visible = ko.observable(false);
 
     self.activeSublayer = ko.observable(false);
     self.visibleSublayer = ko.observable(false);
@@ -234,7 +232,7 @@ function layerModel(options, parent) {
         var layer = this;
         layer.legendVisibility(!layer.legendVisibility());
     };
-    
+
     self.hasVisibleSublayers = function() {
         if ( !self.subLayers ) {
             return false;
@@ -250,12 +248,14 @@ function layerModel(options, parent) {
 
     self.deactivateLayer = function() {
         var layer = this;
-        
+
+        app.removePopup();
+
         //deactivate layer
         self.deactivateBaseLayer();
-        
+
         //remove related utfgrid layer
-        if (layer.utfgrid) { 
+        if (layer.utfgrid) {
             self.deactivateUtfGridLayer();
         }
         //remove parent layer
@@ -265,37 +265,45 @@ function layerModel(options, parent) {
         //remove sublayer
         if (layer.activeSublayer()) {
             self.deactivateSublayer();
-        } 
-        
+        }
+
         //de-activate arcIdentifyControl (if applicable)
         if (layer.arcIdentifyControl) {
             layer.arcIdentifyControl.deactivate();
         }
-        
+
         layer.layer = null;
 
     };
-    
+
     // called from deactivateLayer
     self.deactivateBaseLayer = function() {
         var layer = this;
         // remove from active layers
         app.viewModel.activeLayers.remove(layer);
 
+        // remove from filter layers
+        // if (layer.summarize_to_grid) {
+        //     app.viewModel.filterTab.filterLayers.remove(layer);
+        // }   
+
+        // if filterable, then turn off layer loading message 
+        app.map.onFinishClustering();
+
         //remove the key/value pair from aggregatedAttributes
         app.viewModel.removeFromAggregatedAttributes(layer.name);
-        
+
         layer.active(false);
         layer.visible(false);
 
         app.setLayerVisibility(layer, false);
         layer.opacity(layer.defaultOpacity);
-        
+
         if ($.inArray(layer.layer, app.map.layers) !== -1) {
             app.map.removeLayer(layer.layer);
         }
     };
-    
+
     // called from deactivateLayer
     self.deactivateUtfGridLayer = function() {
         var layer = this;
@@ -323,7 +331,7 @@ function layerModel(options, parent) {
                 layer.parent.visible(false);
                 layer.parent.visibleSublayer(false);
             }
-            //check to see if any sublayers are still visible 
+            //check to see if any sublayers are still visible
             if (!layer.parent.hasVisibleSublayers()) {
                 layer.parent.visible(false);
             }
@@ -333,9 +341,9 @@ function layerModel(options, parent) {
             layer.parent.activeSublayer(false);
             layer.parent.visible(false);
             layer.parent.visibleSublayer(false);
-        } 
+        }
     };
-    
+
     // called from deactivateLayer
     self.deactivateSublayer = function() {
         var layer = this;
@@ -346,50 +354,89 @@ function layerModel(options, parent) {
         layer.activeSublayer(false);
         layer.visibleSublayer(false);
     };
-    
+
     self.activateLayer = function() {
         var layer = this;
 
-        if (!layer.active() && layer.type !== 'placeholder') {
-        
-            self.activateBaseLayer();
-
-            // save reference in parent layer
-            if (layer.parent) {
-                self.activateParentLayer();
-            }
-
-            //add utfgrid if applicable
-            if (layer.utfgrid) {
-                self.activateUtfGridLayer();
-            }
-            
-            //activate arcIdentifyControl (if applicable)
-            if (layer.arcIdentifyControl) {
-                layer.arcIdentifyControl.activate();
-            }
-
+        if (layer.active() || layer.type == 'placeholder') {
+            return;
         }
+
+        app.removePopup();
+
+        if (layer.filterable) {
+            layer.applyFilters(app.viewModel.filterTab.getFilters());
+            // if the Filter tab exists and the Data tab is active
+            if ( $('#filterTab').length && $("#myTab li.active").has('#dataTab').length ) {
+                $('#filterTab').effect("highlight", {color: 'rgba(186, 186, 39, .5)'}, 1000);
+            }   
+            return;            
+        }
+
+        self.activateBaseLayer();
+
+        // save reference in parent layer
+        if (layer.parent) {
+            self.activateParentLayer();
+        }
+
+        //add utfgrid if applicable
+        if (layer.utfgrid) {
+            self.activateUtfGridLayer();
+        }
+   };
+
+    self.applyFilters = function(filter) {
+        var layer = this;
+
+        if (!layer.filterable) { //} || !!layer._applyingFilters) {
+            return; 
+        }
+
+        layer.filter = filter || app.viewModel.filterTab.getFilters();
+
+        if(layer.active) {
+            layer.deactivateLayer();
+            layer.activateBaseLayer();
+        } else {
+            layer.activateBaseLayer();
+        }
+        
+        // avoid recursion, this is a bit messy
+        // if (!layer.hasOwnProperty('_applyingFilters')) {
+        //     layer._applyingFilters = true;
+        //     layer.filter = filter;
+        //     layer.deactivateLayer();
+        //     layer.activateLayer();
+        //     delete layer._applyingFilters;
+        // }
     };
-    
+
     // called from activateLayer
     self.activateBaseLayer = function() {
         var layer = this;
-        
-        app.addLayerToMap(layer);
-
-        //now that we now longer use the selectfeature control we can simply do the following 
-        app.viewModel.activeLayers.unshift(layer);
 
         // set the active flag
         layer.active(true);
+        // setting visible to true before adding layer to map so that getState sets the visibility correctly
         layer.visible(true);
+
+        if (layer.summarize_to_grid) {
+            // app.viewModel.filterTab.filterLayers.unshift(layer);
+            app.viewModel.filterTab.filterButtonIsActive(true);
+        } else {
+            app.addLayerToMap(layer);
+
+            //now that we no longer use the selectfeature control we can simply do the following
+            app.viewModel.activeLayers.unshift(layer);
+        }
+
     };
-    
+
     // called from activateLayer
     self.activateParentLayer = function() {
         var layer = this;
-        
+
         if (layer.parent.type === 'radio' && layer.parent.activeSublayer()) {
             // only allow one sublayer on at a time
             layer.parent.activeSublayer().deactivateLayer();
@@ -399,28 +446,28 @@ function layerModel(options, parent) {
         layer.parent.visible(true);
         layer.parent.visibleSublayer(layer);
     };
-    
+
     // called from activateLayer
     self.activateUtfGridLayer = function() {
         var layer = this;
-        
+
         app.map.UTFControl.layers.unshift(layer.utfgrid);
     };
 
     // bound to click handler for layer visibility switching in Active panel
     self.toggleVisible = function() {
         var layer = this;
-        
+
         if (layer.visible()) { //make invisible
             self.setInvisible(layer);
         } else { //make visible
             self.setVisible(layer);
         }
     };
-    
+
     self.setVisible = function() {
         var layer = this;
-        
+
         layer.visible(true);
         if (layer.parent) {
             layer.parent.visible(true);
@@ -432,26 +479,26 @@ function layerModel(options, parent) {
             app.map.UTFControl.layers.splice($.inArray(this, app.viewModel.activeLayers()), 0, layer.utfgrid);
         }
     };
-    
+
     self.setInvisible = function() {
         var layer = this;
-        
+
         layer.visible(false);
         if (layer.parent) {
             // if layer.parent is not a checkbox, set parent to invisible
             if (layer.parent.type !== 'checkbox') {
                 layer.parent.visible(false);
-            } else { //otherwise layer.parent is checkbox 
-                //check to see if any sublayers are still visible 
+            } else { //otherwise layer.parent is checkbox
+                //check to see if any sublayers are still visible
                 if (!layer.parent.hasVisibleSublayers()) {
                     layer.parent.visible(false);
                 }
             }
         }
         app.setLayerVisibility(layer, false);
-        
+
         app.viewModel.removeFromAggregatedAttributes(layer.name);
-        
+
         if ($.isEmptyObject(app.viewModel.visibleLayers())) {
             app.viewModel.closeAttribution();
         }
@@ -479,7 +526,7 @@ function layerModel(options, parent) {
 
         // save a ref to the active layer for editing,etc
         app.viewModel.activeLayer(layer);
-        
+
         //handle possible dropdown/sublayer behavior
         if (layer.subLayers.length) {
             app.viewModel.activeParentLayer(layer);
@@ -490,7 +537,7 @@ function layerModel(options, parent) {
                     api.destroy();
                 }
                 $('#mobile-data-right-button').show();
-                $('#mobile-map-right-button').hide(); 
+                $('#mobile-map-right-button').hide();
             } else if (!layer.activeSublayer()) { //if layer does not have an active sublayer, then show/hide drop down menu
                 if (!layer.showSublayers()) {
                     //show drop-down menu
@@ -499,7 +546,7 @@ function layerModel(options, parent) {
                     //hide drop-down menu
                     layer.showSublayers(false);
                 }
-            } else if ( layer.type === 'checkbox' ) { //else if layer does have an active sublayer and it's checkbox (not radio) 
+            } else if ( layer.type === 'checkbox' ) { //else if layer does have an active sublayer and it's checkbox (not radio)
                 if (!layer.showSublayers()) {
                     //show drop-down menu
                     layer.showSublayers(true);
@@ -526,7 +573,7 @@ function layerModel(options, parent) {
             layer.activateLayer();
         }
     };
-    
+
 
     self.raiseLayer = function(layer, event) {
         var current = app.viewModel.activeLayers.indexOf(layer);
@@ -559,7 +606,7 @@ function layerModel(options, parent) {
     self.isBottomLayer = function(layer) {
         return app.viewModel.activeLayers.indexOf(layer) === app.viewModel.activeLayers().length - 1;
     };
-        
+
     self.showingLegendDetails = ko.observable(true);
     self.toggleLegendDetails = function() {
         var legendID = '#' + app.viewModel.convertToSlug(self.name) + '-legend-content';
@@ -577,8 +624,8 @@ function layerModel(options, parent) {
         }
         //update scrollbar
         setTimeout( function() { app.viewModel.updateScrollBars(); }, 200 );
-    };      
-    
+    };
+
     self.showingLayerAttribution = ko.observable(true);
     self.toggleLayerAttribution = function() {
         var layerID = '#' + app.viewModel.convertToSlug(self.name);
@@ -592,7 +639,7 @@ function layerModel(options, parent) {
         //update scrollbar
         app.viewModel.updateAggregatedAttributesOverlayScrollbar();
     };
-    
+
     self.toggleSublayerDescription = function(layer) {
         if ( ! self.infoActive() ) {
             self.showSublayerDescription(self);
@@ -601,7 +648,7 @@ function layerModel(options, parent) {
             self.showDescription(self);
         }
     };
-    
+
     self.showSublayerDescription = function(layer) {
         app.viewModel.showOverview(false);
         app.viewModel.activeInfoSublayer(layer);
@@ -612,7 +659,7 @@ function layerModel(options, parent) {
         //app.viewModel.updateDropdownScrollbar('#overview-overlay-dropdown');
         //app.viewModel.hideMapAttribution();
     };
-    
+
     // display descriptive text below the map
     self.toggleDescription = function(layer) {
         if ( ! layer.infoActive() ) {
@@ -622,7 +669,7 @@ function layerModel(options, parent) {
             self.hideDescription(layer);
         }
     };
-    
+
     self.showDescription = function(layer) {
         app.viewModel.showOverview(false);
         app.viewModel.activeInfoSublayer(false);
@@ -642,20 +689,20 @@ function layerModel(options, parent) {
         //app.viewModel.updateDropdownScrollbar('#overview-overlay-dropdown');
         //app.viewModel.hideMapAttribution();
     };
-    
+
     self.hideDescription = function(layer) {
         app.viewModel.showOverview(false);
         app.viewModel.activeInfoSublayer(false);
-        if ( app.embeddedMap ) {        
+        if ( app.embeddedMap ) {
             app.viewModel.showMapAttribution();
         }
     };
-    
+
     self.toggleDescriptionMenu = function(layer) {
         //console.dir(layer);
     };
-    
-    
+
+
     self.showTooltip = function(layer, event) {
         var layerActual;
         $('#layer-popover').hide();
@@ -689,6 +736,7 @@ function themeModel(options) {
     self.id = options.id;
     self.description = options.description;
     self.learn_link = options.learn_link;
+    self.is_toc_theme = options.is_toc_theme || false;
 
     // array of layers
     self.layers = ko.observableArray();
@@ -696,7 +744,7 @@ function themeModel(options) {
     //add to open themes
     self.setOpenTheme = function() {
         var theme = this;
-        
+
         // ensure data tab is activated
         $('#dataTab').tab('show');
 
@@ -710,7 +758,7 @@ function themeModel(options) {
             app.viewModel.updateScrollBars();
         }
     };
-    
+
     //is in openThemes
     self.isOpenTheme = function() {
         var theme = this;
@@ -746,11 +794,11 @@ function themeModel(options) {
 
 function mapLinksModel() {
     var self = this;
-    
+
     self.cancel = function() {
         $('#map-links-popover').hide();
     };
-    
+
     self.getURL = function() {
         //return window.location.href;
         if (self.bitlyRegisteredDomain) {
@@ -759,17 +807,17 @@ function mapLinksModel() {
             return window.location.href;
         }
     };
-    
+
     self.showShrinkOption = ko.observable();
-    if (app.MPSettings && app.MPSettings['bitly_registered_domain'] && app.MPSettings['bitly_username'] && app.MPSettings['bitly_api_key'] ) {
-        self.bitlyRegisteredDomain = app.MPSettings['bitly_registered_domain'];
-        self.bitlyUsername = app.MPSettings['bitly_username'];
-        self.bitlyAPIKey = app.MPSettings['bitly_api_key'];
+    if (app.MPSettings && app.MPSettings.bitly_registered_domain && app.MPSettings.bitly_username && app.MPSettings.bitly_api_key ) {
+        self.bitlyRegisteredDomain = app.MPSettings.bitly_registered_domain;
+        self.bitlyUsername = app.MPSettings.bitly_username;
+        self.bitlyAPIKey = app.MPSettings.bitly_api_key;
         self.showShrinkOption(true);
     } else {
         self.showShrinkOption(false);
     }
-    
+
     self.shrinkURL = ko.observable();
     self.shrinkURL.subscribe( function() {
         if (self.shrinkURL()) {
@@ -778,19 +826,19 @@ function mapLinksModel() {
             self.useLongURL();
         }
     });
-    
+
     self.useLongURL = function() {
         $('#short-url')[0].value = self.getURL();
     };
-        
+
     self.useShortURL = function() {
         var bitly_login = self.bitlyUsername,
             bitly_api_key = self.bitlyAPIKey,
             long_url = self.getURL();
-            
-        $.getJSON( 
-            "http://api.bitly.com/v3/shorten?callback=?", 
-            { 
+
+        $.getJSON(
+            "http://api.bitly.com/v3/shorten?callback=?",
+            {
                 "format": "json",
                 "apiKey": bitly_api_key,
                 "login": bitly_login,
@@ -802,23 +850,24 @@ function mapLinksModel() {
             }
         );
     };
-    
+
     self.getPortalURL = function() {
         var urlOrigin = window.location.origin,
             urlHash = window.location.hash;
         return urlOrigin + '/visualize/' + urlHash;
     };
-    
+
     self.setIFrameHTML = function() {
         $('#iframe-html')[0].value = self.getIFrameHTML();
     };
-    
+
     self.getIFrameHTML = function(bookmarkState) {
         var urlOrigin = window.location.origin,
             urlHash = window.location.hash,
-            projectName = app.MPSettings['project_name'];
+            projectName = app.MPSettings.project_name,
+            projectSlug;
         if ( projectName ) {
-            var projectSlug = app.viewModel.convertToSlug(app.MPSettings['project_name']);
+            projectSlug = app.viewModel.convertToSlug(app.MPSettings.project_name);
         }
         if ( bookmarkState ) {
             //urlHash = '#'+$.param(bookmarkState);
@@ -837,7 +886,7 @@ function mapLinksModel() {
         //$('#iframe-html')[0].value = '<iframe width="600" height="450" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"' +
         //                             'src="' + embedURL + '">' + '</iframe>' + '<br />';
     };
-    
+
     self.openIFrameExample = function(info) {
         var windowName = "newMapWindow",
             windowSize = "width=625, height=475";
@@ -854,9 +903,9 @@ function mapLinksModel() {
             iframeID = '#iframe-html';
         }
         mapWindow.document.write('<html><body>' + $(iframeID)[0].value + '</body></html>');
-        mapWindow.document.title = "Your " + app.MPSettings['project_name'] + " Marine Planner Map!";
+        mapWindow.document.title = "Your " + app.MPSettings.project_name + " Marine Planner Map!";
         mapWindow.document.close();
-        
+
     };
 
     return self;
@@ -867,7 +916,7 @@ function viewModel() {
     var self = this;
 
     self.modernBrowser = ko.observable( !($.browser.msie && $.browser.version < 9.0) );
-    
+
     // list of active layermodels
     self.activeLayers = ko.observableArray();
 
@@ -879,52 +928,52 @@ function viewModel() {
             }
         });
     });
-    
+
     self.visibleLayers.subscribe( function() {
         self.updateAttributeLayers();
     });
-    
+
     self.attributeLayers = ko.observable();
-    
+
     self.featureAttribution = ko.observable(true);
     self.enableFeatureAttribution = function() {
         self.aggregatedAttributes(false);
         self.featureAttribution(true);
     };
     self.disableFeatureAttribution = function() {
-        self.featureAttribution(false); 
+        self.featureAttribution(false);
         app.markers.clearMarkers();
         if ( app.embeddedMap ) {
             self.showMapAttribution();
         }
     };
-    
+
     self.showFeatureAttribution = ko.observable(false);
-    
+
     self.featureAttribution.subscribe( function() {
         self.showFeatureAttribution( self.featureAttribution() && !($.isEmptyObject(self.aggregatedAttributes())) );
     });
-    
+
     self.updateAttributeLayers = function() {
         var attributeLayersList = [];
         if (self.scenarios && self.scenarios.scenarioFormModel && self.scenarios.scenarioFormModel.isLeaseblockLayerVisible()) {
             attributeLayersList.push(self.scenarios.leaseblockLayer().layerModel);
         }
-        
+
         $.each(self.visibleLayers(), function(index, layer) {
             attributeLayersList.push(layer);
         });
         self.attributeLayers(attributeLayersList);
     };
-    
+
     // boolean flag determining whether or not to show layer panel
     self.showLayers = ko.observable(true);
-    
+
     self.showLayersText = ko.computed(function() {
         if (self.showLayers()) return "Hide Layers";
         else return "Show Layers";
     });
-    
+
     // toggle layer panel visibility
     self.toggleLayers = function() {
         self.showLayers(!self.showLayers());
@@ -939,7 +988,7 @@ function viewModel() {
 
     // reference to open themes in accordion
     self.openThemes = ko.observableArray();
-    
+
     self.openThemes.subscribe( function() {
         app.updateUrl();
     });
@@ -949,7 +998,7 @@ function viewModel() {
             return theme.id;
         });
     };
-    
+
     // reference to active theme model/name for display text
     self.activeTheme = ko.observable();
     self.activeThemeName = ko.observable();
@@ -965,7 +1014,7 @@ function viewModel() {
     self.showDescription = ko.observable();
     // determines visibility of expanded description overlay
     self.showOverview = ko.observable();
-    
+
     // theme text currently on display
     self.themeText = ko.observable();
 
@@ -974,13 +1023,13 @@ function viewModel() {
     self.layerSearchIndex = {};
 
     self.bookmarkEmail = ko.observable();
-        
+
     self.mapLinks = new mapLinksModel();
 
     // text for tooltip popup
     self.layerToolTipText = ko.observable();
 
-    // descriptive text below the map 
+    // descriptive text below the map
     self.activeInfoLayer = ko.observable(false);
     self.activeInfoSublayer = ko.observable(false);
 
@@ -1025,7 +1074,7 @@ function viewModel() {
             self.showMapAttribution();
         }
     };
-    
+
     self.updateMarker = function(lonlat) {
         //at some point this function is being called without an appropriate lonlat object...
         if (lonlat.lon && lonlat.lat) {
@@ -1042,7 +1091,7 @@ function viewModel() {
             }
         }
     };
-    
+
     /*
     self.getAttributeHTML = function() {
         var html = "";
@@ -1070,14 +1119,14 @@ function viewModel() {
     self.clearError = function() {
         self.error(null);
     };
-    
+
     self.showLogo = ko.observable(true);
     self.hideLogo = function() {
         self.showLogo(false);
     };
-    
+
     self.isFullScreen = ko.observable(false);
-    
+
     self.fullScreenWithLayers = function() {
         return self.isFullScreen() && self.showLayers();
     };
@@ -1087,7 +1136,7 @@ function viewModel() {
 
     //show/hide the list of basemaps
     self.showBasemaps = function(self, event) {
-        var $layerSwitcher = $('#SimpleLayerSwitcher_28'),
+        var $layerSwitcher = $('.SimpleLayerSwitcher'),
             $button = $('#basemaps'); //$(event.target).closest('.btn');
         if ($layerSwitcher.is(":visible")) {
             $layerSwitcher.hide();
@@ -1095,19 +1144,25 @@ function viewModel() {
             $layerSwitcher.show();
         }
     };
-    
+
+    // logout
+    self.logout = function (self, event) {
+        gapi.auth.signOut();
+        window.location.href = $(event.target).data('href');
+    };
+
     // minimize data panel
     self.minimized = false;
     self.minimizeLeftPanel = function() {
         if ( !self.minimized ) {
-            $('.sidebar-nav').animate( {height: '50px'}, 400 );
+            $('.sidebar-nav').animate( {height: '150px'}, 400 );
             $('#help-button').hide();
             $('#add-layer-button').hide();
             $('.search-form').hide();
             $('#myTab').hide();
             $('#myTabContent').hide();
         } else {
-            $('.sidebar-nav').animate( {height: '550px'}, 400 );
+            $('.sidebar-nav').animate( {height: '650px'}, 400 );
             setTimeout( function() {
                 $('#help-button').show();
                 $('#add-layer-button').show();
@@ -1145,13 +1200,13 @@ function viewModel() {
             } else {
                 app.map.zoomBox.out = false;
             }
-            app.map.zoomBox.activate();            
+            app.map.zoomBox.activate();
             $('#map').addClass('zoomBox');
 
         }
     };
-    self.deactivateZoomBox = function ($button) {
-        var $button = $button || $('.btn-zoom');
+    self.deactivateZoomBox = function (button) {
+        var $button = button || $('.btn-zoom');
         app.map.zoomBox.deactivate();
         $button.removeClass('active');
         $('#map').removeClass('zoomBox');
@@ -1194,7 +1249,7 @@ function viewModel() {
         if (self.showLegend()) return "Hide Legend";
         else return "Show Legend";
     });
-    
+
     self.showEmbeddedLegend = ko.observable(false);
 
     // toggle embedded legend (on embedded maps)
@@ -1207,7 +1262,7 @@ function viewModel() {
             legendScrollpane.reinitialise();
         }
     };
-    
+
     // toggle legend panel visibility
     self.toggleLegend = function() {
         self.showLegend(!self.showLegend());
@@ -1218,13 +1273,13 @@ function viewModel() {
             //$('#legend-content').data('jsp').reinitialise();
             self.updateScrollBars();
         }
-        
+
         //app.map.render('map');
         //if toggling legend during default pageguide, then correct step 4 position
         self.correctTourPosition();
     };
 
-    // determine whether app is offering legends 
+    // determine whether app is offering legends
     self.hasActiveLegends = ko.computed(function() {
         var hasLegends = false;
         $.each(self.visibleLayers(), function(index, layer) {
@@ -1240,14 +1295,14 @@ function viewModel() {
         app.viewModel.error(null);
         $('#fullscreen-error-overlay').hide();
     };
-    
+
     self.updateAllScrollBars = function() {
         self.updateScrollBars();
         if (self.scenarios) {
             self.scenarios.updateDesignsScrollBar();
         }
     };
-    
+
     //update jScrollPane scrollbar
     self.updateScrollBars = function() {
         if ( ! app.embeddedMap ) {
@@ -1257,14 +1312,14 @@ function viewModel() {
             } else {
                 dataScrollpane.reinitialise();
             }
-            
+
             var activeScrollpane = $('#active-content').data('jsp');
             if (activeScrollpane === undefined) {
                 $('#active-content').jScrollPane();
             } else {
                 activeScrollpane.reinitialise();
             }
-            
+
             var legendScrollpane = $('#legend-content').data('jsp');
             if (legendScrollpane === undefined) {
                 $('#legend-content').jScrollPane();
@@ -1283,9 +1338,9 @@ function viewModel() {
             self.showOverview(false);
         }
     };
-    
+
     self.scrollBarElements = [];
-    
+
     self.updateCustomScrollbar = function(elem) {
         if (app.viewModel.scrollBarElements.indexOf(elem) == -1) {
             app.viewModel.scrollBarElements.push(elem);
@@ -1295,13 +1350,13 @@ function viewModel() {
             });
         }
         //$(elem).mCustomScrollbar("update");
-        //$(elem).mCustomScrollbar("scrollTo", "top"); 
-        setTimeout( function() { 
-            $(elem).mCustomScrollbar("update"); 
-            $(elem).mCustomScrollbar("scrollTo", "top"); 
+        //$(elem).mCustomScrollbar("scrollTo", "top");
+        setTimeout( function() {
+            $(elem).mCustomScrollbar("update");
+            $(elem).mCustomScrollbar("scrollTo", "top");
         }, 500);
     };
-    
+
     // close layer description
     self.closeDescription = function() {
         //self.showDescription(false);
@@ -1310,13 +1365,13 @@ function viewModel() {
             app.viewModel.showMapAttribution();
         }
     };
-    
+
     self.activateOverviewDropdown = function(model, event) {
         var $btnGroup = $(event.target).closest('.btn-group');
         if ( $btnGroup.hasClass('open') ) {
             $btnGroup.removeClass('open');
         } else {
-            //$('#overview-dropdown-button').dropdown('toggle');  
+            //$('#overview-dropdown-button').dropdown('toggle');
             $btnGroup.addClass('open');
             if (app.viewModel.scrollBarElements.indexOf('#overview-overlay-dropdown') == -1) {
                 app.viewModel.scrollBarElements.push('#overview-overlay-dropdown');
@@ -1329,8 +1384,8 @@ function viewModel() {
             //setTimeout( $('#overview-overlay-dropdown').mCustomScrollbar("update"), 1000);
             $('#overview-overlay-dropdown').mCustomScrollbar("update");
         }
-    }; 
-    
+    };
+
     self.getOverviewText = function() {
         //activeInfoSublayer() ? activeInfoSublayer().overview : activeInfoLayer().overview
         if ( self.activeInfoSublayer() ) {
@@ -1338,18 +1393,18 @@ function viewModel() {
                 return '';
             } else {
                 return self.activeInfoSublayer().overview;
-            }   
+            }
         } else if (self.activeInfoLayer() ) {
             if ( self.activeInfoLayer().overview === null ) {
                 return '';
             } else {
                 return self.activeInfoLayer().overview;
-            }  
+            }
         } else {
             return '';
         }
     };
-    
+
     self.activeKmlLink = function() {
         if ( self.activeInfoSublayer() ) {
             return self.activeInfoSublayer().kml;
@@ -1370,7 +1425,7 @@ function viewModel() {
             return false;
         }
     };
-    
+
     self.activeMetadataLink = function() {
         //activeInfoLayer().metadata
         if ( self.activeInfoSublayer() ) {
@@ -1381,7 +1436,7 @@ function viewModel() {
             return false;
         }
     };
-    
+
     self.activeSourceLink = function() {
         //activeInfoLayer().source
         if ( self.activeInfoSublayer() ) {
@@ -1392,7 +1447,7 @@ function viewModel() {
             return false;
         }
     };
-        
+
     self.activeTilesLink = function() {
         //activeInfoLayer().source
         if ( self.activeInfoSublayer() ) {
@@ -1403,7 +1458,7 @@ function viewModel() {
             return false;
         }
     };
-        
+
     //assigned in app.updateUrl (in state.js)
     self.currentURL = ko.observable();
 
@@ -1428,7 +1483,63 @@ function viewModel() {
             self.bookmarks.updateBookmarkScrollBar();
         }
     };
-    
+
+    self.showMediaPrintDialog = function(self, event) {
+        if (self.isChrome()) {
+            window.print();
+        } else {
+            $('#media-print-modal').modal('show');
+        }
+        // var browserType = "";
+        // if (self.isChrome()) {
+        //     // window.print();
+        //     $('#media-print-modal').modal('show');
+        // } else if (self.isSafari() || self.isFirefox()) {
+        //     $('#media-print-modal').modal('show');
+        // } else {
+        //     alert ("Unknown Browser!");
+        // }
+    };
+
+    // self.suitablePrintBrowser = function() {
+    //     var msie = msieversion();
+    //     if (msie && msie < 10) {
+    //         return false;
+    //     } else {
+    //         return true;
+    //     }
+    // }
+
+    // self.msieversion = function() {
+    //     var ua = window.navigator.userAgent;
+    //     var msie = ua.indexOf("MSIE ");
+
+    //     if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./))      // If Internet Explorer, return version number
+    //         return parseInt(ua.substring(msie + 5, ua.indexOf(".", msie)));
+    //     else                 // If another browser, return 0
+    //         return false;
+    // };
+
+    // self.isIE8 = function() {
+    //     return self.msieversion() === "8";
+    // };
+
+    // self.isIE = function() {
+    //     return window.navigator.userAgent.indexOf("MSIE ") !== -1;
+    // };
+
+    // self.isFirefox = function() {
+    //     return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+    // };
+
+    self.isChrome = function() {
+        return window.chrome;
+    };
+
+    // self.isSafari = function() {
+    //     return Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+    // };
+
     //show Map Links
     /*
     self.showMapLinks = function(self, event) {
@@ -1448,13 +1559,13 @@ function viewModel() {
         }
     };
     */
-    
+
     self.resetMapLinks = function() {
         self.mapLinks.shrinkURL(false);
         $('#short-url').text = self.mapLinks.getURL();
         self.mapLinks.setIFrameHTML();
     };
-    
+
     self.selectedLayer = ko.observable();
 
     self.showOpacity = function(layer, event) {
@@ -1502,7 +1613,7 @@ function viewModel() {
         }
         return false;
     };
-    
+
     self.getLayerBySlug = function(slug) {
         for (var x=0; x<self.themes().length; x++) {
             var layer_list = $.grep(self.themes()[x].layers(), function(layer) { 
@@ -1570,12 +1681,12 @@ function viewModel() {
         //update the legend scrollbar
         //setTimeout(function() {$('#legend-content').data('jsp').reinitialise();}, 200);
         setTimeout(function() { app.viewModel.updateScrollBars(); }, 200);
-        
+
         // update the url hash
         app.updateUrl();
 
     });
-    
+
     self.deactivateAllLayers = function() {
         //$.each(self.activeLayers(), function (index, layer) {
         var numActiveLayers = self.activeLayers().length;
@@ -1583,7 +1694,7 @@ function viewModel() {
             self.activeLayers()[0].deactivateLayer();
         }
     };
-    
+
     self.closeAllThemes = function() {
         var numOpenThemes = self.openThemes().length;
         for (var i=0; i< numOpenThemes; i++) {
@@ -1597,8 +1708,8 @@ function viewModel() {
         if (!self.hasActiveLegends()) {
             self.showLegend(false);
         }
-    });*/    
-    
+    });*/
+
     self.startDefaultTour = function() {
         if ( $.pageguide('isOpen') ) { // activated when 'tour' is clicked
             // close the pageguide
@@ -1607,28 +1718,28 @@ function viewModel() {
         } else {
             //save state
             app.pageguide.state = app.getState();
-            app.saveStateMode = false;   
+            app.saveStateMode = false;
         }
-        
+
         //show the data layers panel
         app.viewModel.showLayers(true);
-        
+
         //ensure pageguide is managing the default guide
         $.pageguide(defaultGuide, defaultGuideOverrides);
-        
-        //adding delay to ensure the message will load 
+
+        //adding delay to ensure the message will load
         setTimeout( function() { $.pageguide('open'); }, 700 );
         //$('#help-tab').click();
-        
+
         app.pageguide.togglingTours = false;
     };
-    
+
     self.stepTwoOfBasicTour = function() {
         $('.pageguide-fwd')[0].click();
     };
-    
+
     self.startDataTour = function() {
-        //ensure the pageguide is closed 
+        //ensure the pageguide is closed
         if ( $.pageguide('isOpen') ) { // activated when 'tour' is clicked
             // close the pageguide
             app.pageguide.togglingTours = true;
@@ -1636,15 +1747,15 @@ function viewModel() {
         } else {
             //save state
             app.pageguide.state = app.getState();
-            app.saveStateMode = false;   
+            app.saveStateMode = false;
         }
-        
+
         //show the data layers panel
         app.viewModel.showLayers(true);
-        
+
         //switch pageguide from default guide to data guide
         $.pageguide(dataGuide, dataGuideOverrides);
-        
+
         //show the data tab, close all themes and deactivate all layers, and open the Admin theme
         app.viewModel.closeAllThemes();
         app.viewModel.deactivateAllLayers();
@@ -1652,15 +1763,15 @@ function viewModel() {
         //app.setMapPosition(-73, 38.5, 7);
         app.initializeMapLocation();
         $('#dataTab').tab('show');
-         
+
         //start the tour
         setTimeout( function() { $.pageguide('open'); }, 700 );
-        
+
         app.pageguide.togglingTours = false;
     };
-    
+
     self.startActiveTour = function() {
-        //ensure the pageguide is closed 
+        //ensure the pageguide is closed
         if ( $.pageguide('isOpen') ) { // activated when 'tour' is clicked
             // close the pageguide
             app.pageguide.togglingTours = true;
@@ -1668,15 +1779,15 @@ function viewModel() {
         } else {
             //save state
             app.pageguide.state = app.getState();
-            app.saveStateMode = false;   
+            app.saveStateMode = false;
         }
-        
+
         //show the data layers panel
         app.viewModel.showLayers(true);
-        
+
         //switch pageguide from default guide to active guide
         $.pageguide(activeGuide, activeGuideOverrides);
-        
+
         //show the active tab, close all themes and deactivate all layers, activate a couple layers
         //app.viewModel.closeAllThemes();
         app.viewModel.deactivateAllLayers();
@@ -1692,16 +1803,16 @@ function viewModel() {
             }
         }
         if (app.viewModel.themes()[3]) {
-            for (var i=0; i < app.viewModel.themes()[3].layers().length; i++) {
-                if ( app.viewModel.themes()[3].layers()[i].name === 'EEZ Boundary Lines' ) {
-                    app.viewModel.themes()[3].layers()[i].activateLayer();
+            for (var idx=0; idx < app.viewModel.themes()[3].layers().length; idx++) {
+                if ( app.viewModel.themes()[3].layers()[idx].name === 'EEZ Boundary Lines' ) {
+                    app.viewModel.themes()[3].layers()[idx].activateLayer();
                     foundSecondLayer = true;
                 }
             }
         }
         if ( ! (foundFirstLayer && foundSecondLayer) ) {
             if (app.viewModel.themes()[0]) {
-                var firstThemeLayers = app.viewModel.themes()[0].layers()
+                var firstThemeLayers = app.viewModel.themes()[0].layers();
                 if (firstThemeLayers.length) {
                     firstThemeLayers[0].activateLayer();
                     if (firstThemeLayers.length > 1) {
@@ -1710,29 +1821,29 @@ function viewModel() {
                 }
             }
         }
-            
-        if (app.MPSettings && app.MPSettings['latitude'] && app.MPSettings['longitude']) {
-            latitude = app.MPSettings['latitude'];
-            longitude = app.MPSettings['longitude'];
+
+        if (app.MPSettings && app.MPSettings.latitude && app.MPSettings.longitude) {
+            latitude = app.MPSettings.latitude;
+            longitude = app.MPSettings.longitude;
         } else {
             latitude = 36.87;
             longitude = 6.17;
         }
-        if (app.MPSettings && app.MPSettings['zoom']) {
-            zoom = app.MPSettings['zoom'];
+        if (app.MPSettings && app.MPSettings.zoom) {
+            zoom = app.MPSettings.zoom;
         } else {
             zoom = 4;
         }
-    
+
         app.setMapPosition(longitude, latitude, zoom);
         $('#activeTab').tab('show');
-        
+
         //start the tour
         setTimeout( function() { $.pageguide('open'); }, 700 );
-        
+
         app.pageguide.togglingTours = false;
     };
-    
+
     //if toggling legend or layers panel during default pageguide, then correct step 4 position
     self.correctTourPosition = function() {
         if ( $.pageguide('isOpen') ) {
@@ -1741,7 +1852,7 @@ function viewModel() {
             }
         }
     };
-    
+
     self.showMapAttribution = function() {
         $('.olControlScaleBar').show();
         $('.olControlAttribution').show();
@@ -1756,14 +1867,17 @@ function viewModel() {
             $('.olControlZoom').hide();
         }
     };
-    
+
     self.convertToSlug = function(orig) {
         return orig
             .toLowerCase()
-            .replace(/[^\w ]+/g,'')
-            .replace(/ +/g,'-');
+            // .replace(/[^\w ]+/g,'')
+            // .replace(/ +/g,'-');
+            .replace(/[^\w]+/g,' ') // replace non word characters with a space
+            .replace(/^\s\s*/, '').replace(/\s\s*$/, '') // remove trailing and (fronting?) whitespace
+            .replace(/ +/g,'-'); // replace spaces with hyphens
     };
-    
+
     /* REGISTRATION */
     self.username = ko.observable();
     self.usernameError = ko.observable(false);
@@ -1773,18 +1887,39 @@ function viewModel() {
     self.passwordError = ko.observable(false);
     self.passwordSuccess = ko.observable(false);
     self.inactiveError = ko.observable(false);
-    
+
+    $('#reset-password-modal').on('shown', function() {
+        self.password1("");
+        $("#reset-password-modal input[name='old_password']").focus();
+    });
+
+    $('#sign-in-modal').on('shown', function() {
+        $("#login-password").focus();
+    });
+
+    $('#forgot-password-modal').on('shown', function() {
+        $("#forgot-password-modal input[name='email']").focus();
+    });
+
+    $('#forgot-username-modal').on('shown', function() {
+        $("#forgot-username-modal input[name='email']").focus();
+    });
+
+    $('#registration-modal').on('shown', function() {
+        $("#registration-modal input[name='first_name']").focus();
+    });
+
     self.verifyLogin = function(form) {
         var username = $(form.username).val(),
             password = $(form.password).val();
         if (username && password) {
-            $.ajax({ 
+            $.ajax({
                 async: false,
-                url: '/marco_profile/verify_password', 
-                data: { username: username, password: password }, 
+                url: '/mp_profile/verify_password',
+                data: { username: username, password: password },
                 type: 'POST',
                 dataType: 'json',
-                success: function(result) { 
+                success: function(result) {
                     if (result.verified === 'inactive') {
                         self.inactiveError(true);
                     } else if (result.verified === true) {
@@ -1793,7 +1928,7 @@ function viewModel() {
                         self.passwordError(true);
                     }
                 },
-                error: function(result) { } 
+                error: function(result) { }
             });
             if (self.passwordError() || self.inactiveError()) {
                 return false;
@@ -1807,7 +1942,7 @@ function viewModel() {
     self.turnOffInactiveError = function() {
         self.inactiveError(false);
     };
-    
+
     self.verifyPassword = function(form) {
         var username = $(form.username).val(),
             old_password = $(form.old_password).val();
@@ -1816,20 +1951,20 @@ function viewModel() {
         self.checkPassword();
         if ( ! self.passwordWarning() ) {
             if (username && old_password) {
-                $.ajax({ 
+                $.ajax({
                     async: false,
-                    url: '/marco_profile/verify_password', 
-                    data: { username: username, password: old_password }, 
+                    url: '/mp_profile/verify_password',
+                    data: { username: username, password: old_password },
                     type: 'POST',
                     dataType: 'json',
-                    success: function(result) { 
+                    success: function(result) {
                         if (result.verified === true) {
                             self.passwordError(false);
                         } else {
                             self.passwordError(true);
                         }
                     },
-                    error: function(result) { } 
+                    error: function(result) { }
                 });
                 if (self.passwordError()) {
                     return false;
@@ -1843,8 +1978,8 @@ function viewModel() {
     self.turnOffPasswordError = function() {
         self.passwordError(false);
     };
-    
-    
+
+
     self.checkPassword = function() {
         if (self.password1() && self.password2() && self.password1() !== self.password2()) {
             self.passwordWarning(true);
@@ -1858,39 +1993,39 @@ function viewModel() {
         }
         return true;
     };
-    
+
     self.checkUsername = function() {
         if (self.username()) {
-            $.ajax({ 
-                url: '/marco_profile/duplicate_username', 
-                data: { username: self.username() }, 
+            $.ajax({
+                url: '/mp_profile/duplicate_username',
+                data: { username: self.username() },
                 method: 'GET',
                 dataType: 'json',
-                success: function(result) { 
+                success: function(result) {
                     if (result.duplicate === true) {
                         self.usernameError(true);
                     } else {
                         self.usernameError(false);
                     }
                 },
-                error: function(result) { } 
+                error: function(result) { }
             });
         }
     };
     self.turnOffUsernameError = function() {
         self.usernameError(false);
-    };    
-    
+    };
+
     self.getWindSpeedAttributes = function (title, data) {
         attrs = [];
         if ('SPEED_90' in data) {
-            var min_speed = (parseFloat(data['SPEED_90'])-0.125).toPrecision(3),
-                max_speed = (parseFloat(data['SPEED_90'])+0.125).toPrecision(3);
+            var min_speed = (parseFloat(data.SPEED_90)-0.125).toPrecision(3),
+                max_speed = (parseFloat(data.SPEED_90)+0.125).toPrecision(3);
             attrs.push({'display': 'Estimated Avg Wind Speed', 'data': min_speed + ' to ' + max_speed + ' m/s'});
-        } 
+        }
         return attrs;
     };
-       
+
     return self;
 } //end viewModel
 
