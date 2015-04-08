@@ -45,7 +45,7 @@ li a {
 	height: 500px;
 	margin-left: auto;
 	margin-right: auto;
-	background:url(../../img/ajax-loader.gif) no-repeat center center;
+	background:url(../img/ajax-loader.gif) no-repeat center center;
 }
 .jspHorizontalBar { 
     display: none !important; 
@@ -181,17 +181,17 @@ li a {
 .form-search input, .form-search input:focus{
 	width: 70%;
 	background-color: #eee;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  -moz-border-radius: 30px;
-  -webkit-border-radius: 30px;
-  border-radius: 30px;
-  border-top-right-radius: 0px;
-  border-bottom-right-radius: 0px;
-  -moz-border-top-right-radius: 0px;
-  -moz-border-bottom-right-radius: 0px;
-  -webkit-border-top-right-radius: 0px;
-  -webkit-border-bottom-right-radius: 0px;
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+	-moz-border-radius: 30px;
+	-webkit-border-radius: 30px;
+	border-radius: 30px;
+	border-top-right-radius: 0px;
+	border-bottom-right-radius: 0px;
+	-moz-border-top-right-radius: 0px;
+	-moz-border-bottom-right-radius: 0px;
+	-webkit-border-top-right-radius: 0px;
+	-webkit-border-bottom-right-radius: 0px;
 }
 
 .form-search .btn i {
@@ -199,10 +199,17 @@ li a {
 }
 
 #feedback-tab {
+	bottom: -2px;
+	background: #00446D;  /* for IE */
+	background: rgba(0, 68, 109, .5);
+	margin-left: 50%;
+	margin-right: 50%;
+
 	position: fixed;
-    z-index: 950;
-	left: -26px;
-	top: 80%;
+	z-index: 1005; /* Put it above the OpenLayers 'Sources: ' div */
+	/* positioning feedback button on bottom */
+	/*right: -26px;
+	top: 35%;*/
 	padding: 2px 8px;
 	border: 2px solid #ccc;
 	background: #2d8998; /* fallback for IE - IE6 requires background shorthand*/
@@ -215,11 +222,12 @@ li a {
 	-moz-border-top-right-radius: 10px;
 	-webkit-border-top-left-radius: 10px;
 	-webkit-border-top-right-radius: 10px;
-	-webkit-transform: rotate(90deg);	
-	-moz-transform: rotate(90deg);
-	-ms-transform: rotate(90deg);
-	-o-transform: rotate(90deg);
-	transform: rotate(90deg);
+	/* positioning feedback button on bottom */
+	/*-webkit-transform: rotate(-90deg);
+	-moz-transform: rotate(-90deg);
+	-ms-transform: rotate(-90deg);
+	-o-transform: rotate(-90deg);
+	transform: rotate(-90deg);*/
 }
 #feedback-tab a {
 	color: white;
@@ -618,7 +626,6 @@ img + h3 {
 #active .btn-info-sign {
     padding: 4px 8px;
 }
-
 #active .btn-layer > div {
 	display: inline-block;
 	line-height: 1;
@@ -627,7 +634,7 @@ img + h3 {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	width: auto;
-    max-width: 72%;
+    max-width: 90%;
 	/*height: inherit;*/
     height: 16px;
     vertical-align: middle;
@@ -636,7 +643,6 @@ img + h3 {
 .theme .theme-context {
 	margin-bottom: 20px;
 }
-
 
 .theme li {
 	display: inline;
@@ -739,14 +745,63 @@ img + h3 {
 
 /*** Rules for the layer switcher ***/
 
-#basemaps {
+#login-buttons, #basemaps {
   position: absolute;
   z-index: 1020;
   border-radius: 4px;
   padding: 5px;
   font-size: 14px;
 }
-
+#registration-modals form {
+	margin: 0;
+}
+#sign-in-form {
+    margin: 0;
+}
+#sign-in-modal .other-links {
+    padding: 15px;
+    margin-top: -60px;
+    float: left;
+}
+#signinButton {
+    margin-left: 5px;
+}
+#signinButton h4 {
+    margin-top: 0;
+}
+#signinButton div {
+    float: right !important;
+}
+#loginControls ul {
+    margin-bottom: 0;
+}
+#loginControls li {
+    list-style-type: none;
+    display: block;
+    margin-top: 5px;
+}
+#login-buttons {
+    top: 8px;
+    right: 65px;
+    z-index: 1019!important;
+}
+#login-buttons .dropdown-menu {
+    right: 0;
+    left: auto;
+}
+#login-buttons .btn-large {
+    padding: 6px 9px;
+}
+#login-buttons img {
+    height: 30px;
+}
+#login-buttons .caret {
+    margin-top: 11px;
+}
+#signinButton h4 {
+    margin: 0 5px 10px;
+    color: #000;
+}
 #basemaps {
 	top: 8px;
 	right: 8px;
@@ -813,6 +868,7 @@ img + h3 {
 }
 
 #basemaps .btn i {
+	display: inline-block;
     width: 20px;
 }
 
@@ -844,6 +900,7 @@ img + h3 {
   display: none;
   overflow: hidden;
   width: 140px;
+  z-index: 1020 !important;
 }
 
 .SimpleLayerSwitcher a.basey {
@@ -983,6 +1040,21 @@ body.borderless #map-wrapper {
 }
 /*** END PRINTING ***/
 
+/** add layer modal **/
+#add-layer-modal .controls {
+    position: relative;
+}
+
+#add-layer-modal .controls .icon-info-sign {
+    font-size: 20px;
+    top: 7px;
+    padding-left: 7px;
+    color: rgb(100,100,100);
+    position: absolute;
+}
+.popover {
+      z-index: 2020;
+}
 
 /*** RESPONSIVE DESIGN ***/
 

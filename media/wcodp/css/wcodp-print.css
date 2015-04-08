@@ -1,0 +1,59 @@
+
+@media print {
+	@page {
+		size: landscape
+	}
+
+	.wcodp #left-panel {
+		display: none;
+	}
+
+	.wcodp #feedback-tab {
+		display: none;
+	}
+
+	.wcodp .olControlScaleBar {
+		display : none;
+	}
+
+	.wcodp .olControlZoom {
+		display: none;
+	}
+
+	.wcodp #login-buttons {
+		display: none;
+	}
+
+	.wcodp #basemaps {
+		display: none;
+	}
+
+	.wcodp .SimpleLayerSwitcher {
+		display: none;
+	}
+
+	.wcodp #overview-overlay {
+		display: none;
+	}
+
+	.wcodp #aggregated-attribute-content h4{
+		color: black !important;
+	}
+
+	.wcodp #close-attribute-overlay {
+		display: none;
+	}
+
+	.wcodp #bookmark-popover {
+		display: none;
+	}
+
+	.wcodp #pageGuideMessage {
+		display: none;
+	}
+
+	.modal {
+		display: none !important;
+	}
+
+}

@@ -2,7 +2,7 @@
 #map {
   height: 800px;
   margin-bottom: 15px;
-  border-radius: 10px;
+  /*border-radius: 10px;*/
   overflow: hidden;
 }
 
@@ -221,7 +221,7 @@ i.check {
 
 /* the following overrides a 20px margin that was behaving intermittently in conjunction with the hovering of icon-check-empty */
 .accordion {
-  margin-bottom: 0px !important;
+  /*margin-bottom: 0px !important;*/
 }
 
 .btn-layer.not-active:hover i.icon-check-empty {
@@ -285,6 +285,17 @@ div.olLayerGooglePoweredBy
   text-decoration: none;
   background-color: #0081c2;
   color: white;
+}
+
+.layer-menu li a span.sublayer-name{
+  width: 245px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  padding-left: 5px;
+  margin-top: -2px;
+  vertical-align: middle;
 }
 
 .dropdown-menu: {

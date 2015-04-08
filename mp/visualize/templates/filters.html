@@ -1,0 +1,77 @@
+<!-- FILTER TAB -->
+<div class="tab-pane fade" id="filter" style="background-color: white; height: 100%" data-bind="with: filterTab">
+    <div class="row-fluid" style="height: 100%">
+        <div id="filter-content" class="span12" style="height: 100%;">
+            <div>
+                <!-- Data Layers -->
+                <!-- <ul class="unstyled list" style="margin: 10px 5px 0px 5px;" data-bind="sortable: { data: filterLayers, options: {  } }"> -->
+                <ul class="unstyled list" style="margin: 10px 5px 0px 5px;" data-bind="foreach: filterLayers">
+                    <li>
+                        <div class="btn-group">
+
+                            <a class="btn btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive() }">
+                                <i class="icon-info-sign icon-large"></i>
+                            </a>
+
+                            <a class="btn btn-default btn-layer" data-bind="click: toggleActive, css: { 'active': active(), 'not-active': ! active() }"> <!--, click: toggleActive-->
+                                <div style="font-weight: normal">
+                                    <span><i class="icon-large icon-filter" data-bind="visible: filterable"></i></span>
+                                    <span data-bind="text: name"></span>
+                                    <i class="check icon-large icon-check" data-bind="visible: active() && visible()"></i>
+                                    <i class="check icon-large icon-check-empty" data-bind="visible: active() && ! visible()"></i>
+                                </div>
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+
+                <!-- Date Range -->
+                <p style="margin-left: 15px; padding-left: 0px;" class="control-label">Filter by Date</p>
+                <div style="height: 35px; margin-left: 15px; margin-right: 15px;">
+                    <div class="input-append date span4" style="padding-right: 0px;" id="date-filter-start">
+                        <input id="filter-start-date" type="text" 
+                               data-bind="datePicker: fromDate"
+                               class="datepicker" 
+                               placeholder="Start Date" 
+                               style="max-width: 100px">
+                    </div>
+                    <label class="span4" style="padding: 0; margin-top: 7px; text-align: center;">To</label>
+                    <div class="input-append date span4" style="padding-left: 0px; margin-left: -5px;" id="date-filter-end">
+                        <input id="filter-to-date" type="text" 
+                               data-bind="datePicker: toDate"
+                               class="datepicker" 
+                               placeholder="End Date" 
+                               style="max-width: 100px;">
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div style="margin: 0px 20px 20px 15px; height: 30px">
+                    <form style="margin: 0px">
+                        <div id="filter-by" class="span12 form-group">
+                            <label for="multiple" class="control-label">Filter Beach Cleanups by Debris Type</label>
+                            <select id="filter-select" style="width: 337px;" class="field select2-multiple" data-bind="foreach: filters()" multiple>
+                              <option data-bind="text: $data.name"></option>
+                            </select>
+                        </div>
+
+                        <span>
+                            <a id="filter-button" class="btn btn-default" 
+                               data-bind="click: updateFilterClick, css: { 'enabled': updateFilterButtonIsEnabled(), 'disabled': !updateFilterButtonIsEnabled() }" 
+                               style="outline: none; float: right; margin-right: -3px; margin-left: 6px;">Update Filter
+                               <i class="icon-large icon-filter"></i>
+                             </a>
+                            <a class="btn btn-default" 
+                               data-bind="click: showFilterInfo, 
+                                          css: {'enabled': filterInfoButtonIsEnabled(), 
+                                                'disabled': !filterInfoButtonIsEnabled()}"
+                               style="outline: none; float: left;">Debris Type Filter Info
+                               <i class="icon-large icon-info-sign"></i>
+                            </a>
+                        </span>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

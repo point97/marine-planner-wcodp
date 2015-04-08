@@ -1,6 +1,6 @@
 // represents whether or not restoreState is currently being updated
-// example use:  saveStateMode will be false when a user is viewing a bookmark 
-app.saveStateMode = true; 
+// example use:  saveStateMode will be false when a user is viewing a bookmark
+app.saveStateMode = true;
 
 // save the state of app
 app.getState = function () {
@@ -9,10 +9,11 @@ app.getState = function () {
                 layers = $.map(app.viewModel.activeLayers(), function(layer) {
                     //return {id: layer.id, opacity: layer.opacity(), isVisible: layer.visible()};
                     return [ layer.id, layer.opacity(), layer.visible() ];
-                });   
-    return {
+                });
+
+    var state = {
         x: center.lon.toFixed(2),
-        y: center.lat.toFixed(2), 
+        y: center.lat.toFixed(2),
         z: app.map.getZoom(),
         logo: app.viewModel.showLogo(),
         dls: layers.reverse(),
@@ -23,6 +24,11 @@ app.getState = function () {
         layers: app.viewModel.showLayers() ? 'true': 'false'
         //and active tab
     };
+
+    if (app.viewModel.filterTab) {
+        state['filters'] = app.viewModel.filterTab.getFiltersJSON();
+    }
+    return state;
 };
 
 $(document).on('map-ready', function () {
@@ -49,10 +55,10 @@ app.establishLayerLoadState = function () {
             }
         }, 100);
     }
-        
+
 };
 // load compressed state (the url was getting too long so we're compressing it
-app.loadCompressedState = function(state) { 
+app.loadCompressedState = function(state) {
     // turn off active laters
     // create a copy of the activeLayers list and use that copy to iteratively deactivate
     var activeLayers = $.map(app.viewModel.activeLayers(), function(layer) {
@@ -67,19 +73,40 @@ app.loadCompressedState = function(state) {
         for (x=0; x < state.dls.length; x=x+3) {
             var id = state.dls[x+2],
                 opacity = state.dls[x+1],
-                isVisible = state.dls[x];
-                
-            if (app.viewModel.layerIndex[id]) {
-                app.viewModel.layerIndex[id].activateLayer();
-                app.viewModel.layerIndex[id].opacity(opacity);
+                isVisible = state.dls[x],
+                layer = app.viewModel.layerIndex[id];
+
+            if (layer) {
+
+                if (layer.filterable) {  
+                    // set fromDate
+                    var fromDate = state.filters.from.split('-');
+                    app.viewModel.filterTab.fromDate(new Date(fromDate));
+
+                    // set toDate
+                    var toDate = state.filters.to.split('-');
+                    app.viewModel.filterTab.toDate(new Date(toDate));
+                    
+                    // populate filters
+                    var filters = state.filters.filters;
+                    $('#filter-select').val(filters).trigger("change");
+                    
+                    app.viewModel.filterTab.updateFilterButtonIsEnabled(false);
+                }
+
+                layer.activateLayer();
+                layer.opacity(opacity);
                 //must not be understanding something about js, but at the least the following seems to work now...
                 if (isVisible || !isVisible) {
                     if (isVisible !== 'true' && isVisible !== true) {
-                        app.viewModel.layerIndex[id].toggleVisible();
+                        layer.toggleVisible();
                     }
                 }
+
             } else {
+
                 unloadedDesigns.push({id: id, opacity: opacity, isVisible: isVisible});
+
             }
        }
        if ( unloadedDesigns.length ) {
@@ -87,11 +114,11 @@ app.loadCompressedState = function(state) {
             $('#designsTab').tab('show'); //to activate the loading of designs
        }
     }
-    
+
     if ( !state.logo || state.logo === 'false') {
         app.viewModel.hideLogo();
     }
-    
+
     if (state.print === 'true') {
         app.printMode();
     }
@@ -120,14 +147,14 @@ app.loadCompressedState = function(state) {
                     }
                 }
             });
-        } 
+        }
     }
-    
+
     //if (app.embeddedMap) {
     if ( $(window).width() < 768 || app.embeddedMap ) {
         state.tab = "data";
     }
-    
+
     // active tab -- the following prevents theme and data layers from loading in either tab (not sure why...disbling for now)
     // it appears the dataTab show in state.themes above was causing the problem...?
     // timeout worked, but then realized that removing datatab show from above worked as well...
@@ -137,10 +164,12 @@ app.loadCompressedState = function(state) {
         setTimeout( function() { $('#activeTab').tab('show'); }, 200 );
     } else if (state.tab && state.tab === "designs") {
         setTimeout( function() { $('#designsTab').tab('show'); }, 200 );
+    } else if (state.tab && state.tab === "filter") {
+        setTimeout( function() { $('#filterTab').tab('show'); }, 200 );
     } else {
         setTimeout( function() { $('#dataTab').tab('show'); }, 200 );
     }
-    
+
     if ( state.legends && state.legends === 'true' ) {
         app.viewModel.showLegend(true);
     } else {
@@ -166,13 +195,13 @@ app.loadCompressedState = function(state) {
     //app.map.setCenter(
     //    new OpenLayers.LonLat(state.x, state.y).transform(
     //        new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913") ), state.z);
-    
+
     // is url is indicating a login request then show the login modal
     // /visualize/#login=true
-    if (!app.is_authenticated && state.login) { // not sure 
+    if (!app.is_authenticated && state.login) { // not sure
         $('#sign-in-modal').modal('show');
     }
-    
+
 };
 
 app.setMapPosition = function(x, y, z) {
@@ -204,110 +233,33 @@ app.loadState = function(state) {
         if (layer) {
             //activate layer (/planner/#<layer-name>)
             app.viewModel.layerIndex[layer.id].activateLayer();
+            
             //set open theme
-            layer.themes()[0].setOpenTheme()
+            var theme = layer.themes()[0];
+            if (theme) {
+                layer.themes()[0].setOpenTheme();    
+            } else {
+                layer.parent.themes()[0].setOpenTheme();
+            }
+            // layer.themes()[0].setOpenTheme();
+            
+            // switch to active tab
+            setTimeout( function() { $('#activeTab').tab('show'); }, 200 );
         }
         return;
     }
-    //Remnant from original MARCO state...
-    /*
-    if (state.print === 'true') {
-        app.printMode();
-    }
-    if (state.borderless === 'true') {
-        app.borderLess();
-    }
-    // turn off active laters
-    // create a copy of the activeLayers list and use that copy to iteratively deactivate
-    var activeLayers = $.map(app.viewModel.activeLayers(), function(layer) {
-        return layer;
-    });
-    //var activeLayers = $.extend({}, app.viewModel.activeLayers());
-    
-    // turn on the layers that should be active
-    app.viewModel.deactivateAllLayers();
-    if (state.activeLayers) {
-        $.each(state.activeLayers, function(index, layer) {
-            if (app.viewModel.layerIndex[layer.id]) {
-                app.viewModel.layerIndex[layer.id].activateLayer();
-                app.viewModel.layerIndex[layer.id].opacity(layer.opacity);
-                //must not be understanding something about js, but at the least the following seems to work now...
-                if (layer.isVisible || !layer.isVisible) {
-                    if (layer.isVisible !== 'true' && layer.isVisible !== true) {
-                        app.viewModel.layerIndex[layer.id].toggleVisible();
-                    }
-                }
-            }
-       });
-    }
-    
-    if (state.basemap) {
-        app.map.setBaseLayer(app.map.getLayersByName(state.basemap.name)[0]);
-    }
-    // now that we have our layers
-    // to allow for establishing the layer load state
-    app.establishLayerLoadState();
-
-    if (state.activeTab && state.activeTab.tab === 'active') {
-        $('#activeTab').tab('show');
-    } else {
-        if (state.activeTab || state.openThemes) {
-            $('#dataTab').tab('show');
-            if (state.openThemes) {
-                $.each(app.viewModel.themes(), function (i, theme) {
-                    if ( $.inArray(theme.id, state.openThemes.ids) !== -1 || $.inArray(theme.id.toString(), state.openThemes.ids) !== -1 ) {
-                        theme.setOpenTheme();
-                    } else {
-                        app.viewModel.openThemes.remove(theme);
-                    }
-                });
-            } 
-        }
-    }
-    
-    if ( state.legends && state.legends.visible === "true" ) {
-        app.viewModel.showLegend(true);
-    } else {
-        app.viewModel.showLegend(false);
-    }
-
-    if (state.layers && state.layers === 'true') {
-        app.viewModel.showLayers(true);
-    } else {
-        app.viewModel.showLayers(false);
-        app.map.render('map');
-    }
-
-    // map title for print view
-    if (state.title) {
-        app.viewModel.mapTitle(state.title);
-    }
-
-    
-    // Google.v3 uses EPSG:900913 as projection, so we have to
-    // transform our coordinates
-    if (state.location) {
-        app.map.setCenter(new OpenLayers.LonLat(state.location.x, state.location.y).transform(
-        new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913")), state.location.zoom);
-    }
-    
-    // is url is indicating a login request then show the login modal
-    if (!app.is_authenticated && state.login) {
-        $('#sign-in-modal').modal('show');
-    }
-    */
 };
 
 // load the state from the url hash
 
-app.loadStateFromHash = function (hash) { 
+app.loadStateFromHash = function (hash) {
     app.loadState($.deparam(hash.slice(1)));
 };
 
 // update the hash
 app.updateUrl = function () {
     var state = app.getState();
-    
+
     // save the restore state
     if (app.saveStateMode) {
         app.restoreState = state;

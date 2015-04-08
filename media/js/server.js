@@ -42,9 +42,18 @@ app.viewModel.loadLayers = function(data) {
                             theme: theme
                         };
                     }
+                    if (subLayer.filterable) {
+                    	if (self.filterTab) {
+							self.filterTab.filterLayers.push(subLayer);
+                    	}
+					}
 				});  
                 layer.subLayers.sort( function(a,b) { return a.name.toUpperCase().localeCompare(b.name.toUpperCase()); } );
 			} 
+			// filterable layers
+			if (layer.filterable) {
+				self.filterTab.filterLayers.push(layer);
+			}
 
 		});
         //sort by name
@@ -52,6 +61,7 @@ app.viewModel.loadLayers = function(data) {
         
 		self.themes.push(theme);
 	});
+
 	app.typeAheadSource = (function () {
             var keys = [];
             for (var searchTerm in app.viewModel.layerSearchIndex) {
