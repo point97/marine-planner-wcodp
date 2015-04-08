@@ -5,11 +5,11 @@ logger = logging.getLogger(__name__)
 
 def get_filters():
     get_url = settings.MARINE_DEBRIS_URL + 'events/get_filters'
-    print "Fetching URL {}".format(get_url)
+    print "Fetching URL {0}".format(get_url)
     try:
         results = requests.get(get_url)
     except Exception, e:
-        print "Hit exception {}".format(e)
+        print "Hit exception {0}".format(e)
         if logger:
             logger.exception(e)
             return None

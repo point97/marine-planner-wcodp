@@ -65,7 +65,7 @@ class Command(BaseCommand):
 
                 # We need to differentiate between the e.g. Paper category and the Paper item
                 if 'concept/Cat_' in parent_concept.uri:
-                    parent_concept.preflabel = "{} Category".format(child.text)
+                    parent_concept.preflabel = "{0} Category".format(child.text)
                 else:
                     parent_concept.preflabel = child.text
 
