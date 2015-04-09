@@ -15,13 +15,7 @@ DATABASES = {
     }
 }
 
-# added in a merge conflict ... leaving in as a precaution sfletche 7-2-2014
-LOG_FILE =  os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'mp.log'))
-LOG_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), 'logs'))
-
-LOG_FILE = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                            '..', 'mp.log'))
-LOG_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), 'logs'))
+LOG_DIR = '/var/log/marine-planner-wcodp/'
 
 ADMIN_MEDIA_PATH = "/usr/local/venv/marine-planner/lib/python2.7/site-packages/django/contrib/admin/static/admin/"
 
@@ -61,11 +55,10 @@ SERVER_EMAIL = DEFAULT_FROM_EMAIL
 EMAIL_SUBJECT_PREFIX = 'Marine Planner'
 ADMINS = (
     ('Seth Hill', 'seth@pointnineseven.com'),
-    ('Scott Fletcher', 'scott@pointnineseven.com'),
 )
 MANAGERS = ADMINS
 
-MARINE_DEBRIS_URL = 'http://debris-db.westcoastoceans.org/'
+MARINE_DEBRIS_URL = 'http://debris.westcoastoceans.org/'
 MP_ONTOLOGY_URL = 'http://143.239.249.181:8080/sws/SWS?request=GetConceptHierarchy&responseLanguage=en&elementSet=extended'
 MP_ONTOLOGY_FILTER_DEFAULT_LIMIT = 3 # years
 FEEDBACK_RECIPIENT = "Point 97 Dev Team <developers@pointnineseven.com>"
