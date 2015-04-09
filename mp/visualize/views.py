@@ -104,7 +104,11 @@ def show_mobile_map(request, template='mobile-map.html'):
     
 def get_sharing_groups(request):
     from madrona.features import user_sharing_groups
-    from functools import cmp_to_key
+    try:
+        from functools import cmp_to_key
+    except:
+        cmp_to_key = lambda x: x
+
     import locale
     locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
     json = []
