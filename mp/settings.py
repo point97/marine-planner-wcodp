@@ -16,6 +16,7 @@ DATABASES = {
 }
 
 LOG_DIR = '/var/log/marine-planner-wcodp/'
+LOG_FILE = '/dev/null'
 
 ADMIN_MEDIA_PATH = "/usr/local/venv/marine-planner/lib/python2.7/site-packages/django/contrib/admin/static/admin/"
 
