@@ -20,3 +20,4 @@ python-social-auth==0.1.23
 django-mptt
 django_mptt_admin
 grequests
+lxml
