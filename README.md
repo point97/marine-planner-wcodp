@@ -31,7 +31,9 @@ Instructions for automated installation using Chef coming soon
 
 
 
-### Local Installation with Vagrant
+### Local Installation without Vagrant
+It appears that running this with Vagrant and Ansible is broken. The alternoative is to run this on your local machine in a Virtual Ennvironment. Here are some incomplete notes on this. 
+
 See install docs here for how to install without Vagrant, Chef or Fab.
 
 https://docs.google.com/a/pointnineseven.com/document/d/1wwHLZ7gsX-529xFg3b0KOfzXNE-IBhwxDaAtcb5LdsM/edit#
