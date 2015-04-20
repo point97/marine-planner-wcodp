@@ -53,16 +53,34 @@ def get_filters(request):
         concepts = {}
 
         for concept in _all_concepts:
+            
+            # A hack to skip ill-defined concepts in the WMS
+            exclude = ['Plastic Bags Grocery Shopping Trash', 'Plastic Bags Ziplock Snack']
+            if concept.preflabel in exclude:
+                continue
+
+
             fields = []
 
             # Aggregate and append all the descendants of this concept, and append
             # their slugs to the list:
             subchildren = concept.get_descendants()
+
             [fields.append(x) for x in subchildren if x.slug != '']
 
             # Append if it exists, create it otherwise. This removes duplicate
             # entries.
             fun_tuples = [x.preflabel for x in fields]
+
+            # Another hack to remove ill-defined categories.
+            if concept.preflabel == 'Plastic Bags Category':
+                fun_tuples.remove('Plastic Bags Ziplock Snack')
+
+            print "*******************"
+            print concept.id
+            print fun_tuples
+
+
             if concepts.get(concept.preflabel):
                 map(concepts[concept.preflabel]["tuples"].append, fun_tuples)
                 concepts[concept.preflabel]["tuples"] = list(set(concepts[concept.preflabel]["tuples"]))
@@ -72,6 +90,8 @@ def get_filters(request):
                 }
             # Do this after so the logic remains
             concepts[concept.preflabel]["slug"] = concept.slug
+            
+
         to_return = [{'name': k, 'slug': v['slug'], 'subfields': v['tuples']} for k,v in concepts.items()]
 
         return HttpResponse(json.dumps(to_return), content_type="application/json")
@@ -108,6 +128,7 @@ def layer_proxy_view(request, layer_id):
     for category in categories:
         # Get the list of categories in the concept
         concept_list = RDFConcept.objects.filter(preflabel=category)
+        
         if not concept_list:
             continue
         concepts.append(child.slug 
@@ -123,17 +144,24 @@ def layer_proxy_view(request, layer_id):
         query_parameters.append("type=%s" % type_)
 
     for concept_list in concepts:
-        query_parameters.append('c=%s' % (','.join(concept_list)))
+        qs = ','.join(concept_list)
+        if 'Plastic Bags Category' in categories:
+            qs = qs.replace(',Plastic_bags_ziplock_snack', '')
+        query_parameters.append('c=%s' % (qs))
+
 
     if query_parameters: 
         new_req_url = '%s&%s' % (layer.url, '&'.join(query_parameters))
 
     resp = None
     if new_req_url:
-        r = requests.get(new_req_url)
+        res = requests.get(new_req_url)
         # Note: Future versions will need to use r.iter_content and a django
-        # Streaming HTTP Response. 
-        resp = HttpResponse(r.text, r.status_code)
+        # Streaming HTTP Response.
+
+        resp = HttpResponse(res.text, res.status_code)
+        
+
     else:
         # If we don't have any categories we just do this:
         resp = proxy_view(request, layer.url)

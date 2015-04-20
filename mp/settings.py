@@ -95,17 +95,32 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'social.apps.django_app.context_processors.login_redirect',
 )
 
-MIDDLEWARE_CLASSES += (
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.gzip.GZipMiddleware'
+# MIDDLEWARE_CLASSES += (
+#     'django.middleware.common.CommonMiddleware',
+#     'django.contrib.sessions.middleware.SessionMiddleware',
+#     'django.middleware.csrf.CsrfViewMiddleware',
+#     'django.contrib.auth.middleware.AuthenticationMiddleware',
+#     'django.contrib.messages.middleware.MessageMiddleware',
+#     #'django.middleware.gzip.GZipMiddleware'
 
-    # Uncomment the next line for simple clickjacking protection:
-    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
-)
+#     # Uncomment the next line for simple clickjacking protection:
+#     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+# )
+MIDDLEWARE_CLASSES = (
+ 'django.middleware.common.CommonMiddleware',
+ 'madrona.common.middleware.IgnoreCsrfMiddleware',
+ 'django.middleware.csrf.CsrfViewMiddleware',
+ 'django.contrib.sessions.middleware.SessionMiddleware',
+ 'django.contrib.messages.middleware.MessageMiddleware',
+ 'django.contrib.auth.middleware.AuthenticationMiddleware',
+ 'django.middleware.transaction.TransactionMiddleware',
+ 'madrona.openid.middleware.OpenIDMiddleware',
+ 'django.middleware.common.CommonMiddleware',
+ 'django.contrib.sessions.middleware.SessionMiddleware',
+ 'django.middleware.csrf.CsrfViewMiddleware',
+ 'django.contrib.auth.middleware.AuthenticationMiddleware',
+ 'django.contrib.messages.middleware.MessageMiddleware')
+
 
 LOGGING = {
     'version': 1,
