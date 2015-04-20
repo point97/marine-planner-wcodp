@@ -44,10 +44,11 @@ urlpatterns = patterns('',
                         visualize.views.show_embedded_map),
                        (r'^([\w-]*)/catalog/', explore.views.data_catalog),
                        (r'^$', RedirectView.as_view(url='/visualize')),
+                       url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
                        url("^media/admin/(?P<path>.*)$",
                                "django.views.static.serve",
                                {"document_root": settings.ADMIN_MEDIA_PATH}),
-                       (r'', include('madrona.common.urls')),
+                       #(r'', include('madrona.common.urls')),
                        )
 
 
@@ -55,4 +56,5 @@ if settings.DEBUG:
     # urlpatterns = patterns(url("^media/admin/(?P<path>.*)$",
     #     "django.views.static.serve",
     #     {"document_root": settings.ADMIN_MEDIA_PATH})) + urlpatterns
+  
     urlpatterns += staticfiles_urlpatterns()
