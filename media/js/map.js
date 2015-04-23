@@ -127,7 +127,7 @@ app.init = function() {
         subdivisions: 2, //default
         showMinorMeasures: false //default
     });
-    //map.addControl(scalebar);
+    map.addControl(scalebar);
 
     map.zoomBox = new OpenLayers.Control.ZoomBox({
         //enables zooming to a given extent on the map by holding down shift key while dragging the mouse
