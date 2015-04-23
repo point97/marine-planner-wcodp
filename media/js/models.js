@@ -379,7 +379,9 @@ function layerModel(options, parent) {
         if (layer.parent) {
             self.activateParentLayer();
         }
-
+        if (layer.arcIdentifyControl) {
+            layer.arcIdentifyControl.activate();
+        }
         //add utfgrid if applicable
         if (layer.utfgrid) {
             self.activateUtfGridLayer();
