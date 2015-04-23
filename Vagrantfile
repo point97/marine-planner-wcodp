@@ -30,8 +30,6 @@ Vagrant.configure("2") do |config|
             redis: false,
             installmedia: true,
             enable_sharing: true,
-            aws_access_key: '1234',
-            aws_secret: '1234',
             gplus: {
                 key: '40588472264-7qt1n9prnkpj40ivnuuck4jcntbknluk.apps.googleusercontent.com',
                 secret: 'e8aiVDsZGUGqyNK-8tmMq3Wv'
