@@ -48,7 +48,7 @@ urlpatterns = patterns('',
                        url("^media/admin/(?P<path>.*)$",
                                "django.views.static.serve",
                                {"document_root": settings.ADMIN_MEDIA_PATH}),
-                       #(r'', include('madrona.common.urls')),
+                       (r'', include('madrona.common.urls')),
                        )
 
 
