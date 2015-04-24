@@ -76,11 +76,6 @@ def get_filters(request):
             if concept.preflabel == 'Plastic Bags Category':
                 fun_tuples.remove('Plastic Bags Ziplock Snack')
 
-            print "*******************"
-            print concept.id
-            print fun_tuples
-
-
             if concepts.get(concept.preflabel):
                 map(concepts[concept.preflabel]["tuples"].append, fun_tuples)
                 concepts[concept.preflabel]["tuples"] = list(set(concepts[concept.preflabel]["tuples"]))
